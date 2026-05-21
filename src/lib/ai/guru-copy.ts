@@ -42,10 +42,10 @@ export function generateFallbackTouristCopy(data: GuruCopyInput): string {
 
   // 2. Viento fuerte
   if (hasWindAlert && mainStatus !== 'no') {
-    return 'El Gurú ve condiciones movidas. Puede haber señal de nieve, pero el viento puede complicar la experiencia en montaña.';
+    return 'El Gurú ve condiciones movidas. Puede haber nieve débil, pero el viento puede complicar la experiencia en montaña.';
   }
 
-  // 3. Sin señal / cota alta
+  // 3. Sin nieve a la vista / cota alta
   if (mainStatus === 'no' && cotaAlta) {
     return 'Hoy el Gurú no ve nieve clara. La montaña está tranquila y la cota viene alta, así que pinta más para paseo que para nevada.';
   }
@@ -55,23 +55,23 @@ export function generateFallbackTouristCopy(data: GuruCopyInput): string {
     return 'Hace frío, pero falta humedad que caiga en serio. Buen día de abrigo y paisaje, no tanto de nieve nueva.';
   }
 
-  // 5. Sin señal genérico
+  // 5. Sin nieve a la vista genérico
   if (mainStatus === 'no') {
-    return 'Hoy el Gurú no ve nieve clara. Sin señal fuerte para una nevada, más tranquilo para pasear.';
+    return 'Hoy el Gurú no ve nevada clara. Poca señal de precipitación relevante, más tranquilo para pasear.';
   }
 
   // 6. Nieve probable (yes)
   if (mainStatus === 'yes' && hasWindow) {
-    return `El Gurú ve buena señal de nieve. Si estás en Caviahue, prestá atención a la ventana de ${data.bestWindow.from} a ${data.bestWindow.to}: ahí puede estar lo mejor del día.`;
+    return `El Gurú ve buena señal de nevada. Si estás en Caviahue, prestá atención a la ventana de ${data.bestWindow.from} a ${data.bestWindow.to}: ahí puede estar lo mejor del día.`;
   }
 
   if (mainStatus === 'yes') {
-    return 'El Gurú ve buena señal de nieve. Las condiciones están dadas para los que buscan blanco en la montaña.';
+    return 'El Gurú ve buena señal de nevada. Las condiciones están dadas para los que buscan blanco en la montaña.';
   }
 
   // 7. Ventana clara (possible con ventana)
   if (mainStatus === 'possible' && hasWindow) {
-    return `Hay una ventana interesante para mirar la montaña: entre ${data.bestWindow.from} y ${data.bestWindow.to} se concentra la mejor señal.`;
+    return `Hay una ventana interesante para mirar la montaña: entre ${data.bestWindow.from} y ${data.bestWindow.to} se concentra lo mejor del día.`;
   }
 
   // 8. Posible nieve sin ventana

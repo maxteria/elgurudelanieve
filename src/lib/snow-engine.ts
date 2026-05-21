@@ -10,7 +10,7 @@ const ZONE_MAP: { name: ZoneForecast['name']; id: 'village' | 'mid' | 'top'; lab
 
 function getZoneAnswer(hourly: WeatherData['zones'][0]['hourly'], altitude: number): { status: 'yes' | 'possible' | 'no'; label: string } {
   const snowHours = hourly.filter(h => h.precip > 0 && h.temp <= 2 && h.freezing_level <= altitude + 150);
-  if (snowHours.length === 0) return { status: 'no', label: 'Sin señal de nieve' };
+  if (snowHours.length === 0) return { status: 'no', label: 'sin nieve a la vista' };
   const first = snowHours[0];
   if (first.hour === 0) return { status: 'yes', label: 'Señal de nieve presente' };
   return { status: 'possible', label: `Ventana desde las ${String(first.hour).padStart(2, '0')}:00` };
@@ -21,9 +21,9 @@ function getMainAnswer(zones: [ZoneInterpretation, ZoneInterpretation, ZoneInter
     const order = { yes: 3, possible: 2, no: 1 };
     return order[a.answer.status] >= order[b.answer.status] ? a : b;
   });
-  if (best.answer.status === 'yes') return { status: 'yes', label: 'SEÑAL DE NIEVE', description: 'Condiciones para nieve en el período. Consultá ventanas y zonas.' };
-  if (best.answer.status === 'possible') return { status: 'possible', label: 'POSIBLE NIEVE', description: 'Probabilidad de nieve. Señal condicional a temperatura y precipitación.' };
-  return { status: 'no', label: 'SIN SEÑAL', description: 'No hay precipitación suficiente ni cota favorable para una nevada clara.' };
+  if (best.answer.status === 'yes') return { status: 'yes', label: 'linda nevada', description: 'Condiciones para nevada en el período. Consultá ventanas y zonas.' };
+  if (best.answer.status === 'possible') return { status: 'possible', label: 'nieve moderada', description: 'Probabilidad de nevada. Condiciones conditionally favorables.' };
+  return { status: 'no', label: 'sin nieve a la vista', description: 'No hay precipitación suficiente ni cota favorable para una nevada clara.' };
 }
 
 function generateZoneAlerts(zone: ZoneForecast): Alert[] {
@@ -86,19 +86,19 @@ function generateSummary(interp: SnowInterpretation): string {
     rules.push('Puede llover abajo y nevar mejor hacia centro/cumbre.');
   }
 
-  // Nevada débil (regla 5) — solo si hay señal de nieve
+  // Nevada débil (regla 5) — solo si hay precipitación débil
   if (snowSignal && v.precipitation >= 0.3 && v.precipitation <= 1 && v.temp <= 2) {
     rules.push('Señal débil: podría haber nevada aislada o intermitente.');
   }
 
-  // Frío seco (regla 1) — sin señal de nieve
+  // Frío seco (regla 1) — sin nieve a la vista
   if (mainStatus === 'no' && v.temp <= 2 && v.precipitation <= 0.2 && v.humidity < 65) {
     rules.push('Frío seco. La temperatura acompaña, pero falta precipitación para una nevada clara.');
   }
 
-  // Cota favorable sin precipitación (regla 2) — sin señal de nieve
+  // Cota favorable sin precipitación (regla 2) — sin nieve a la vista
   if (mainStatus === 'no' && v.freezingLevel <= 1700 && v.precipitation <= 0.2 && rules.length === 0) {
-    rules.push('La cota acompaña, pero sin precipitación no hay señal clara de nevada.');
+    rules.push('La cota acompaña, pero sin precipitación no hay nevada clara.');
   }
 
   // Viento complica (regla 6)
@@ -126,7 +126,7 @@ function generateSummary(interp: SnowInterpretation): string {
   // Fallback — solo si no hay reglas de contenido (excluye cota alta)
   if (!hasContentRule) {
     if (mainStatus === 'no') {
-      rules.unshift('Sin señal de precipitación significativa. Jornada estable.');
+      rules.unshift('Sin precipitación relevante. Jornada estable.');
     } else if (mainStatus === 'possible') {
       rules.unshift('Probabilidad de nieve condicional a temperatura y precipitación.');
     } else {
