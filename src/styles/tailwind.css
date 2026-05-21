@@ -12,4 +12,9 @@ body {
   background: radial-gradient(circle at 45% 15%, rgba(98,217,255,0.10), transparent 32%),
               linear-gradient(180deg, #071016, #05090d);
   background-attachment: fixed;
+  overflow-x: hidden;
+}
+
+html {
+  max-width: 100vw;
 }

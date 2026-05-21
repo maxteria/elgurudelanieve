@@ -6,6 +6,7 @@ import { getWeatherData, type WeatherMode } from '../lib/weather/weather-source'
 import { analyzeAllPeriods } from '../lib/period-engine';
 import { isValidScenario } from '../data/demo-scenarios';
 import Sidebar from '../components/Sidebar.astro';
+import MobileNav from '../components/MobileNav.astro';
 import GuruNpcCard from '../components/guru/GuruNpcCard.astro';
 import { generateTouristCopy, type GuruCopyInput } from '../lib/ai/guru-copy';
 
@@ -80,10 +81,11 @@ const cotaLabel = freez > 2600 ? 'Cota alta' : freez > 2200 ? 'Cota justa' : 'Co
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
   </head>
-  <body class="text-white min-h-screen antialiased font-premium">
-    <div class="flex min-h-screen">
+  <body class="text-white min-h-screen antialiased font-premium overflow-x-hidden">
+    <MobileNav activeSection="home" />
+    <div class="flex min-h-screen min-w-0">
       <Sidebar updated={result.updated} source={source} weatherApi={result.weatherApi ?? null} activeSection="home" />
-      <main class="flex-1 px-6 md:px-10 py-2 md:py-3 relative">
+      <main class="flex-1 px-4 md:px-10 py-2 md:py-3 relative pt-12 md:pt-2">
 
         {isDemo && (
           <div class="absolute top-2 right-0 z-20 flex items-center gap-1 px-2 py-0.5 rounded-full border border-amber-400/20 bg-amber-400/5 text-[7px] tracking-[0.2em] uppercase text-amber-400/60 font-medium">

@@ -1,5 +1,6 @@
 ---
 import Sidebar from '../components/Sidebar.astro';
+import MobileNav from '../components/MobileNav.astro';
 ---
 
 <html lang="es">
@@ -15,10 +16,11 @@ import Sidebar from '../components/Sidebar.astro';
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
   </head>
-  <body class="text-white min-h-screen antialiased font-premium">
-    <div class="flex min-h-screen">
+  <body class="text-white min-h-screen antialiased font-premium overflow-x-hidden">
+    <MobileNav activeSection="historico" />
+    <div class="flex min-h-screen min-w-0">
       <Sidebar activeSection="historico" />
-      <main class="flex-1 px-6 md:px-10 py-2 md:py-3 relative">
+      <main class="flex-1 px-6 md:px-10 py-2 md:py-3 relative pt-12 md:pt-2">
         <div class="max-w-2xl mx-auto">
           <div class="mb-8">
             <h1 class="text-[28px] font-extrabold text-white tracking-tight">Histórico</h1>
