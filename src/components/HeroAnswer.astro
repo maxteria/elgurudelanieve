@@ -1,0 +1,37 @@
+---
+const { answer, description } = Astro.props;
+const isPositive = answer.toLowerCase().includes('sí') || answer.toLowerCase().includes('si');
+const subtitle = description;
+---
+<section class="w-full relative overflow-hidden min-h-[135px] flex flex-col justify-center p-5 md:p-6">
+  <svg class="absolute bottom-0 left-0 w-full h-32 opacity-[0.12] pointer-events-none" viewBox="0 0 1200 140" preserveAspectRatio="none">
+    <path d="M0,70 L40,20 L100,60 L180,5 L260,50 L320,12 L420,58 L500,0 L580,45 L680,15 L760,35 L860,10 L940,50 L1020,22 L1100,55 L1160,30 L1200,70 L1200,140 L0,140 Z" fill="url(#mtn2Grad)"/>
+    <defs><linearGradient id="mtn2Grad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="rgba(168,231,249,0.25)"/>
+      <stop offset="60%" stop-color="rgba(168,231,249,0.05)"/>
+      <stop offset="100%" stop-color="rgba(168,231,249,0)"/>
+    </linearGradient></defs>
+  </svg>
+  <svg class="absolute bottom-0 left-0 w-full h-24 opacity-[0.06] pointer-events-none" viewBox="0 0 1200 100" preserveAspectRatio="none">
+    <path d="M0,60 L60,30 L140,55 L220,20 L300,50 L380,15 L460,45 L540,25 L620,48 L700,20 L780,38 L860,28 L940,48 L1020,35 L1100,55 L1200,42 L1200,100 L0,100 Z" fill="white"/>
+  </svg>
+
+  <div class="absolute -top-8 -left-8 w-48 h-48 bg-hielo/5 rounded-full blur-3xl pointer-events-none"></div>
+
+  <span class="text-[8px] text-white/25 tracking-[0.35em] uppercase mb-1 font-medium relative z-10" data-period-hero-subtitle>Pronóstico para hoy</span>
+  <h1 class="text-[32px] md:text-[40px] font-extrabold text-white leading-[0.95] tracking-[-0.015em] relative z-10">¿Nieva en<br/>Caviahue?</h1>
+
+  <div class="mt-2 inline-flex items-center gap-2.5 bg-white/[0.05] border border-hielo/20 rounded-full pl-3 pr-5 h-[40px] shadow-[0_0_20px_rgba(168,231,249,0.08)] relative z-10" data-period-hero-answer>
+    <div class="w-7 h-7 rounded-full bg-hielo/[0.12] flex items-center justify-center shadow-[0_0_8px_rgba(168,231,249,0.12)]">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#a8e7f9" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="14" x2="12" y2="18"/>
+        <line x1="4.93" y1="4.93" x2="7.76" y2="7.76"/><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"/>
+        <line x1="2" y1="12" x2="6" y2="12"/><line x1="8" y1="12" x2="12" y2="12"/><line x1="14" y1="12" x2="18" y2="12"/>
+        <line x1="4.93" y1="19.07" x2="7.76" y2="16.24"/><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"/>
+      </svg>
+    </div>
+    <span class="text-sm md:text-base font-extrabold text-hielo tracking-[-0.01em]" data-period-hero-badge>{answer.toUpperCase()}</span>
+  </div>
+
+  <p class="mt-1.5 text-[11px] text-white/30 leading-relaxed max-w-lg relative z-10" data-period-hero-desc>{subtitle}</p>
+</section>

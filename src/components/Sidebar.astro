@@ -1,0 +1,56 @@
+---
+const { updated, source, weatherApi } = Astro.props;
+
+const hasWeatherApi = !!weatherApi;
+const labels = {
+  'open-meteo': ['DATOS REALES', hasWeatherApi ? 'Open-Meteo + WeatherAPI' : 'Open-Meteo', 'text-hielo/40'],
+  'mock-demo': ['MODO DEMO', 'Mock local', 'text-amber-400/50'],
+  'mock-fallback': ['FALLBACK', 'Mock local', 'text-naranja/50'],
+};
+const sl = labels[source] || ['—', '', 'text-white/15'];
+
+let updatedLabel = '—';
+if (updated) {
+  const d = new Date(updated);
+  const now = new Date();
+  const isToday = d.toDateString() === now.toDateString();
+  const yesterday = new Date(now);
+  yesterday.setDate(yesterday.getDate() - 1);
+  const isYesterday = d.toDateString() === yesterday.toDateString();
+  const time = d.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+  if (isToday) updatedLabel = `hoy ${time}`;
+  else if (isYesterday) updatedLabel = `ayer ${time}`;
+  else updatedLabel = `${d.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit' })} ${time}`;
+}
+---
+<aside class="hidden md:flex flex-col w-[180px] min-h-screen bg-[#101217]/95 border-r border-white/[0.04] text-hielo shrink-0">
+  <div class="flex flex-col items-start px-4 pt-6 pb-4">
+    <h2 class="text-[8px] font-bold tracking-[0.28em] uppercase text-white/20 mb-4">Estación 2026</h2>
+    <div class="leading-tight">
+      <div class="text-white/30 text-[8px] tracking-[0.15em]">EL</div>
+      <div class="text-white text-base font-extrabold tracking-[0.08em] leading-none mt-0.5">GURÚ</div>
+      <div class="text-white/30 text-[8px] tracking-[0.15em] mt-1">DE LA</div>
+      <div class="text-hielo text-base font-extrabold tracking-[0.08em] leading-none mt-0.5">NIEVE</div>
+      <div class="text-white/15 text-[8px] tracking-[0.2em] mt-2">CAVIAHUE</div>
+    </div>
+  </div>
+  <nav class="flex flex-col gap-2.5 px-4 mt-6 text-[9px] text-white/25 uppercase tracking-[0.18em]">
+    <span class="text-hielo/60 font-semibold">Dashboard</span>
+    <span>Pronóstico</span>
+    <span>Histórico</span>
+  </nav>
+  <div class="mt-auto px-4 pb-6 space-y-2.5">
+    <div class="flex items-center gap-1.5">
+      <span class={`text-[7px] tracking-[0.2em] uppercase font-medium ${sl[2]}`}>{sl[0]}</span>
+      <span class="text-[6px] text-white/12">·</span>
+      <span class="text-[7px] text-white/20">{sl[1]}</span>
+    </div>
+    <div class="text-[10px] text-white/15 leading-relaxed">
+      <div class="text-white/20">Actualizado</div>
+      <div class="text-hielo/30 font-mono tracking-tight">{updatedLabel}</div>
+    </div>
+    {weatherApi && (
+      <div class="text-[6px] text-white/10 leading-relaxed tracking-[0.1em] pt-1" title="Fuentes de datos">Ahora: WeatherAPI · Pronóstico: Open-Meteo</div>
+    )}
+  </div>
+</aside>

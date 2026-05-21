@@ -1,0 +1,52 @@
+---
+const { zone } = Astro.props;
+const { current, answer, altitude, label, alerts, id } = zone;
+const hasSnow = current.snowChance >= 60;
+
+let footerText = answer.label;
+if (id === 'village' && current.precipitation === 0) {
+  footerText = 'Sin precipitación activa';
+} else if (id === 'top' && current.freezingLevel > 2500) {
+  footerText = 'Cota alta para acumulación relevante';
+}
+---
+<div class="bg-[rgba(9,16,22,0.85)] border border-white/[0.06] rounded-xl px-4 py-3 shadow-[0_4px_20px_rgba(0,0,0,0.35)] flex flex-col h-full" data-period-zone>
+  <div class="flex items-center justify-between mb-1.5">
+    <h3 class="text-[10px] font-bold text-white/80 tracking-[0.1em] uppercase">{label}</h3>
+    <span class="text-[8px] text-white/20 font-mono">{altitude} m s.n.m.</span>
+  </div>
+
+  <div class="flex items-center gap-2.5 mb-2">
+    <svg width="32" height="32" viewBox="0 0 48 48" fill="none" stroke={hasSnow ? "#a8e7f9" : "rgba(255,255,255,0.15)"} stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M32 22a8 8 0 1 0-7.6-10.3A6.5 6.5 0 1 0 24 28h12a5 5 0 0 0 0-10h-1.5A5.5 5.5 0 0 0 32 22z" fill={hasSnow ? "rgba(168,231,249,0.1)" : "rgba(255,255,255,0.03)"}/>
+      {hasSnow && <>
+        <line x1="16" y1="26" x2="16" y2="30"/><line x1="16" y1="34" x2="16" y2="38"/>
+        <line x1="12" y1="30" x2="20" y2="30"/>
+        <line x1="14" y1="28" x2="18" y2="32"/><line x1="18" y1="28" x2="14" y2="32"/>
+      </>}
+    </svg>
+    <div class="flex items-center gap-2">
+      <span class="text-[30px] font-extrabold text-hielo leading-none" data-period-zone-temp>{current.temp}°</span>
+      <span class="text-[9px] text-white/25 mt-2">sensación <span data-period-zone-feels>{current.feelsLike}</span>°</span>
+    </div>
+  </div>
+
+  <div class="space-y-1.5 text-[9px] pt-1.5 border-t border-white/[0.03]">
+    <div class="flex items-center justify-between">
+      <span class="text-white/25">Viento</span>
+      <span class="text-white/70 font-semibold tabular-nums" data-period-zone-wind>{current.wind} km/h ↗</span>
+    </div>
+    <div class="flex items-center justify-between pt-1 border-t border-white/[0.02]">
+      <span class="text-white/25">Precipitación</span>
+      <span class="text-white/70 font-semibold tabular-nums">{current.precipitation} mm</span>
+    </div>
+    <div class="flex items-center justify-between pt-1 border-t border-white/[0.02]">
+      <span class="text-white/25">Prob. de nieve</span>
+      <span class="text-hielo font-bold tabular-nums" data-period-zone-snow>{current.snowChance}%</span>
+    </div>
+  </div>
+
+  <div class="mt-auto pt-1.5 border-t border-white/[0.03]">
+    <span class="text-[9px] text-hielo/60 font-medium" data-period-zone-answer>{footerText}</span>
+  </div>
+</div>

@@ -1,0 +1,134 @@
+﻿---
+const { zoneHourlyToday, zoneHourlyTomorrow, dailySummaries, periods } = Astro.props;
+const periodKeys = ['today', 'tomorrow', 'sevenDays'];
+const periodLabels = ['Hoy', 'Mañana', '7 días'];
+const charts = {
+  today: zoneHourlyToday,
+  tomorrow: zoneHourlyTomorrow
+};
+
+function renderHourlyChart(hours) {
+  if (!hours || hours.length === 0) return '';
+  const displayHours = hours.slice(0, 8);
+  const maxTemp = Math.max(...displayHours.map(h => h.temp));
+  const minTemp = Math.min(...displayHours.map(h => h.temp));
+  const tempRange = Math.max(maxTemp - minTemp, 4);
+  const maxFreeze = Math.max(...displayHours.map(h => h.freezing_level));
+  const minFreeze = Math.min(...displayHours.map(h => h.freezing_level));
+
+  const cw = 760, ch = 130, padL = 40, padR = 48, padT = 10, padB = 22;
+  const pw = cw - padL - padR, ph = ch - padT - padB;
+
+  function xp(i) { return padL + (i / (displayHours.length - 1)) * pw; }
+  function yt(t) { return padT + ph - ((t - minTemp + 1) / (tempRange + 2)) * ph; }
+  function yf(f) { return padT + ph - ((f - minFreeze) / Math.max(maxFreeze - minFreeze, 80)) * ph; }
+
+  const tpts = displayHours.map((h, i) => `${xp(i)},${yt(h.temp)}`).join(' ');
+  const fpts = displayHours.map((h, i) => `${xp(i)},${yf(h.freezing_level)}`).join(' ');
+
+  const tempLabels = [];
+  for (let t = -6; t <= 4; t += 2) {
+    if (t >= minTemp - 1 && t <= maxTemp + 1) tempLabels.push(t);
+  }
+  const freezeLabels = [];
+  for (let f = 1500; f <= 3000; f += 500) {
+    if (f >= minFreeze - 100 && f <= maxFreeze + 100) freezeLabels.push(f);
+  }
+  const tooltip = displayHours[displayHours.length - 1];
+  const tipIdx = displayHours.length - 1;
+  const xLabelY = ch - 6;
+
+  const tl = tempLabels.map(t => `<text x="${padL-4}" y="${yt(t)+1}" text-anchor="end" fill="rgba(255,255,255,0.12)" font-size="7" font-family="Inter, sans-serif">${t > 0 ? `+${t}\u00b0` : `${t}\u00b0`}</text>`).join('');
+  const fl = freezeLabels.map(f => `<text x="${cw-padR+4}" y="${yf(f)+1}" text-anchor="start" fill="rgba(255,255,255,0.08)" font-size="6" font-family="Inter, sans-serif">${f}m</text>`).join('');
+
+  return `<svg viewBox="0 0 ${cw} ${ch}" class="w-full h-auto" preserveAspectRatio="xMidYMid meet">
+      <line x1="${padL}" y1="${padT}" x2="${cw-padR}" y2="${padT}" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>
+      <line x1="${padL}" y1="${padT + ph*0.33}" x2="${cw-padR}" y2="${padT + ph*0.33}" stroke="rgba(255,255,255,0.02)" stroke-width="1"/>
+      <line x1="${padL}" y1="${padT + ph*0.67}" x2="${cw-padR}" y2="${padT + ph*0.67}" stroke="rgba(255,255,255,0.02)" stroke-width="1"/>
+      <line x1="${padL}" y1="${padT + ph}" x2="${cw-padR}" y2="${padT + ph}" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+      ${tl}${fl}
+      <polyline points="${tpts}" fill="none" stroke="#a8e7f9" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+      ${displayHours.map((hr, i) => `<circle cx="${xp(i)}" cy="${yt(hr.temp)}" r="2.5" fill="#a8e7f9" stroke="#0b0d10" stroke-width="1.2"/>`).join('')}
+      <polyline points="${fpts}" fill="none" stroke="#ff7e38" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="4,3" opacity="0.7"/>
+      ${displayHours.map((hr, i) => `<circle cx="${xp(i)}" cy="${yf(hr.freezing_level)}" r="1.8" fill="#ff7e38" stroke="#0b0d10" stroke-width="1" opacity="0.7"/>`).join('')}
+      <rect x="${xp(tipIdx)-28}" y="${yf(tooltip.freezing_level)-28}" width="56" height="18" rx="3" fill="rgba(9,16,22,0.92)" stroke="rgba(255,126,56,0.2)" stroke-width="0.5"/>
+      <text x="${xp(tipIdx)}" y="${yf(tooltip.freezing_level)-21}" text-anchor="middle" fill="rgba(168,231,249,0.5)" font-size="7" font-family="Inter, sans-serif">${String(tooltip.hour).padStart(2,'0')}:00</text>
+      <text x="${xp(tipIdx)}" y="${yf(tooltip.freezing_level)-14}" text-anchor="middle" fill="rgba(255,126,56,0.5)" font-size="7" font-family="Inter, sans-serif">Cota: ${tooltip.freezing_level}m</text>
+      ${displayHours.map((hr, i) => `<text x="${xp(i)}" y="${xLabelY}" text-anchor="middle" fill="rgba(255,255,255,0.12)" font-size="7" font-family="Inter, sans-serif">${String(hr.hour).padStart(2,'0')}</text>`).join('')}
+      <text x="${xp(displayHours.length-1) + (xp(1)-xp(0))}" y="${xLabelY}" text-anchor="middle" fill="rgba(255,255,255,0.12)" font-size="7" font-family="Inter, sans-serif">00</text>
+    </svg>`;
+}
+
+function renderDailyChart(dailySummaries) {
+  if (!dailySummaries || dailySummaries.length === 0) return '';
+  const days = dailySummaries.slice(0, 7);
+  const maxTemp = Math.max(...days.map(d => d.tempMax));
+  const minTemp = Math.min(...days.map(d => d.tempMin));
+  const tempRange = Math.max(maxTemp - minTemp, 4);
+
+  const cw = 760, ch = 130, padL = 40, padR = 48, padT = 10, padB = 22;
+  const pw = cw - padL - padR, ph = ch - padT - padB;
+
+  function xp(i) { return padL + (i / (days.length - 1)) * pw; }
+  function yt(t) { return padT + ph - ((t - minTemp + 1) / (tempRange + 2)) * ph; }
+
+  const tempLabels = [];
+  for (let t = -6; t <= 4; t += 2) {
+    if (t >= minTemp - 1 && t <= maxTemp + 1) tempLabels.push(t);
+  }
+  const xLabelY = ch - 6;
+
+  const tl = tempLabels.map(t => `<text x="${padL-4}" y="${yt(t)+1}" text-anchor="end" fill="rgba(255,255,255,0.12)" font-size="7" font-family="Inter, sans-serif">${t > 0 ? `+${t}\u00b0` : `${t}\u00b0`}</text>`).join('');
+
+  return `<svg viewBox="0 0 ${cw} ${ch}" class="w-full h-auto" preserveAspectRatio="xMidYMid meet">
+      <line x1="${padL}" y1="${padT}" x2="${cw-padR}" y2="${padT}" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>
+      <line x1="${padL}" y1="${padT + ph*0.33}" x2="${cw-padR}" y2="${padT + ph*0.33}" stroke="rgba(255,255,255,0.02)" stroke-width="1"/>
+      <line x1="${padL}" y1="${padT + ph*0.67}" x2="${cw-padR}" y2="${padT + ph*0.67}" stroke="rgba(255,255,255,0.02)" stroke-width="1"/>
+      <line x1="${padL}" y1="${padT + ph}" x2="${cw-padR}" y2="${padT + ph}" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+      ${tl}
+      ${days.map((d, i) => {
+        const x = xp(i);
+        const yMin = yt(d.tempMin);
+        const yMax = yt(d.tempMax);
+        return `<line x1="${x}" y1="${yMax}" x2="${x}" y2="${yMin}" stroke="#a8e7f9" stroke-width="6" stroke-linecap="round" opacity="0.5"/>
+          <circle cx="${x}" cy="${yMax}" r="2.5" fill="#a8e7f9" stroke="#0b0d10" stroke-width="1.2"/>
+          <circle cx="${x}" cy="${yMin}" r="2.5" fill="#ff7e38" stroke="#0b0d10" stroke-width="1.2"/>`;
+      }).join('')}
+      ${days.map((d, i) => {
+        return d.totalSnow > 0
+          ? `<rect x="${xp(i) - 8}" y="${padT}" width="16" height="${Math.min(d.totalSnow * 3, 20)}" rx="2" fill="rgba(168,231,249,0.25)" stroke="rgba(168,231,249,0.15)" stroke-width="0.5"/>`
+          : '';
+      }).join('')}
+      ${days.map((d, i) => `<text x="${xp(i)}" y="${xLabelY}" text-anchor="middle" fill="rgba(255,255,255,0.12)" font-size="7" font-family="Inter, sans-serif">${d.weekday.slice(0, 3)}</text>`).join('')}
+    </svg>`;
+}
+
+const periodSvgs = {};
+periodSvgs.today = renderHourlyChart(charts.today);
+periodSvgs.tomorrow = renderHourlyChart(charts.tomorrow);
+periodSvgs.sevenDays = renderDailyChart(dailySummaries);
+const firstKey = periodKeys[0];
+---
+
+<div class="bg-[rgba(9,16,22,0.85)] border border-white/[0.06] rounded-xl px-4 py-3 shadow-[0_4px_20px_rgba(0,0,0,0.35)]">
+  <div class="flex items-center justify-between mb-1.5">
+    <span class="text-[7px] text-white/25 tracking-[0.3em] uppercase font-medium">Evoluci&oacute;n Temperatura &amp; Cota de Nieve</span>
+    <div class="flex gap-1.5 text-[8px] period-tabs">
+      {periodKeys.map((key, i) => (
+        <span class={`period-tab ${i === 0 ? 'text-hielo/70 font-semibold bg-hielo/[0.06] px-2 py-0.5 rounded-full' : 'text-white/20 px-1.5 py-0.5'}`} data-period={key}>{periodLabels[i]}</span>
+      ))}
+    </div>
+  </div>
+
+  {periodKeys.map(key => (
+    <div class="period-chart" data-period={key} style={`display:${key === firstKey ? 'block' : 'none'}`} set:html={periodSvgs[key]} />
+  ))}
+
+  <div class="flex items-center gap-3 mt-1.5">
+    <div class="flex items-center gap-1"><span class="w-2.5 h-[1.5px] bg-hielo rounded-full"></span><span class="text-[7px] text-white/20">Temperatura &deg;C</span></div>
+    <div class="flex items-center gap-1"><span class="w-2.5 h-0 rounded-full border-t border-dashed border-naranja/60"></span><span class="text-[7px] text-white/20">Cota de nieve m</span></div>
+  </div>
+  <p class="text-[8px] text-white/20 mt-1.5 leading-relaxed period-desc" data-period={firstKey}>
+    {periods[firstKey]?.guruSummary || 'Seleccion\u00e1 un per\u00edodo para ver el detalle.'}
+  </p>
+</div>

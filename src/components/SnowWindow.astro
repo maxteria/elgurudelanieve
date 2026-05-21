@@ -1,0 +1,24 @@
+---
+const { from, to, label, hasWindow, description } = Astro.props;
+const dayFrom = 'Miércoles';
+const dayTo = 'Jueves';
+---
+<div class="bg-[rgba(9,16,22,0.85)] border border-white/[0.06] rounded-xl px-4 py-3 shadow-[0_4px_20px_rgba(0,0,0,0.35)]" data-period-window>
+  <div class="flex items-center gap-1.5 mb-1.5">
+    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#a8e7f9" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+    </svg>
+    <span class="text-[7px] text-white/25 tracking-[0.3em] uppercase font-medium">{hasWindow ? 'Ventana de Mejor Nieve' : 'Sin ventana clara'}</span>
+  </div>
+  <div class="flex items-baseline gap-1" style={`display:${hasWindow ? '' : 'none'}`}>
+    <span class="text-[24px] font-extrabold text-hielo leading-none" data-period-window-from>{from}</span>
+    <span class="text-sm font-bold text-hielo/30">a</span>
+    <span class="text-[24px] font-extrabold text-hielo leading-none" data-period-window-to>{to}</span>
+  </div>
+  <div class="text-[9px] text-white/25" style={`display:${hasWindow ? '' : 'none'}`}>{dayFrom} a {dayTo}</div>
+  <div class="relative h-1 bg-white/[0.04] rounded-full mt-2 overflow-hidden" style={`display:${hasWindow ? '' : 'none'}`}>
+    <div class="absolute h-full bg-gradient-to-r from-hielo/60 to-hielo/30 rounded-full" style="left:0%;width:45.8%"/>
+  </div>
+  <p class="text-[9px] text-white/25 mt-1.5 leading-relaxed" data-period-window-desc style={`display:${hasWindow ? '' : 'none'}`}>{description}</p>
+  <p class="text-[11px] text-white/30 mt-1 leading-relaxed" data-period-window-none style={`display:${hasWindow ? 'none' : ''}`}>No aparece un tramo con precipitación suficiente y temperatura favorable.</p>
+</div>

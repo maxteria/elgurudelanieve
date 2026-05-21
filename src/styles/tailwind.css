@@ -1,0 +1,15 @@
+@import "tailwindcss";
+
+@theme {
+  --color-volcan: #18181b;
+  --color-hielo: #a8e7f9;
+  --color-naranja: #ff7e38;
+  --color-montana: #071016;
+  --font-premium: "Inter", ui-sans-serif, system-ui;
+}
+
+body {
+  background: radial-gradient(circle at 45% 15%, rgba(98,217,255,0.10), transparent 32%),
+              linear-gradient(180deg, #071016, #05090d);
+  background-attachment: fixed;
+}
