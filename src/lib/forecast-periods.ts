@@ -49,16 +49,16 @@ export function getSevenDayForecast(hourly: NormalizedHourlyForecast[]): DailySu
   }
 
   const now = new Date();
-  const sevenDays = new Date(now);
-  sevenDays.setDate(sevenDays.getDate() + 7);
+  const maxDate = new Date(now);
+  maxDate.setDate(maxDate.getDate() + 16);
 
   const summaries: DailySummary[] = [];
 
   for (const [dateStr, entries] of grouped) {
     const d = parseLocalDate(dateStr + 'T12:00:00');
-    // skip past dates and beyond 7 days
+    // skip past dates and beyond 16 days
     if (d < now) continue;
-    if (d > sevenDays) continue;
+    if (d > maxDate) continue;
 
     const temps = entries.map(e => e.temp);
     const feelsLikes = entries.map(e => e.feelsLike);

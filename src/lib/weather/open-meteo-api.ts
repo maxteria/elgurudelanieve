@@ -27,6 +27,7 @@ export type OpenMeteoResponse = {
     snowfall: number[];
     freezinglevel_height: number[];
     wind_speed_10m: number[];
+    wind_direction_10m: number[];
     wind_gusts_10m: number[];
     relative_humidity_2m: number[];
     cloud_cover: number[];
@@ -50,6 +51,7 @@ export function buildOpenMeteoUrl(
       'snowfall',
       'freezinglevel_height',
       'wind_speed_10m',
+      'wind_direction_10m',
       'wind_gusts_10m',
       'relative_humidity_2m',
       'cloud_cover'

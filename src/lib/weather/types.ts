@@ -20,6 +20,7 @@ export type NormalizedHourlyForecast = {
   snowfall: number;
   freezingLevel: number;
   wind: number;
+  windDir: number;
   windGusts: number;
   humidity: number;
   cloudCover: number;

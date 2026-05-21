@@ -73,7 +73,7 @@ export async function getWeatherData(options?: { mode?: WeatherMode; scenario?: 
 
   try {
     const [raw, weatherApi] = await Promise.all([
-      fetchOpenMeteo(CAVIAHUE_COORDS.lat, CAVIAHUE_COORDS.lon, { forecastDays: 7 }),
+      fetchOpenMeteo(CAVIAHUE_COORDS.lat, CAVIAHUE_COORDS.lon, { forecastDays: 16 }),
       fetchWeatherAPICurrent(),
     ]);
     const normalized = normalizeOpenMeteoResponse(raw);

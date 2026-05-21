@@ -41,6 +41,7 @@ export function normalizeOpenMeteoResponse(raw: OpenMeteoResponse): NormalizedSn
     snowfall: Math.round(raw.hourly.snowfall[i] * 10) / 10,
     freezingLevel: Math.round(raw.hourly.freezinglevel_height[i]),
     wind: Math.round(raw.hourly.wind_speed_10m[i] * 10) / 10,
+    windDir: Math.round(raw.hourly.wind_direction_10m[i]),
     windGusts: Math.round(raw.hourly.wind_gusts_10m[i] * 10) / 10,
     humidity: Math.round(raw.hourly.relative_humidity_2m[i]),
     cloudCover: Math.round(raw.hourly.cloud_cover[i])

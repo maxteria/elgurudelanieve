@@ -3,7 +3,7 @@ const { updated, source, weatherApi, activeSection } = Astro.props as {
   updated?: string;
   source?: string;
   weatherApi?: unknown;
-  activeSection?: 'home' | 'lab' | 'historico';
+  activeSection?: 'home' | 'lab' | 'historico' | 'pronostico';
 };
 
 const hasWeatherApi = !!weatherApi;
@@ -30,6 +30,7 @@ if (updated) {
 
 const navItems = [
   { key: 'home', label: 'El Gurú', href: '/' },
+  { key: 'pronostico', label: 'Pronóstico', href: '/pronostico' },
   { key: 'lab', label: 'El Gurú Lab', href: '/lab' },
   { key: 'historico', label: 'Histórico', href: '/historico' },
 ];
