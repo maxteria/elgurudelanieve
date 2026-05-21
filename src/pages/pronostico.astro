@@ -5,7 +5,6 @@ import { getWeatherData, type WeatherMode } from '../lib/weather/weather-source'
 import { analyzeAllPeriods } from '../lib/period-engine';
 import { getSevenDayForecast } from '../lib/forecast-periods';
 import { isValidScenario } from '../data/demo-scenarios';
-import Sidebar from '../components/Sidebar.astro';
 import MobileNav from '../components/MobileNav.astro';
 
 const params = Astro.url.searchParams;
@@ -346,14 +345,11 @@ const PERIOD_LABELS = ['AM', 'PM', 'Noche'];
   </head>
   <body class="text-white min-h-screen antialiased font-premium overflow-x-hidden">
     <MobileNav activeSection="pronostico" />
-    <div class="flex min-h-screen min-w-0">
-      <Sidebar updated={periods.today.updated} source={source} weatherApi={weatherApi ?? null} activeSection="pronostico" />
-      <main class="flex-1 px-4 md:px-10 py-2 md:py-3 relative pt-14 md:pt-3">
-
-        {isDemo && (
-          <div class="absolute top-2 right-0 z-20 flex items-center gap-1 px-2 py-0.5 rounded-full border border-amber-400/20 bg-amber-400/5 text-[7px] tracking-[0.2em] uppercase text-amber-400/60 font-medium">
-            <span class="w-1.5 h-1.5 rounded-full bg-amber-400/50 animate-pulse" />
-            Demo{activeScenario ? ` · ${activeScenario}` : ''}
+    <main class="min-h-screen pt-12 px-4 md:px-8 pb-8">
+      {isDemo && (
+        <div class="absolute top-14 right-4 z-20 flex items-center gap-1 px-2 py-0.5 rounded-full border border-amber-400/20 bg-amber-400/5 text-[7px] tracking-[0.2em] uppercase text-amber-400/60 font-medium">
+          <span class="w-1.5 h-1.5 rounded-full bg-amber-400/50 animate-pulse" />
+          Demo{activeScenario ? ` · ${activeScenario}` : ''}
           </div>
         )}
 
@@ -383,7 +379,7 @@ const PERIOD_LABELS = ['AM', 'PM', 'Noche'];
           const z = zoneKeys[idx];
           const guruTexts = { village: villageGuru, mid: midGuru, top: topGuru };
           return (
-            <div class="zone-table" data-zone={z} style={idx !== 0 ? 'display:none' : ''}>
+            <div class="zone-table min-w-0" data-zone={z} style={idx !== 0 ? 'display:none' : ''}>
               <div class="bg-[rgba(9,16,22,0.8)] border border-hielo/20 rounded-xl px-5 py-4 mb-5">
                 <div class="flex items-center justify-between mb-2">
                   <span class="text-[8px] text-hielo/50 tracking-[0.3em] uppercase font-semibold">EL GURÚ VE EN EL EXTENDIDO</span>
@@ -393,7 +389,7 @@ const PERIOD_LABELS = ['AM', 'PM', 'Noche'];
               </div>
 
               {days.length > 0 ? (
-                <div class="relative overflow-x-auto pb-4" data-scroll-container>
+                <div class="w-full overflow-x-auto" data-scroll-container>
                   <div class="min-w-[700px]">
 
                     <div class="flex border-b border-white/[0.08]">

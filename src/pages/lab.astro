@@ -7,7 +7,6 @@ import { analyzeAllPeriods } from '../lib/period-engine';
 import { getTodayForecast, getTomorrowForecast, getSevenDayForecast } from '../lib/forecast-periods';
 import { normalizedToLegacy } from '../lib/weather/convert-to-legacy';
 import { isValidScenario } from '../data/demo-scenarios';
-import Sidebar from '../components/Sidebar.astro';
 import MobileNav from '../components/MobileNav.astro';
 import NowCard from '../components/NowCard.astro';
 import PowderScore from '../components/PowderScore.astro';
@@ -99,13 +98,10 @@ const zoneHourlyTomorrow = buildZoneHourly('tomorrow');
   </head>
   <body class="text-white min-h-screen antialiased font-premium overflow-x-hidden">
     <MobileNav activeSection="lab" />
-    <div class="flex min-h-screen min-w-0">
-      <Sidebar updated={result.updated} source={source} weatherApi={result.weatherApi ?? null} activeSection="lab" />
-      <main class="flex-1 px-4 md:px-10 py-2 md:py-3 relative pt-12 md:pt-2">
-
-        {isDemo && (
-          <div class="absolute top-2 right-0 z-20 flex items-center gap-1 px-2 py-0.5 rounded-full border border-amber-400/20 bg-amber-400/5 text-[7px] tracking-[0.2em] uppercase text-amber-400/60 font-medium">
-            <span class="w-1.5 h-1.5 rounded-full bg-amber-400/50 animate-pulse" />
+    <main class="min-h-screen pt-12 px-4 md:px-8 pb-8">
+      {isDemo && (
+        <div class="absolute top-14 right-4 z-20 flex items-center gap-1 px-2 py-0.5 rounded-full border border-amber-400/20 bg-amber-400/5 text-[7px] tracking-[0.2em] uppercase text-amber-400/60 font-medium">
+          <span class="w-1.5 h-1.5 rounded-full bg-amber-400/50 animate-pulse" />
             Demo{activeScenario ? ` · ${activeScenario}` : ''}
           </div>
         )}
