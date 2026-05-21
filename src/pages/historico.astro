@@ -1,0 +1,45 @@
+---
+import Sidebar from '../components/Sidebar.astro';
+---
+
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Histórico | El Gurú de la Nieve</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/emblema.png" />
+    <meta name="theme-color" content="#a8e7f9" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  </head>
+  <body class="text-white min-h-screen antialiased font-premium">
+    <div class="flex min-h-screen">
+      <Sidebar activeSection="historico" />
+      <main class="flex-1 px-6 md:px-10 py-2 md:py-3 relative">
+        <div class="max-w-2xl mx-auto">
+          <div class="mb-8">
+            <h1 class="text-[28px] font-extrabold text-white tracking-tight">Histórico</h1>
+            <p class="text-white/30 text-[11px] mt-1">Lecturas pasadas del Gurú · Archivo por fecha</p>
+          </div>
+
+          <div class="bg-[rgba(9,16,22,0.6)] border border-white/[0.06] rounded-xl px-6 py-8 text-center">
+            <div class="w-12 h-12 mx-auto mb-4 rounded-full bg-hielo/[0.08] flex items-center justify-center">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#a8e7f9" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/>
+                <polyline points="12 6 12 12 16 14"/>
+              </svg>
+            </div>
+            <h2 class="text-[14px] font-semibold text-white/60 mb-2">Pronóstico histórico en construcción</h2>
+            <p class="text-[11px] text-white/30 leading-relaxed max-w-sm mx-auto">
+              El Histórico del Gurú guardará las lecturas pasadas, nevadas registradas y comparación forecast vs realidad.
+            </p>
+            <div class="mt-4 text-[9px] text-white/15 tracking-[0.2em] uppercase">Próximamente</div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </body>
+</html>

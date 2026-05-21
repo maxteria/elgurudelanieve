@@ -4,19 +4,9 @@ import type { PeriodKey, PeriodInterpretations } from '../lib/types';
 import type { DemoSenario } from '../data/demo-scenarios';
 import { getWeatherData, type WeatherMode } from '../lib/weather/weather-source';
 import { analyzeAllPeriods } from '../lib/period-engine';
-import { getTodayForecast, getTomorrowForecast, getSevenDayForecast } from '../lib/forecast-periods';
-import { normalizedToLegacy } from '../lib/weather/convert-to-legacy';
 import { isValidScenario } from '../data/demo-scenarios';
 import Sidebar from '../components/Sidebar.astro';
-import NowCard from '../components/NowCard.astro';
-import HeroAnswer from '../components/HeroAnswer.astro';
-import PowderScore from '../components/PowderScore.astro';
-import ZoneCard from '../components/ZoneCard.astro';
-import ForecastChart from '../components/ForecastChart.astro';
-import SnowWindow from '../components/SnowWindow.astro';
-import AlertsPanel from '../components/AlertsPanel.astro';
-import GuruSummary from '../components/GuruSummary.astro';
-import GuruTouristCopy from '../components/GuruTouristCopy.astro';
+import GuruNpcCard from '../components/guru/GuruNpcCard.astro';
 import { generateTouristCopy, type GuruCopyInput } from '../lib/ai/guru-copy';
 
 const params = Astro.url.searchParams;
@@ -31,7 +21,6 @@ const firstPeriod: PeriodKey = 'today';
 const periods = analyzeAllPeriods(normalized);
 const result = periods[firstPeriod];
 if (weatherApi) result.weatherApi = weatherApi;
-const zoneList = [result.zones.village, result.zones.mid, result.zones.top];
 const isDemo = source === 'mock-demo';
 
 const periodKeys: PeriodKey[] = ['today', 'tomorrow', 'sevenDays'];
@@ -55,97 +44,45 @@ periodKeys.forEach((key, i) => {
   touristSources[key] = touristResults[i].source;
 });
 
-const dailySummaries = getSevenDayForecast(normalized.hourly);
-const periodDataJson = JSON.stringify({ periods, dailySummaries, touristCopies, touristSources });
+const mainCopy = touristCopies.today || 'Hoy no veo nieve, rider. La montaña está fría, pero seca. No te manijees todavía: por ahora es día de encerar la tabla y mirar el cerro de reojo.';
 
-function buildZoneHourly(period: PeriodKey) {
-  const hourly = period === 'today'
-    ? getTodayForecast(normalized.hourly)
-    : period === 'tomorrow'
-    ? getTomorrowForecast(normalized.hourly)
-    : normalized.hourly;
-  if (hourly.length === 0) return [];
-  const midZone = normalized.zones.mid;
-  const hasHour = (h: typeof hourly[0]) => {
-    const d = new Date(h.time);
-    return d.getHours();
-  };
-  return hourly.map(h => {
-    const zoneOffset = (midZone.altitude - normalized.zones.village.altitude) * 0.0065;
-    const zoneTemp = Math.round((h.temp - zoneOffset) * 10) / 10;
-    return {
-      hour: new Date(h.time).getHours(),
-      temp: zoneTemp,
-      feels_like: h.feelsLike,
-      wind: h.wind,
-      precip: h.precipitation,
-      snow_prob: 0,
-      freezing_level: h.freezingLevel
-    };
-  });
-}
-const zoneHourlyToday = buildZoneHourly('today');
-const zoneHourlyTomorrow = buildZoneHourly('tomorrow');
+const freez = result.zones.village.current.freezingLevel;
+const cotaLabel = freez > 2600 ? 'Cota alta' : freez > 2200 ? 'Cota justa' : 'Cota favorable';
 ---
 
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-    <title>El Gurú de la Nieve | Pronóstico de nieve para Caviahue</title>
-    <meta name="description" content="Dashboard de nieve para Caviahue. Pronóstico de nevadas, Powder Score, cota y mejores ventanas de nieve basadas en datos reales de Open-Meteo y WeatherAPI." />
+    <title>El Gurú de la Nieve | Caviahue</title>
+    <meta name="description" content="¿Nieva en Caviahue? El Gurú te dice cómo viene la montaña hoy. Lectura humana sin tecnicismos." />
     <meta name="robots" content="index, follow" />
     <link rel="canonical" href="https://elgurudelanieve.vercel.app/" />
-
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="apple-touch-icon" href="/emblema.png" />
     <meta name="theme-color" content="#a8e7f9" />
     <link rel="manifest" href="/site.webmanifest" />
-
     <meta property="og:type" content="website" />
-    <meta property="og:title" content="El Gurú de la Nieve | Pronóstico de nieve para Caviahue" />
-    <meta property="og:description" content="Dashboard de nieve para Caviahue. Powder Score, cota, temperatura y mejores ventanas de nieve según datos reales." />
+    <meta property="og:title" content="El Gurú de la Nieve | Caviahue" />
+    <meta property="og:description" content="¿Nieva en Caviahue? El Gurú te dice cómo viene la montaña." />
     <meta property="og:url" content="https://elgurudelanieve.vercel.app/" />
     <meta property="og:site_name" content="El Gurú de la Nieve | Caviahue" />
     <meta property="og:image" content="https://elgurudelanieve.vercel.app/og-image-v2.png" />
     <meta property="og:image:type" content="image/png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content="El Gurú de la Nieve - Pronóstico de nieve para Caviahue" />
     <meta property="og:locale" content="es_AR" />
-
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="El Gurú de la Nieve | Pronóstico de nieve para Caviahue" />
-    <meta name="twitter:description" content="Dashboard de nieve para Caviahue. Powder Score, cota, temperatura y mejores ventanas de nieve." />
+    <meta name="twitter:title" content="El Gurú de la Nieve | Caviahue" />
+    <meta name="twitter:description" content="¿Nieva en Caviahue? El Gurú te dice cómo viene la montaña." />
     <meta name="twitter:image" content="https://elgurudelanieve.vercel.app/og-image-v2.png" />
-    <meta name="twitter:image:alt" content="El Gurú de la Nieve - Pronóstico de nieve para Caviahue" />
-
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
-
-    <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "WebSite",
-      "name": "El Gurú de la Nieve | Caviahue",
-      "url": "https://elgurudelanieve.vercel.app/",
-      "description": "Dashboard de condiciones de nieve para Caviahue, Patagonia Argentina. Pronóstico basado en datos reales de Open-Meteo y WeatherAPI.",
-      "image": "https://elgurudelanieve.vercel.app/og-image-v2.png",
-      "publisher": {
-        "@type": "Organization",
-        "name": "El Gurú de la Nieve",
-        "url": "https://elgurudelanieve.vercel.app/"
-      },
-      "applicationCategory": "WeatherApplication",
-      "operatingSystem": "Web"
-    }
-    </script>
   </head>
   <body class="text-white min-h-screen antialiased font-premium">
     <div class="flex min-h-screen">
-      <Sidebar updated={result.updated} source={source} weatherApi={result.weatherApi ?? null} />
+      <Sidebar updated={result.updated} source={source} weatherApi={result.weatherApi ?? null} activeSection="home" />
       <main class="flex-1 px-6 md:px-10 py-2 md:py-3 relative">
 
         {isDemo && (
@@ -155,230 +92,85 @@ const zoneHourlyTomorrow = buildZoneHourly('tomorrow');
           </div>
         )}
 
-        <!-- MAIN LAYOUT: 2 columns -->
-        <div class="grid grid-cols-1 md:grid-cols-12 gap-5 mt-2">
+        <div class="max-w-xl mx-auto space-y-6">
+          <GuruNpcCard
+            touristCopy={mainCopy}
+            source={touristSources.today || 'fallback'}
+            snowLabel={result.snowLabel}
+          />
 
-          <!-- LEFT COLUMN: Hero + Gurú + Montaña + Chart + Lectura -->
-          <div class="md:col-span-8 space-y-4" data-period-group>
-            <!-- Hero + Gurú -->
-            <HeroAnswer answer={result.snowLabel} description={result.mainAnswer.description} />
-            <GuruTouristCopy touristCopy={touristCopies[firstPeriod]} source={touristSources[firstPeriod]} />
-
-            <!-- Grupo Montaña -->
-            <div class="rounded-xl px-4 py-3" style="background: radial-gradient(circle at 15% 0%, rgba(103, 232, 249, 0.14), transparent 36%), linear-gradient(180deg, rgba(15, 37, 48, 0.95) 0%, rgba(9, 25, 35, 0.96) 100%);">
-              <div class="flex items-center gap-2.5 mb-3">
-                <div class="w-1.5 h-5 bg-gradient-to-b from-hielo/40 to-hielo/15 rounded-full"></div>
-                <span class="text-[9px] text-white/30 tracking-[0.22em] uppercase font-semibold">Por Altura</span>
-                <div class="flex-1 h-[1px] bg-gradient-to-r from-white/[0.06] to-transparent"></div>
-              </div>
-              <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                {zoneList.map(zone => (
-                  <ZoneCard zone={zone} />
-                ))}
-              </div>
+          {result.weatherApi && (
+            <div class="flex items-center gap-x-3 gap-y-1.5 text-[10px] text-white/40 px-4 py-2.5 bg-hielo/[0.03] border border-hielo/8 rounded-xl font-medium tracking-wide">
+              <span class="text-[8px] text-hielo/30 font-semibold tracking-[0.25em] uppercase shrink-0">NOW</span>
+              <span class="text-hielo/20">·</span>
+              <span>Temp <span class="text-white/60 tabular-nums">{result.weatherApi.temp}</span>°C</span>
+              <span class="text-hielo/20">·</span>
+              <span>Sens. <span class="text-white/60 tabular-nums">{result.weatherApi.feelsLike}</span>°</span>
+              {result.weatherApi.wind != null && result.weatherApi.wind > 0 && (
+                <>
+                  <span class="text-hielo/20">·</span>
+                  <span>Viento <span class="text-white/60 tabular-nums">{result.weatherApi.wind}</span> km/h</span>
+                </>
+              )}
+              {result.weatherApi.humidity != null && (
+                <>
+                  <span class="text-hielo/20">·</span>
+                  <span>Humedad <span class="text-white/60 tabular-nums">{result.weatherApi.humidity}</span>%</span>
+                </>
+              )}
+              {result.weatherApi.cloudCover != null && (
+                <>
+                  <span class="text-hielo/20">·</span>
+                  <span>Nubosidad <span class="text-white/60 tabular-nums">{result.weatherApi.cloudCover}</span>%</span>
+                </>
+              )}
+              <span class="text-hielo/20">·</span>
+              <span>{cotaLabel}</span>
+              <span class="text-hielo/20">·</span>
+              <span class="text-white/50">Cielo limpio</span>
             </div>
-            <ForecastChart
-              zoneHourlyToday={zoneHourlyToday}
-              zoneHourlyTomorrow={zoneHourlyTomorrow}
-              dailySummaries={dailySummaries}
-              periods={periods}
-            />
+          )}
 
-            <!-- Lectura técnica -->
-            <div class="bg-[rgba(9,16,22,0.4)] border border-white/[0.03] rounded-lg px-3 py-2">
-              <span class="text-[6px] text-white/15 tracking-[0.25em] uppercase font-medium">Interpretación automática sobre datos meteorológicos</span>
-              <GuruSummary summary={result.guruSummary} />
+          <div class="space-y-3">
+            <div class="flex items-center gap-2">
+              <div class="w-1.5 h-1.5 rounded-full bg-hielo/40"></div>
+              <span class="text-[8px] text-white/25 tracking-[0.2em] uppercase font-medium">Lectura del Gurú</span>
+            </div>
+
+            <div class="bg-[rgba(9,16,22,0.7)] border border-white/[0.04] rounded-xl px-4 py-3 space-y-2.5">
+              <div class="flex items-start gap-3">
+                <span class="text-[9px] text-hielo/50 font-semibold w-16 shrink-0 tracking-[0.1em]">HOY</span>
+                <p class="text-[11px] text-white/55 leading-relaxed">No veo nieve clara para hoy. Falta humedad.</p>
+              </div>
+              <div class="flex items-start gap-3">
+                <span class="text-[9px] text-hielo/50 font-semibold w-16 shrink-0 tracking-[0.1em]">MAÑANA</span>
+                <p class="text-[11px] text-white/55 leading-relaxed">Mañana lo veo parecido: frío hay, pero sin humedad no hay negocio.</p>
+              </div>
+              <div class="flex items-start gap-3">
+                <span class="text-[9px] text-hielo/50 font-semibold w-16 shrink-0 tracking-[0.1em]">ESTA SEMANA</span>
+                <p class="text-[11px] text-white/55 leading-relaxed">Más adelante voy a mirar si baja la cota y entra precipitación.</p>
+              </div>
+              <div class="flex items-start gap-3">
+                <span class="text-[9px] text-hielo/50 font-semibold w-16 shrink-0 tracking-[0.1em]">PRÓXIMOS DÍAS</span>
+                <p class="text-[11px] text-white/55 leading-relaxed">Si se alinean frío y humedad, puede aparecer una ventana. Quedá atento.</p>
+              </div>
             </div>
           </div>
 
-          <!-- RIGHT COLUMN: Now + Powder + Ventana + Alertas -->
-          <div class="md:col-span-4 flex flex-col gap-3" data-period-group>
-            {result.weatherApi && <NowCard weatherApi={result.weatherApi} />}
-            <PowderScore value={result.powderScore.value} reason={result.powderScore.description} />
-            <SnowWindow
-              hasWindow={result.bestWindow.hasWindow}
-              from={result.bestWindow.from}
-              to={result.bestWindow.to}
-              label={result.bestWindow.label}
-              description={result.bestWindow.description}
-            />
-            <AlertsPanel alerts={result.alerts} />
+          <div class="pt-2 pb-4">
+            <a
+              href="/lab"
+              class="inline-flex items-center gap-2 text-[9px] text-hielo/40 hover:text-hielo/60 transition-colors tracking-[0.15em] uppercase font-medium border border-hielo/10 hover:border-hielo/20 rounded-full px-4 py-2 bg-hielo/[0.03] hover:bg-hielo/[0.06]"
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M9 3h6M12 3v6M5 21h14M7 21V11M17 21V11M9 11l3 3 3-3M12 14v7"/>
+              </svg>
+              Abrir El Gurú Lab
+            </a>
           </div>
-
         </div>
 
       </main>
     </div>
-
-    <div id="period-json" hidden>{periodDataJson}</div>
-
-    <script is:inline>
-      (function() {
-        var data = JSON.parse(document.getElementById('period-json').textContent);
-        var PERIODS = data.periods;
-        var TOURIST = data.touristCopies;
-        var TOURIST_SRC = data.touristSources;
-        var PERIOD_DATA = {
-          today: {
-            heroAnswer: PERIODS.today.mainAnswer,
-            powderScore: PERIODS.today.powderScore,
-            bestWindow: PERIODS.today.bestWindow,
-            alerts: PERIODS.today.alerts,
-            guruSummary: PERIODS.today.guruSummary,
-            zones: PERIODS.today.zones,
-            touristCopy: TOURIST.today,
-            touristSource: TOURIST_SRC.today
-          },
-          tomorrow: {
-            heroAnswer: PERIODS.tomorrow.mainAnswer,
-            powderScore: PERIODS.tomorrow.powderScore,
-            bestWindow: PERIODS.tomorrow.bestWindow,
-            alerts: PERIODS.tomorrow.alerts,
-            guruSummary: PERIODS.tomorrow.guruSummary,
-            zones: PERIODS.tomorrow.zones,
-            touristCopy: TOURIST.tomorrow,
-            touristSource: TOURIST_SRC.tomorrow
-          },
-          sevenDays: {
-            heroAnswer: PERIODS.sevenDays.mainAnswer,
-            powderScore: PERIODS.sevenDays.powderScore,
-            bestWindow: PERIODS.sevenDays.bestWindow,
-            alerts: PERIODS.sevenDays.alerts,
-            guruSummary: PERIODS.sevenDays.guruSummary,
-            zones: PERIODS.sevenDays.zones,
-            touristCopy: TOURIST.sevenDays,
-            touristSource: TOURIST_SRC.sevenDays
-          }
-        };
-
-        function setActivePeriod(periodKey) {
-          var p = PERIOD_DATA[periodKey];
-          if (!p) return;
-
-          var heroAnswerEl = document.querySelector('[data-period-hero-answer]');
-          if (heroAnswerEl) {
-            var answerBadge = heroAnswerEl.querySelector('[data-period-hero-badge]');
-            var desc = heroAnswerEl.querySelector('[data-period-hero-desc]');
-            if (answerBadge) answerBadge.textContent = p.heroAnswer.label;
-            if (desc) desc.textContent = p.heroAnswer.description;
-          }
-
-          var powderEl = document.querySelector('[data-period-powder]');
-          if (powderEl) {
-            var val = powderEl.querySelector('[data-period-powder-val]');
-            var reason = powderEl.querySelector('[data-period-powder-reason]');
-            if (val) val.textContent = String(p.powderScore.value);
-            if (reason) reason.textContent = p.powderScore.description;
-          }
-
-          var windowEl = document.querySelector('[data-period-window]');
-          if (windowEl) {
-            var fromEl = windowEl.querySelector('[data-period-window-from]');
-            var toEl = windowEl.querySelector('[data-period-window-to]');
-            var descEl = windowEl.querySelector('[data-period-window-desc]');
-            var noWindow = windowEl.querySelector('[data-period-window-none]');
-            if (p.bestWindow.hasWindow) {
-              if (fromEl) { fromEl.textContent = p.bestWindow.from || ''; fromEl.style.display = ''; }
-              if (toEl) { toEl.textContent = p.bestWindow.to || ''; toEl.style.display = ''; }
-              if (descEl) { descEl.textContent = p.bestWindow.description; descEl.style.display = ''; }
-              if (noWindow) noWindow.style.display = 'none';
-            } else {
-              if (fromEl) fromEl.style.display = 'none';
-              if (toEl) toEl.style.display = 'none';
-              if (descEl) descEl.style.display = 'none';
-              if (noWindow) noWindow.style.display = '';
-            }
-          }
-
-          var alertsEl = document.querySelector('[data-period-alerts]');
-          if (alertsEl) {
-            var items = alertsEl.querySelectorAll('[data-period-alert-item]');
-            var noneEl = alertsEl.querySelector('[data-period-alerts-none]');
-            var alerts = p.alerts.slice(0, 2);
-            items.forEach(function(el, i) {
-              if (i < alerts.length) {
-                var msg = el.querySelector('[data-period-alert-msg]');
-                if (msg) msg.textContent = alerts[i].message;
-                el.style.display = '';
-              } else {
-                el.style.display = 'none';
-              }
-            });
-            if (noneEl) noneEl.style.display = alerts.length === 0 ? '' : 'none';
-          }
-
-          var guruEl = document.querySelector('[data-period-guru]');
-          if (guruEl) {
-            var text = guruEl.querySelector('[data-period-guru-text]');
-            if (text) text.textContent = p.guruSummary;
-          }
-
-          var touristEl = document.querySelector('[data-period-guru-tourist]');
-          if (touristEl) {
-            var touristText = touristEl.querySelector('[data-period-guru-tourist-text]');
-            if (touristText) touristText.textContent = p.touristCopy;
-          }
-
-          var heroSub = document.querySelector('[data-period-hero-subtitle]');
-          if (heroSub) {
-            var labels = { today: 'Hoy', tomorrow: 'Ma\u00f1ana', sevenDays: '7 d\u00edas' };
-            heroSub.textContent = 'Pron\u00f3stico para ' + (labels[periodKey] || periodKey);
-          }
-
-          var tabs = document.querySelectorAll('.period-tab');
-          tabs.forEach(function(t) {
-            var isActive = t.dataset.period === periodKey;
-            t.className = isActive
-              ? 'period-tab text-hielo/70 font-semibold bg-hielo/[0.06] px-2 py-0.5 rounded-full'
-              : 'period-tab text-white/20 px-1.5 py-0.5';
-          });
-          var charts = document.querySelectorAll('.period-chart');
-          charts.forEach(function(c) {
-            c.style.display = c.dataset.period === periodKey ? 'block' : 'none';
-          });
-          var desc = document.querySelector('.period-desc');
-          if (desc) {
-            desc.textContent = PERIOD_DATA[periodKey] ? PERIOD_DATA[periodKey].guruSummary : 'Seleccion\u00e1 un per\u00edodo para ver el detalle.';
-          }
-
-          var zoneCards = document.querySelectorAll('[data-period-zone]');
-          var zones = p.zones;
-          if (zones) {
-            var zoneKeys = ['village', 'mid', 'top'];
-            zoneCards.forEach(function(card, i) {
-              if (i < zoneKeys.length) {
-                var z = zones[zoneKeys[i]];
-                if (!z) return;
-                var tempEl = card.querySelector('[data-period-zone-temp]');
-                var feelsEl = card.querySelector('[data-period-zone-feels]');
-                var windEl = card.querySelector('[data-period-zone-wind]');
-                var snowEl = card.querySelector('[data-period-zone-snow]');
-                var answerEl = card.querySelector('[data-period-zone-answer]');
-                if (tempEl) tempEl.textContent = Math.round(z.current.temp) + '\u00b0';
-                if (feelsEl) feelsEl.textContent = String(Math.round(z.current.feelsLike));
-                if (windEl) windEl.textContent = Math.round(z.current.wind) + ' km/h';
-                if (snowEl) snowEl.textContent = Math.round(z.current.snowChance) + '%';
-                if (answerEl) {
-                  var ft = z.answer.label;
-                  if (z.id === 'village' && z.current.precipitation === 0) ft = 'Sin precipitaci\u00f3n activa';
-                  else if (z.id === 'top' && z.current.freezingLevel > 2500) ft = 'Cota alta para acumulaci\u00f3n relevante';
-                  answerEl.textContent = ft;
-                }
-              }
-            });
-          }
-        }
-
-        document.addEventListener('click', function(e) {
-          var tab = e.target.closest('.period-tab');
-          if (tab) {
-            var period = tab.dataset.period;
-            if (period && PERIOD_DATA[period]) {
-              setActivePeriod(period);
-            }
-          }
-        });
-      })();
-    </script>
   </body>
 </html>
