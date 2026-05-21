@@ -64,6 +64,7 @@ export interface SnowInterpretation {
     label: string;
     description: string;
   };
+  snowLabel: 'sin nieve a la vista' | 'nevada débil' | 'nieve moderada' | 'linda nevada' | 'se viene un paquetón';
   powderScore: {
     value: number;
     label: string;

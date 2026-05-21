@@ -8,6 +8,24 @@ const ZONE_MAP: { name: ZoneForecast['name']; id: 'village' | 'mid' | 'top'; lab
     { name: 'Cumbre', id: 'top', label: 'Cumbre (alto)' }
 ];
 
+type SnowLabel = 'sin nieve a la vista' | 'nevada débil' | 'nieve moderada' | 'linda nevada' | 'se viene un paquetón';
+
+function computeSnowLabel(mainStatus: 'yes' | 'possible' | 'no', powderScore: number, hasWindow: boolean): SnowLabel {
+  if (mainStatus === 'no' || powderScore < 20) {
+    return 'sin nieve a la vista';
+  }
+  if (powderScore >= 78 && hasWindow) {
+    return 'se viene un paquetón';
+  }
+  if (powderScore >= 55 || (mainStatus === 'yes' && hasWindow)) {
+    return 'linda nevada';
+  }
+  if (powderScore >= 35 || (mainStatus === 'possible' && hasWindow)) {
+    return 'nieve moderada';
+  }
+  return 'nevada débil';
+}
+
 function getZoneAnswer(hourly: WeatherData['zones'][0]['hourly'], altitude: number): { status: 'yes' | 'possible' | 'no'; label: string } {
   const snowHours = hourly.filter(h => h.precip > 0 && h.temp <= 2 && h.freezing_level <= altitude + 150);
   if (snowHours.length === 0) return { status: 'no', label: 'sin nieve a la vista' };
@@ -203,6 +221,7 @@ export function analyzeWeather(data: WeatherData): SnowInterpretation {
 
   const interp: SnowInterpretation = {
     mainAnswer,
+    snowLabel: computeSnowLabel(mainAnswer.status, powder.value, powder.snowWindow !== null),
     powderScore: {
       value: powder.value,
       label: powder.reason,
