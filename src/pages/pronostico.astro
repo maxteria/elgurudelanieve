@@ -172,7 +172,7 @@ type PeriodData = {
   humidity: number | null;
   cloud: number | null;
   cota: number | null;
-  periodStatus: 'Seco' | 'Lluvia' | 'Ventana' | 'Nieve';
+  periodStatus: 'Seco' | 'Llovizna' | 'Lluvia' | 'Lluvia fuerte' | 'Diluvio' | 'Nieve';
 };
 
 type DayData = {
@@ -198,6 +198,14 @@ const ZONE_CONFIG: Record<Zone, { altitude: number; label: string }> = {
   mid: { altitude: 1846, label: 'Centro' },
   top: { altitude: 2845, label: 'Cumbre' },
 };
+
+function getRainLabel(mm: number): string {
+  if (mm <= 0) return 'Seco';
+  if (mm < 2) return 'Llovizna';
+  if (mm < 8) return 'Lluvia';
+  if (mm < 20) return 'Lluvia fuerte';
+  return 'Diluvio';
+}
 
 function buildDaysData(days: import('../lib/weather/types').DailySummary[], hourly: import('../lib/weather/types').NormalizedHourlyForecast[], zoneAltitude: number): DayData[] {
   const now = new Date();
@@ -246,12 +254,12 @@ function buildDaysData(days: import('../lib/weather/types').DailySummary[], hour
       const precip = safeNum(Math.round(totalPrecip * 10) / 10);
       const snowCm = safeNum(Math.round(totalSnowCm * 10) / 10);
 
-      let periodStatus: 'Seco' | 'Lluvia' | 'Ventana' | 'Nieve' = 'Seco';
+      let periodStatus: 'Seco' | 'Llovizna' | 'Lluvia' | 'Lluvia fuerte' | 'Diluvio' | 'Nieve' = 'Seco';
       if (precip !== null && precip > 0) {
         if (snowCm !== null && snowCm > 0) {
           periodStatus = 'Nieve';
         } else {
-          periodStatus = 'Lluvia';
+          periodStatus = getRainLabel(precip) as 'Llovizna' | 'Lluvia' | 'Lluvia fuerte' | 'Diluvio';
         }
       }
 
@@ -266,23 +274,19 @@ function buildDaysData(days: import('../lib/weather/types').DailySummary[], hour
     });
 
     const hasNieve = periods.some(p => p.periodStatus === 'Nieve');
-    const hasLluvia = periods.some(p => p.periodStatus === 'Lluvia');
-    const hasVentana = periods.some(p => p.periodStatus === 'Ventana');
+    const hasLluvia = periods.some(p => ['Llovizna', 'Lluvia', 'Lluvia fuerte', 'Diluvio'].includes(p.periodStatus));
     const allSeco = periods.every(p => p.periodStatus === 'Seco');
 
-    let verdict: 'Seco' | 'Lluvia' | 'Ventana' | 'Nieve' | 'Mezcla' = 'Seco';
+    let verdict: 'Seco' | 'Llovizna' | 'Lluvia' | 'Lluvia fuerte' | 'Diluvio' | 'Nieve' | 'Mezcla' = 'Seco';
     if (allSeco) {
       verdict = 'Seco';
     } else if (hasNieve && hasLluvia) {
       verdict = 'Mezcla';
     } else if (hasNieve) {
       verdict = 'Nieve';
-    } else if (hasLluvia && hasVentana) {
-      verdict = 'Mezcla';
-    } else if (hasLluvia) {
-      verdict = 'Lluvia';
-    } else if (hasVentana) {
-      verdict = 'Ventana';
+    } else {
+      const rainVerdicts = periods.filter(p => p.periodStatus !== 'Seco').map(p => p.periodStatus);
+      verdict = rainVerdicts[0] ?? 'Seco';
     }
 
     const verdictBadgeStyle = getVerdictBadgeStyle(verdict);
