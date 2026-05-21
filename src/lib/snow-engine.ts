@@ -143,7 +143,7 @@ export function analyzeWeather(data: WeatherData): SnowInterpretation {
   const zoneInterpretations: [ZoneInterpretation, ZoneInterpretation, ZoneInterpretation] = rawZones.map(z => {
     const answer = getZoneAnswer(z.hourly, z.altitude);
     const alerts = generateZoneAlerts(z);
-    const current = z.hourly[0];
+    const current = z.hourly[0] ?? { temp: -999, feels_like: -999, wind: 0, precip: 0, snow_prob: 0, freezing_level: 9999, humidity: 0 };
 
     return {
       id: ZONE_MAP.find(m => m.name === z.name)!.id,

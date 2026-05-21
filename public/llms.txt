@@ -1,0 +1,37 @@
+# El Gurú de la Nieve — Caviahue
+
+## Qué es
+
+El Gurú de la Nieve es un dashboard de condiciones meteorológicas para Caviahue, Patagonia Argentina. Consulta datos reales de Open-Meteo y WeatherAPI para ofrecer un pronóstico de nieve centrado en la experiencia del rider.
+
+## Para quién
+
+- Riders y esquiadores de Caviahue y la región
+- Turistas que planifican viajes a la zona
+- Personas interesadas en las condiciones de nieve reales
+
+## Qué muestra
+
+- **Pronóstico principal**: ¿Nieva hoy en Caviahue?
+- **Powder Score**: indicador 0-100 de calidad de nieve
+- **Por Altura**: datos de temperatura, viento, precipitación y cota en Pueblo (base), Centro (medio) y Cumbre (alto)
+- **Ventana de nieve**: mejores tramos horarios para nieve fresca
+- **Evolución temperatura y cota**: gráfico horario de temperatura y cota de nieve
+- **Alertas**: viento excesivo, cota muy alta, precipitación insuficiente
+
+## Fuentes de datos
+
+- **Open-Meteo**: forecast de nieve, temperatura, viento y cota (sin API key)
+- **WeatherAPI**: estado actual en Caviahue (temperatura real, condición, humedad)
+- **SMN**: datos de referencia regional (Zapala, a 143 km)
+
+## Limitaciones
+
+- Los datos son estimates basado en modelos meteorológicos, no mediciones en pista.
+- La cota de nieve puede diferir de la realidad según humedad y temperatura real.
+- WeatherAPI puede no estar disponible en builds frecuentes (fallback sin rotura).
+- Gemini AI (Gurú IA) puede tener rate limit; hay fallback local de copy.
+
+## URL principal
+
+https://elgurudelanieve.vercel.app

@@ -1,0 +1,24 @@
+{
+  "name": "El Gurú de la Nieve | Caviahue",
+  "short_name": "El Gurú de la Nieve",
+  "description": "Dashboard de condiciones de nieve para Caviahue, Patagonia Argentina. Pronóstico de nieve, cota, temperatura y mejores ventanas de nieve.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0b0d10",
+  "theme_color": "#a8e7f9",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "locales": [
+    {
+      "lang": "es",
+      "name": "El Gurú de la Nieve",
+      "short_name": "Gurú Nieve"
+    }
+  ]
+}

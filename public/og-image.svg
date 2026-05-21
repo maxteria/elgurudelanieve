@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#0b0d10"/>
+      <stop offset="100%" stop-color="#141a20"/>
+    </linearGradient>
+    <linearGradient id="glow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#a8e7f9" stop-opacity="0.15"/>
+      <stop offset="100%" stop-color="#a8e7f9" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <ellipse cx="900" cy="200" rx="400" ry="300" fill="url(#glow)"/>
+  <rect x="80" y="80" width="6" height="60" rx="3" fill="#a8e7f9" opacity="0.8"/>
+  <text x="110" y="125" font-family="Inter,sans-serif" font-size="28" font-weight="900" fill="#a8e7f9" letter-spacing="0.15em">EL GURÚ DE LA NIEVE</text>
+  <text x="110" y="170" font-family="Inter,sans-serif" font-size="18" fill="#a8e7f9" opacity="0.5" letter-spacing="0.1em">CAVIAHUE · PATAGONIA</text>
+  <text x="80" y="300" font-family="Inter,sans-serif" font-size="100" font-weight="900" fill="white">¿Nieva en</text>
+  <text x="80" y="430" font-family="Inter,sans-serif" font-size="100" font-weight="900" fill="#a8e7f9">Caviahue?</text>
+  <text x="80" y="520" font-family="Inter,sans-serif" font-size="24" fill="white" opacity="0.5">Dashboard de condiciones de nieve · elgurudelanieve.vercel.app</text>
+  <circle cx="1050" cy="500" r="60" fill="none" stroke="#a8e7f9" stroke-width="3" opacity="0.3"/>
+  <text x="1050" y="510" font-family="Inter,sans-serif" font-size="48" font-weight="900" fill="#a8e7f9" text-anchor="middle">G</text>
+</svg>
