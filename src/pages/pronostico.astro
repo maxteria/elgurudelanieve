@@ -391,7 +391,7 @@ const PERIOD_LABELS = ['AM', 'PM', 'Noche'];
               </div>
 
               {days.length > 0 ? (
-                <div class="overflow-x-auto pb-4">
+                <div class="relative overflow-x-auto pb-4" data-scroll-container>
                   <div class="min-w-[700px]">
 
                     <div class="flex border-b border-white/[0.08]">
@@ -528,6 +528,19 @@ return <div key={pi} class={`text-center py-2 px-1 ${cellBase}`}></div>;
                     );
                     })}
                   </div>
+
+                  <div class="scroll-hint md:hidden px-4 mb-2">
+                    <span class="text-[9px] text-white/25 tracking-wide">Deslizá para ver más días</span>
+                  </div>
+
+                  <div class="scroll-nav-btns absolute top-1/2 -translate-y-1/2 left-0 right-0 flex justify-between pointer-events-none px-1 md:hidden">
+                    <button class="scroll-btn scroll-left pointer-events-auto w-7 h-7 rounded-full bg-[rgba(9,16,22,0.85)] border border-white/[0.12] text-white/40 hover:text-white/70 flex items-center justify-center backdrop-blur-sm opacity-50" aria-label="Ver días anteriores" disabled>
+                      <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M7.5 9L4.5 6l3-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </button>
+                    <button class="scroll-btn scroll-right pointer-events-auto w-7 h-7 rounded-full bg-[rgba(9,16,22,0.85)] border border-white/[0.12] text-white/40 hover:text-white/70 flex items-center justify-center backdrop-blur-sm opacity-50" aria-label="Ver más días" disabled>
+                      <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M4.5 3l3 3-3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </button>
+                  </div>
                 </div>
               ) : (
                 <div class="rounded-xl px-4 py-8 text-center border border-white/[0.05] bg-[rgba(9,16,22,0.5)]">
@@ -549,29 +562,76 @@ return <div key={pi} class={`text-center py-2 px-1 ${cellBase}`}></div>;
         </div>
 
         <script>
-          const zoneBtns = document.querySelectorAll('.zone-btn');
-          const zoneTables = document.querySelectorAll('.zone-table');
+          function initScrollNav() {
+            var containers = document.querySelectorAll('[data-scroll-container]');
+            var leftBtns = document.querySelectorAll('.scroll-left');
+            var rightBtns = document.querySelectorAll('.scroll-right');
 
-          zoneBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-              const z = btn.getAttribute('data-zone');
-              zoneBtns.forEach(b => {
+            function updateArrows(scrollEl) {
+              var left = scrollEl.parentElement.querySelector('.scroll-left');
+              var right = scrollEl.parentElement.querySelector('.scroll-right');
+              if (!left || !right) return;
+              left.disabled = scrollEl.scrollLeft <= 2;
+              right.disabled = scrollEl.scrollLeft + scrollEl.clientWidth >= scrollEl.scrollWidth - 2;
+              left.style.opacity = scrollEl.scrollLeft <= 2 ? '0.35' : '0.85';
+              right.style.opacity = scrollEl.scrollLeft + scrollEl.clientWidth >= scrollEl.scrollWidth - 2 ? '0.35' : '0.85';
+            }
+
+            containers.forEach(function(c) { updateArrows(c); });
+            containers.forEach(function(c) {
+              c.addEventListener('scroll', function() { updateArrows(c); }, { passive: true });
+            });
+
+            leftBtns.forEach(function(btn) {
+              btn.addEventListener('click', function() {
+                var container = btn.closest('.scroll-container').querySelector('[data-scroll-container]');
+                container.scrollBy({ left: -280, behavior: 'smooth' });
+              });
+            });
+
+            rightBtns.forEach(function(btn) {
+              btn.addEventListener('click', function() {
+                var container = btn.closest('.scroll-container').querySelector('[data-scroll-container]');
+                container.scrollBy({ left: 280, behavior: 'smooth' });
+              });
+            });
+
+            window.addEventListener('resize', function() {
+              containers.forEach(function(c) { updateArrows(c); });
+            });
+          }
+
+          var zoneBtns = document.querySelectorAll('.zone-btn');
+          var zoneTables = document.querySelectorAll('.zone-table');
+
+          zoneBtns.forEach(function(btn) {
+            btn.addEventListener('click', function() {
+              var z = btn.getAttribute('data-zone');
+              zoneBtns.forEach(function(b) {
                 b.classList.remove('bg-hielo/15', 'text-hielo', 'border', 'border-hielo/20');
                 b.classList.add('text-white/35', 'border-transparent');
               });
               btn.classList.remove('text-white/35', 'border-transparent');
               btn.classList.add('bg-hielo/15', 'text-hielo', 'border', 'border-hielo/20');
-              zoneTables.forEach(t => {
+              zoneTables.forEach(function(t) {
                 t.style.display = t.getAttribute('data-zone') === z ? '' : 'none';
               });
-              const guruEl = document.querySelector(`[data-guru="${z}"]`);
+              var guruEl = document.querySelector('[data-guru="' + z + '"]');
               if (guruEl) {
-                const allGurus = document.querySelectorAll('[data-guru]');
-                allGurus.forEach(g => g.setAttribute('style', 'display:none'));
-                guruEl.setAttribute('style', '');
+                document.querySelectorAll('[data-guru]').forEach(function(g) { g.style.display = 'none'; });
+                guruEl.style.display = '';
               }
+              setTimeout(function() {
+                var visible = document.querySelector('.zone-table:not([style])') || document.querySelector('.zone-table[style=""]');
+                if (visible) {
+                  var c = visible.querySelector('[data-scroll-container]');
+                  if (c) c.scrollLeft = 0;
+                }
+              }, 10);
             });
           });
+
+          initScrollNav();
         </script>
 
       </main>
