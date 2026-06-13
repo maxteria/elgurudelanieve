@@ -1,9 +1,12 @@
 import { HourlyForecast, PowderScoreResult } from './types';
 
-export function calculatePowderScore(forecast: HourlyForecast[], altitude: number): PowderScoreResult {
+export function calculatePowderScore(
+  forecast: HourlyForecast[],
+  altitude: number,
+): PowderScoreResult {
   let maxScore = 0;
   let bestWindow: [number, number] | null = null;
-  let curStart: number|null = null;
+  let curStart: number | null = null;
 
   for (let i = 0; i < forecast.length; i++) {
     const h = forecast[i];
@@ -15,6 +18,13 @@ export function calculatePowderScore(forecast: HourlyForecast[], altitude: numbe
       if (h.temp <= -4) score += 30;
       else if (h.temp <= -2) score += 22;
       else if (h.temp <= 0) score += 12;
+    }
+    // Snowfall bonus: actual cm of accumulated snow is the strongest signal
+    if (h.snowfall > 0 && h.temp <= 2 && h.freezing_level <= altitude + 150) {
+      if (h.snowfall >= 3) score += 20;
+      else if (h.snowfall >= 1.5) score += 14;
+      else if (h.snowfall >= 0.5) score += 8;
+      else score += 3;
     }
     // Wind bonus: moderate wind carries snow well
     if (h.wind >= 12 && h.wind <= 30) score += 8;

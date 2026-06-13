@@ -1,0 +1,69 @@
+# openspec/config.yaml
+schema: spec-driven
+
+context: |
+  Project: elgurudelanieve — Caviahue snow conditions dashboard
+  Stack: Astro v6 (SSG) + Tailwind CSS v4 + TypeScript strict
+  Architecture: Static site, build-time data from Open-Meteo API, WeatherAPI for NowCard
+  Testing: No test runner detected (placeholder only)
+  Style: Dark mode, volcanic theme (volcan/hielo/naranja colors)
+
+rules:
+  proposal:
+    - Include rollback plan for risky changes
+    - Keep proposals under 500 words
+  specs:
+    - Use Given/When/Then for scenarios
+    - Use RFC 2119 keywords (MUST, SHALL, SHOULD, MAY)
+  design:
+    - Include sequence diagrams for complex flows
+    - Document architecture decisions with rationale
+  tasks:
+    - Group by phase, use hierarchical numbering
+    - Keep tasks completable in one session
+  apply:
+    - Follow existing code patterns (Astro components, TypeScript strict)
+    tdd: false
+    test_command: ""
+  verify:
+    test_command: "npm run build"
+    build_command: "npm run build"
+    coverage_threshold: 0
+  archive:
+    - Warn before merging destructive deltas
+
+testing:
+  strict_tdd: false
+  note: "No test runner installed. npm test is a placeholder (echo 'Error: no test specified'). Install vitest or playwright to enable TDD."
+  test_runner:
+    command: ""
+    framework: none
+  layers:
+    unit:
+      available: false
+      tool: ""
+    integration:
+      available: false
+      tool: ""
+    e2e:
+      available: false
+      tool: ""
+  coverage:
+    available: false
+    command: ""
+  quality:
+    linter:
+      available: false
+      command: ""
+    type_checker:
+      available: true
+      command: "npx astro check || npx tsc --noEmit"
+    formatter:
+      available: false
+      command: ""
+
+preflight:
+  pace: interactive
+  artifact_store: openspec
+  pr_strategy: ask-always
+  review_budget: 800

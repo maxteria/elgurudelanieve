@@ -8,6 +8,7 @@ export interface HourlyForecast {
   snow_prob: number;
   freezing_level: number;
   humidity: number;
+  snowfall: number;
 }
 
 export interface ZoneForecast {
@@ -64,7 +65,12 @@ export interface SnowInterpretation {
     label: string;
     description: string;
   };
-  snowLabel: 'sin nieve a la vista' | 'nevada débil' | 'nieve moderada' | 'linda nevada' | 'se viene un paquetón';
+  snowLabel:
+    | 'sin nieve a la vista'
+    | 'nevada débil'
+    | 'nieve moderada'
+    | 'linda nevada'
+    | 'se viene un paquetón';
   powderScore: {
     value: number;
     label: string;

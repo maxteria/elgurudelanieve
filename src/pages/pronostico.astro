@@ -1,7 +1,10 @@
 ---
 import '../styles/tailwind.css';
 import type { DemoSenario } from '../data/demo-scenarios';
-import { getWeatherData, type WeatherMode } from '../lib/weather/weather-source';
+import {
+  getWeatherData,
+  type WeatherMode,
+} from '../lib/weather/weather-source';
 import { analyzeAllPeriods } from '../lib/period-engine';
 import { getSevenDayForecast } from '../lib/forecast-periods';
 import { isValidScenario } from '../data/demo-scenarios';
@@ -9,18 +12,35 @@ import MobileNav from '../components/MobileNav.astro';
 
 const params = Astro.url.searchParams;
 const demoParam = params.get('demo');
-const activeScenario: DemoSenario | undefined = isValidScenario(demoParam) ? demoParam : undefined;
-const queryMode: WeatherMode | undefined = demoParam === '1' || activeScenario ? 'demo' : undefined;
-const envMode: WeatherMode | undefined = process.env.PUBLIC_WEATHER_MODE === 'demo' ? 'demo' : undefined;
+const activeScenario: DemoSenario | undefined = isValidScenario(demoParam)
+  ? demoParam
+  : undefined;
+const queryMode: WeatherMode | undefined =
+  demoParam === '1' || activeScenario ? 'demo' : undefined;
+const envMode: WeatherMode | undefined =
+  process.env.PUBLIC_WEATHER_MODE === 'demo' ? 'demo' : undefined;
 const activeMode: WeatherMode = queryMode ?? envMode ?? 'real';
 
-const { data: weather, normalized, weatherApi, source } = await getWeatherData({ mode: activeMode, scenario: activeScenario });
+const {
+  data: weather,
+  normalized,
+  weatherApi,
+  source,
+} = await getWeatherData({ mode: activeMode, scenario: activeScenario });
 const periods = analyzeAllPeriods(normalized);
 const isDemo = source === 'mock-demo';
 
 const dailySummaries = getSevenDayForecast(normalized.hourly);
 
-const WEEKDAYS_SHORT: string[] = ['DOM', 'LUN', 'MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB'];
+const WEEKDAYS_SHORT: string[] = [
+  'DOM',
+  'LUN',
+  'MAR',
+  'MIÉ',
+  'JUE',
+  'VIE',
+  'SÁB',
+];
 
 function toLocalDateKey(isoString: string): string {
   const d = new Date(isoString);
@@ -44,7 +64,14 @@ function formatDate(dateStr: string): { dayLabel: string; dayNum: string } {
   return { dayLabel: WEEKDAYS_SHORT[dayIdx], dayNum: String(day) };
 }
 
-function getDayVerdict(day: { tempMin: number; tempMax: number; totalPrecip: number; totalSnow: number; minFreezingLevel: number; snowHours: number }): string {
+function getDayVerdict(day: {
+  tempMin: number;
+  tempMax: number;
+  totalPrecip: number;
+  totalSnow: number;
+  minFreezingLevel: number;
+  snowHours: number;
+}): string {
   if (day.totalSnow > 0 && day.minFreezingLevel < 2200) return 'Nieve';
   if (day.totalSnow > 0 && day.minFreezingLevel < 2600) return 'Ventana';
   if (day.totalPrecip > 2) return 'Precip';
@@ -55,7 +82,8 @@ function getDayVerdict(day: { tempMin: number; tempMax: number; totalPrecip: num
 
 function getVerdictBadgeStyle(verdict: string): { bg: string; text: string } {
   if (verdict === 'Nieve') return { bg: 'bg-hielo/15', text: 'text-hielo' };
-  if (verdict === 'Ventana') return { bg: 'bg-hielo/10', text: 'text-hielo/70' };
+  if (verdict === 'Ventana')
+    return { bg: 'bg-hielo/10', text: 'text-hielo/70' };
   if (verdict === 'Lluvia') return { bg: 'bg-white/8', text: 'text-white/60' };
   if (verdict === 'Mezcla') return { bg: 'bg-white/5', text: 'text-white/50' };
   return { bg: 'bg-white/4', text: 'text-white/30' };
@@ -145,12 +173,16 @@ function getRainMmColor(mm: number | null): { text: string; bg: string } {
   return { text: 'text-blue-200', bg: 'bg-sky-500/[0.24]' };
 }
 
-function getCotaColor(cota: number | null, zoneAltitude: number): { text: string; bg: string } {
+function getCotaColor(
+  cota: number | null,
+  zoneAltitude: number,
+): { text: string; bg: string } {
   if (cota == null) return { text: 'text-white/15', bg: 'bg-transparent' };
   const limit = zoneAltitude + ELEVATION_MARGIN;
   const mid = zoneAltitude + 400;
   if (cota <= limit) return { text: 'text-cyan-200', bg: 'bg-cyan-500/[0.12]' };
-  if (cota <= mid) return { text: 'text-cyan-300/70', bg: 'bg-cyan-500/[0.06]' };
+  if (cota <= mid)
+    return { text: 'text-cyan-300/70', bg: 'bg-cyan-500/[0.06]' };
   return { text: 'text-white/25', bg: 'bg-transparent' };
 }
 
@@ -172,7 +204,13 @@ type PeriodData = {
   humidity: number | null;
   cloud: number | null;
   cota: number | null;
-  periodStatus: 'Seco' | 'Llovizna' | 'Lluvia' | 'Lluvia fuerte' | 'Diluvio' | 'Nieve';
+  periodStatus:
+    | 'Seco'
+    | 'Llovizna'
+    | 'Lluvia'
+    | 'Lluvia fuerte'
+    | 'Diluvio'
+    | 'Nieve';
 };
 
 type DayData = {
@@ -196,7 +234,7 @@ type Zone = 'village' | 'mid' | 'top';
 const ZONE_CONFIG: Record<Zone, { altitude: number; label: string }> = {
   village: { altitude: 1647, label: 'Pueblo' },
   mid: { altitude: 1846, label: 'Centro' },
-  top: { altitude: 2845, label: 'Cumbre' },
+  top: { altitude: 2045, label: 'Cumbre' },
 };
 
 function getRainLabel(mm: number): string {
@@ -207,7 +245,11 @@ function getRainLabel(mm: number): string {
   return 'Diluvio';
 }
 
-function buildDaysData(days: import('../lib/weather/types').DailySummary[], hourly: import('../lib/weather/types').NormalizedHourlyForecast[], zoneAltitude: number): DayData[] {
+function buildDaysData(
+  days: import('../lib/weather/types').DailySummary[],
+  hourly: import('../lib/weather/types').NormalizedHourlyForecast[],
+  zoneAltitude: number,
+): DayData[] {
   const now = new Date();
   const todayKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 
@@ -228,14 +270,30 @@ function buildDaysData(days: import('../lib/weather/types').DailySummary[], hour
     }
 
     const periodLabels = ['AM', 'PM', 'Noche'];
-    const periods: PeriodData[] = periodLabels.map(label => {
+    const periods: PeriodData[] = periodLabels.map((label) => {
       const hrs = hourByPeriod.get(label) || [];
       if (hrs.length === 0) {
-        return { label, temp: null, feelsLike: null, precip: null, snowCm: null, windDir: null, windSpeed: null, humidity: null, cloud: null, cota: null, periodStatus: 'Seco' as const };
+        return {
+          label,
+          temp: null,
+          feelsLike: null,
+          precip: null,
+          snowCm: null,
+          windDir: null,
+          windSpeed: null,
+          humidity: null,
+          cloud: null,
+          cota: null,
+          periodStatus: 'Seco' as const,
+        };
       }
-      const temps = hrs.map(h => h.temp - zoneOffset);
-      const temp = safeNum(Math.round(temps.reduce((s, v) => s + v, 0) / temps.length));
-      const feelsLike = safeNum(Math.round(hrs.reduce((s, h) => s + h.feelsLike, 0) / hrs.length));
+      const temps = hrs.map((h) => h.temp - zoneOffset);
+      const temp = safeNum(
+        Math.round(temps.reduce((s, v) => s + v, 0) / temps.length),
+      );
+      const feelsLike = safeNum(
+        Math.round(hrs.reduce((s, h) => s + h.feelsLike, 0) / hrs.length),
+      );
 
       let totalPrecip = 0;
       let totalSnowCm = 0;
@@ -254,30 +312,71 @@ function buildDaysData(days: import('../lib/weather/types').DailySummary[], hour
       const precip = safeNum(Math.round(totalPrecip * 10) / 10);
       const snowCm = safeNum(Math.round(totalSnowCm * 10) / 10);
 
-      let periodStatus: 'Seco' | 'Llovizna' | 'Lluvia' | 'Lluvia fuerte' | 'Diluvio' | 'Nieve' = 'Seco';
+      let periodStatus:
+        | 'Seco'
+        | 'Llovizna'
+        | 'Lluvia'
+        | 'Lluvia fuerte'
+        | 'Diluvio'
+        | 'Nieve' = 'Seco';
       if (precip !== null && precip > 0) {
         if (snowCm !== null && snowCm > 0) {
           periodStatus = 'Nieve';
         } else {
-          periodStatus = getRainLabel(precip) as 'Llovizna' | 'Lluvia' | 'Lluvia fuerte' | 'Diluvio';
+          periodStatus = getRainLabel(precip) as
+            | 'Llovizna'
+            | 'Lluvia'
+            | 'Lluvia fuerte'
+            | 'Diluvio';
         }
       }
 
-      const windDirs = hrs.map(h => h.windDir);
-      const windDir = safeNum(Math.round(windDirs.reduce((s, v) => s + v, 0) / windDirs.length));
-      const windSpeed = safeNum(Math.round(hrs.reduce((s, h) => s + h.wind, 0) / hrs.length));
-      const humidity = safeNum(Math.round(hrs.reduce((s, h) => s + h.humidity, 0) / hrs.length));
-      const cloud = safeNum(Math.round(hrs.reduce((s, h) => s + h.cloudCover, 0) / hrs.length));
-      const cotas = hrs.map(h => h.freezingLevel);
+      const windDirs = hrs.map((h) => h.windDir);
+      const windDir = safeNum(
+        Math.round(windDirs.reduce((s, v) => s + v, 0) / windDirs.length),
+      );
+      const windSpeed = safeNum(
+        Math.round(hrs.reduce((s, h) => s + h.wind, 0) / hrs.length),
+      );
+      const humidity = safeNum(
+        Math.round(hrs.reduce((s, h) => s + h.humidity, 0) / hrs.length),
+      );
+      const cloud = safeNum(
+        Math.round(hrs.reduce((s, h) => s + h.cloudCover, 0) / hrs.length),
+      );
+      const cotas = hrs.map((h) => h.freezingLevel);
       const cota = safeNum(Math.round(Math.min(...cotas)));
-      return { label, temp, feelsLike, precip, snowCm, windDir, windSpeed, humidity, cloud, cota, periodStatus };
+      return {
+        label,
+        temp,
+        feelsLike,
+        precip,
+        snowCm,
+        windDir,
+        windSpeed,
+        humidity,
+        cloud,
+        cota,
+        periodStatus,
+      };
     });
 
-    const hasNieve = periods.some(p => p.periodStatus === 'Nieve');
-    const hasLluvia = periods.some(p => ['Llovizna', 'Lluvia', 'Lluvia fuerte', 'Diluvio'].includes(p.periodStatus));
-    const allSeco = periods.every(p => p.periodStatus === 'Seco');
+    const hasNieve = periods.some((p) => p.periodStatus === 'Nieve');
+    const hasLluvia = periods.some((p) =>
+      ['Llovizna', 'Lluvia', 'Lluvia fuerte', 'Diluvio'].includes(
+        p.periodStatus,
+      ),
+    );
+    const allSeco = periods.every((p) => p.periodStatus === 'Seco');
 
-    let verdict: 'Seco' | 'Llovizna' | 'Lluvia' | 'Lluvia fuerte' | 'Diluvio' | 'Nieve' | 'Mezcla' = 'Seco';
+    let verdict:
+      | 'Seco'
+      | 'Llovizna'
+      | 'Lluvia'
+      | 'Lluvia fuerte'
+      | 'Diluvio'
+      | 'Nieve'
+      | 'Mezcla' = 'Seco';
     if (allSeco) {
       verdict = 'Seco';
     } else if (hasNieve && hasLluvia) {
@@ -285,29 +384,53 @@ function buildDaysData(days: import('../lib/weather/types').DailySummary[], hour
     } else if (hasNieve) {
       verdict = 'Nieve';
     } else {
-      const rainVerdicts = periods.filter(p => p.periodStatus !== 'Seco').map(p => p.periodStatus);
+      const rainVerdicts = periods
+        .filter((p) => p.periodStatus !== 'Seco')
+        .map((p) => p.periodStatus);
       verdict = rainVerdicts[0] ?? 'Seco';
     }
 
     const verdictBadgeStyle = getVerdictBadgeStyle(verdict);
 
     return {
-      dayLabel, dayNum, dateStr: day.date, isToday, zoneAltitude, verdict, verdictBadgeStyle,
-      tempMax: Math.round(day.tempMax), tempMin: Math.round(day.tempMin),
-      periods
+      dayLabel,
+      dayNum,
+      dateStr: day.date,
+      isToday,
+      zoneAltitude,
+      verdict,
+      verdictBadgeStyle,
+      tempMax: Math.round(day.tempMax),
+      tempMin: Math.round(day.tempMin),
+      periods,
     };
   });
 }
 
-const villageDays = buildDaysData(dailySummaries, normalized.hourly, ZONE_CONFIG.village.altitude);
-const midDays = buildDaysData(dailySummaries, normalized.hourly, ZONE_CONFIG.mid.altitude);
-const topDays = buildDaysData(dailySummaries, normalized.hourly, ZONE_CONFIG.top.altitude);
+const villageDays = buildDaysData(
+  dailySummaries,
+  normalized.hourly,
+  ZONE_CONFIG.village.altitude,
+);
+const midDays = buildDaysData(
+  dailySummaries,
+  normalized.hourly,
+  ZONE_CONFIG.mid.altitude,
+);
+const topDays = buildDaysData(
+  dailySummaries,
+  normalized.hourly,
+  ZONE_CONFIG.top.altitude,
+);
 
 function getGuruCopy(days: DayData[], zoneLabel: string): string {
-  const hasPrecip = days.some(d => d.verdict !== 'Seco');
-  if (!hasPrecip) return `Los próximos ${days.length} días no me entusiasmo demasiado. Aparece frío por momentos, pero sin precipitación la montaña no arma nieve.`;
-  if (zoneLabel === 'Cumbre') return `Arriba hay mejor señal. No canto paquetón, pero algunas ventanas pueden caer como nieve si se sostiene la cota.`;
-  if (zoneLabel === 'Centro') return `En el centro la cosa mejora un poco, pero todavía depende mucho de que la cota acompañe.`;
+  const hasPrecip = days.some((d) => d.verdict !== 'Seco');
+  if (!hasPrecip)
+    return `Los próximos ${days.length} días no me entusiasmo demasiado. Aparece frío por momentos, pero sin precipitación la montaña no arma nieve.`;
+  if (zoneLabel === 'Cumbre')
+    return `Arriba hay mejor señal. No canto paquetón, pero algunas ventanas pueden caer como nieve si se sostiene la cota.`;
+  if (zoneLabel === 'Centro')
+    return `En el centro la cosa mejora un poco, pero todavía depende mucho de que la cota acompañe.`;
   return `Hay señales para mirar hacia mitad de semana, pero abajo la cota manda. Si no baja más, lo leo más como lluvia que como nieve para el pueblo.`;
 }
 
@@ -315,9 +438,27 @@ const villageGuru = getGuruCopy(villageDays, 'Pueblo');
 const midGuru = getGuruCopy(midDays, 'Centro');
 const topGuru = getGuruCopy(topDays, 'Cumbre');
 
-const ROWS: Array<{ key: string; label: string; unit?: string; rowStyle?: string; group?: string }> = [
-  { key: 'nieve', label: 'Nieve', unit: 'cm', rowStyle: 'nieve', group: 'primary' },
-  { key: 'lluvia', label: 'Lluvia', unit: 'mm', rowStyle: 'lluvia', group: 'primary' },
+const ROWS: Array<{
+  key: string;
+  label: string;
+  unit?: string;
+  rowStyle?: string;
+  group?: string;
+}> = [
+  {
+    key: 'nieve',
+    label: 'Nieve',
+    unit: 'cm',
+    rowStyle: 'nieve',
+    group: 'primary',
+  },
+  {
+    key: 'lluvia',
+    label: 'Lluvia',
+    unit: 'mm',
+    rowStyle: 'lluvia',
+    group: 'primary',
+  },
   { key: 'viento', label: 'Viento', unit: 'km/h', group: 'secondary' },
   { key: 'tempMax', label: 'Máx', unit: '°', group: 'temp' },
   { key: 'tempMin', label: 'Mín', unit: '°', group: 'temp' },
@@ -334,305 +475,550 @@ const PERIOD_LABELS = ['AM', 'PM', 'Noche'];
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Pronóstico | El Gurú de la Nieve</title>
-    <meta name="description" content="Pronóstico extendido para Caviahue. Mira hora por hora cómo viene la montaña." />
+    <meta
+      name="description"
+      content="Pronóstico extendido para Caviahue. Mira hora por hora cómo viene la montaña."
+    />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="apple-touch-icon" href="/emblema.png" />
     <meta name="theme-color" content="#a8e7f9" />
     <link rel="manifest" href="/site.webmanifest" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
   </head>
-  <body class="text-white min-h-screen antialiased font-premium overflow-x-hidden">
+  <body
+    class="text-white min-h-screen antialiased font-premium overflow-x-hidden"
+  >
     <MobileNav activeSection="pronostico" />
     <main class="min-h-screen pt-12 px-4 md:px-8 pb-8">
-      {isDemo && (
-        <div class="absolute top-14 right-4 z-20 flex items-center gap-1 px-2 py-0.5 rounded-full border border-amber-400/20 bg-amber-400/5 text-[7px] tracking-[0.2em] uppercase text-amber-400/60 font-medium">
-          <span class="w-1.5 h-1.5 rounded-full bg-amber-400/50 animate-pulse" />
-          Demo{activeScenario ? ` · ${activeScenario}` : ''}
+      {
+        isDemo && (
+          <div class="absolute top-14 right-4 z-20 flex items-center gap-1 px-2 py-0.5 rounded-full border border-amber-400/20 bg-amber-400/5 text-[7px] tracking-[0.2em] uppercase text-amber-400/60 font-medium">
+            <span class="w-1.5 h-1.5 rounded-full bg-amber-400/50 animate-pulse" />
+            Demo{activeScenario ? ` · ${activeScenario}` : ''}
           </div>
-        )}
+        )
+      }
 
-        <a href="/" class="inline-flex items-center gap-1.5 text-[9px] text-white/25 hover:text-hielo/50 transition-colors tracking-[0.15em] uppercase font-medium mb-5 group">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="group-hover:-translate-x-0.5 transition-transform"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-          Volver al Gurú
-        </a>
+      <a
+        href="/"
+        class="inline-flex items-center gap-1.5 text-[9px] text-white/25 hover:text-hielo/50 transition-colors tracking-[0.15em] uppercase font-medium mb-5 group"
+      >
+        <svg
+          width="12"
+          height="12"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.5"
+          class="group-hover:-translate-x-0.5 transition-transform"
+          ><path d="M19 12H5M12 19l-7-7 7-7"></path></svg
+        >
+        Volver al Gurú
+      </a>
 
-        <div class="mb-4">
-          <span class="text-[9px] text-hielo/50 tracking-[0.3em] uppercase font-semibold">PRONÓSTICO EXTENDIDO</span>
-          <h1 class="text-2xl md:text-3xl font-extrabold text-white tracking-[-0.02em] mt-1">Cómo viene la montaña en los próximos días.</h1>
-          <p class="text-[11px] text-white/35 mt-1">La mesa larga del Gurú: día por día, por altura y por momento del día.</p>
-        </div>
+      <div class="mb-4">
+        <span
+          class="text-[9px] text-hielo/50 tracking-[0.3em] uppercase font-semibold"
+          >PRONÓSTICO EXTENDIDO</span
+        >
+        <h1
+          class="text-2xl md:text-3xl font-extrabold text-white tracking-[-0.02em] mt-1"
+        >
+          Cómo viene la montaña en los próximos días.
+        </h1>
+        <p class="text-[11px] text-white/35 mt-1">
+          La mesa larga del Gurú: día por día, por altura y por momento del día.
+        </p>
+      </div>
 
-        <div class="flex items-center gap-2 mb-3">
-          <span class="text-[8px] text-white/30 tracking-wide uppercase">Altura de referencia</span>
-        </div>
-        <div class="flex items-center gap-1 mb-5 p-0.5 bg-[rgba(9,16,22,0.6)] rounded-full w-fit border border-white/[0.05]">
-          <button class="zone-btn px-4 py-1.5 rounded-full text-[10px] font-semibold tracking-wide bg-hielo/15 text-hielo border border-hielo/20" data-zone="village">Pueblo · 1647 m</button>
-          <button class="zone-btn px-4 py-1.5 rounded-full text-[10px] font-semibold tracking-wide text-white/35 border border-transparent hover:text-white/60" data-zone="mid">Centro · 1846 m</button>
-          <button class="zone-btn px-4 py-1.5 rounded-full text-[10px] font-semibold tracking-wide text-white/35 border border-transparent hover:text-white/60" data-zone="top">Cumbre · 2845 m</button>
-        </div>
+      <div class="flex items-center gap-2 mb-3">
+        <span class="text-[8px] text-white/30 tracking-wide uppercase"
+          >Altura de referencia</span
+        >
+      </div>
+      <div
+        class="flex items-center gap-1 mb-5 p-0.5 bg-[rgba(9,16,22,0.6)] rounded-full w-fit border border-white/[0.05]"
+      >
+        <button
+          class="zone-btn px-4 py-1.5 rounded-full text-[10px] font-semibold tracking-wide bg-hielo/15 text-hielo border border-hielo/20"
+          data-zone="village">Pueblo · 1647 m</button
+        >
+        <button
+          class="zone-btn px-4 py-1.5 rounded-full text-[10px] font-semibold tracking-wide text-white/35 border border-transparent hover:text-white/60"
+          data-zone="mid">Centro · 1846 m</button
+        >
+        <button
+          class="zone-btn px-4 py-1.5 rounded-full text-[10px] font-semibold tracking-wide text-white/35 border border-transparent hover:text-white/60"
+          data-zone="top">Cumbre · 2045 m</button
+        >
+      </div>
 
-        {[villageDays, midDays, topDays].map((days, idx) => {
+      {
+        [villageDays, midDays, topDays].map((days, idx) => {
           const zoneKeys = ['village', 'mid', 'top'] as const;
           const gurus = [villageGuru, midGuru, topGuru] as const;
           const z = zoneKeys[idx];
-          const guruTexts = { village: villageGuru, mid: midGuru, top: topGuru };
+          const guruTexts = {
+            village: villageGuru,
+            mid: midGuru,
+            top: topGuru,
+          };
           return (
-            <div class="zone-table min-w-0" data-zone={z} style={idx !== 0 ? 'display:none' : ''}>
+            <div
+              class="zone-table min-w-0"
+              data-zone={z}
+              style={idx !== 0 ? 'display:none' : ''}
+            >
               <div class="bg-[rgba(9,16,22,0.8)] border border-hielo/20 rounded-xl px-5 py-4 mb-5">
                 <div class="flex items-center justify-between mb-2">
-                  <span class="text-[8px] text-hielo/50 tracking-[0.3em] uppercase font-semibold">EL GURÚ VE EN EL EXTENDIDO</span>
-                  <span class="text-[9px] text-white/25">{days.length} días</span>
+                  <span class="text-[8px] text-hielo/50 tracking-[0.3em] uppercase font-semibold">
+                    EL GURÚ VE EN EL EXTENDIDO
+                  </span>
+                  <span class="text-[9px] text-white/25">
+                    {days.length} días
+                  </span>
                 </div>
-                <p class="text-[13px] text-white/60 leading-relaxed" data-guru={z}>{gurus[idx]}</p>
+                <p
+                  class="text-[13px] text-white/60 leading-relaxed"
+                  data-guru={z}
+                >
+                  {gurus[idx]}
+                </p>
               </div>
 
               {days.length > 0 ? (
                 <div class="w-full overflow-x-auto" data-scroll-container>
                   <div class="min-w-[700px]">
-
                     <div class="flex border-b border-white/[0.08]">
-                      <div class="w-16 shrink-0 px-2 py-3 bg-[rgba(9,16,22,0.95)]"></div>
+                      <div class="w-16 shrink-0 px-2 py-3 bg-[rgba(9,16,22,0.95)]" />
                       {days.map((day, i) => (
-                        <div class={`flex-1 min-w-[95px] text-center border-l border-white/[0.06] py-2.5 ${day.isToday ? 'bg-hielo/[0.08]' : i % 2 === 0 ? 'bg-[rgba(9,16,22,0.5)]' : 'bg-[rgba(9,16,22,0.3)]'}`} key={day.dateStr}>
-                          <div class={`text-[12px] font-extrabold tracking-wide ${day.isToday ? 'text-hielo' : 'text-white/70'}`}>{day.dayLabel}</div>
-                          <div class={`text-[11px] ${day.isToday ? 'text-hielo/60' : 'text-white/35'}`}>{day.dayNum}</div>
-                          <div class={`mt-1 inline-block text-[8px] font-semibold px-1.5 py-0.5 rounded-full tracking-wide ${day.verdictBadgeStyle.bg} ${day.verdictBadgeStyle.text}`}>
+                        <div
+                          class={`flex-1 min-w-[95px] text-center border-l border-white/[0.06] py-2.5 ${day.isToday ? 'bg-hielo/[0.08]' : i % 2 === 0 ? 'bg-[rgba(9,16,22,0.5)]' : 'bg-[rgba(9,16,22,0.3)]'}`}
+                          key={day.dateStr}
+                        >
+                          <div
+                            class={`text-[12px] font-extrabold tracking-wide ${day.isToday ? 'text-hielo' : 'text-white/70'}`}
+                          >
+                            {day.dayLabel}
+                          </div>
+                          <div
+                            class={`text-[11px] ${day.isToday ? 'text-hielo/60' : 'text-white/35'}`}
+                          >
+                            {day.dayNum}
+                          </div>
+                          <div
+                            class={`mt-1 inline-block text-[8px] font-semibold px-1.5 py-0.5 rounded-full tracking-wide ${day.verdictBadgeStyle.bg} ${day.verdictBadgeStyle.text}`}
+                          >
                             {day.verdict}
                           </div>
-                          {day.isToday && <div class="text-[7px] text-hielo/40 mt-0.5 tracking-wider">HOY</div>}
+                          {day.isToday && (
+                            <div class="text-[7px] text-hielo/40 mt-0.5 tracking-wider">
+                              HOY
+                            </div>
+                          )}
                         </div>
                       ))}
                     </div>
 
                     <div class="flex border-b border-white/[0.05]">
-                      <div class="w-16 shrink-0 px-2 py-1.5 bg-[rgba(9,16,22,0.95)]"></div>
+                      <div class="w-16 shrink-0 px-2 py-1.5 bg-[rgba(9,16,22,0.95)]" />
                       {days.map((day, i) => (
-                        <div class={`flex-1 min-w-[95px] grid grid-cols-3 border-l border-white/[0.06] ${day.isToday ? 'bg-hielo/[0.04]' : i % 2 === 0 ? 'bg-[rgba(9,16,22,0.4)]' : 'bg-[rgba(9,16,22,0.25)]'}`} key={`periods-${day.dateStr}`}>
+                        <div
+                          class={`flex-1 min-w-[95px] grid grid-cols-3 border-l border-white/[0.06] ${day.isToday ? 'bg-hielo/[0.04]' : i % 2 === 0 ? 'bg-[rgba(9,16,22,0.4)]' : 'bg-[rgba(9,16,22,0.25)]'}`}
+                          key={`periods-${day.dateStr}`}
+                        >
                           {PERIOD_LABELS.map((p, pi) => (
-                            <div key={p} class={`text-center py-1.5 text-[8px] tracking-[0.1em] uppercase font-bold ${pi === 0 ? 'text-amber-400/50' : pi === 1 ? 'text-hielo/60' : 'text-white/25'}`}>{p}</div>
+                            <div
+                              key={p}
+                              class={`text-center py-1.5 text-[8px] tracking-[0.1em] uppercase font-bold ${pi === 0 ? 'text-amber-400/50' : pi === 1 ? 'text-hielo/60' : 'text-white/25'}`}
+                            >
+                              {p}
+                            </div>
                           ))}
                         </div>
                       ))}
                     </div>
 
                     {ROWS.map((row, rowIdx) => {
-                        const isTemp = row.group === 'temp';
-                        const isTempHeader = row.key === 'tempMax';
-                        return (
-                      <div class={`flex border-b border-white/[0.04] ${isTemp ? 'border-white/[0.04]' : ''}`} key={row.key}>
-                        <div class={`w-16 shrink-0 px-2 py-2.5 text-[11px] font-semibold flex items-center border-r border-white/[0.05] ${row.rowStyle === 'nieve' ? 'bg-cyan-500/[0.12] text-cyan-200/80' : row.rowStyle === 'lluvia' ? 'bg-sky-500/[0.10] text-sky-200/80' : isTemp ? (row.key === 'tempMax' ? 'bg-amber-500/[0.06] text-amber-200/70' : 'bg-[rgba(9,16,22,0.75)] text-white/30') : rowIdx % 2 === 0 ? 'bg-[rgba(9,16,22,0.9)]' : 'bg-[rgba(9,16,22,0.75)]'}`}>
-                          <span class={row.rowStyle || isTemp ? 'text-white/70' : 'text-white/45'}>{row.label}</span>
-                          {row.unit && <span class="text-white/20 text-[9px] ml-0.5">{row.unit}</span>}
-                        </div>
-                        {days.map((day, colIdx) => {
-                          return (
-                            <div class="flex-1 min-w-[95px] grid grid-cols-3 border-l border-white/[0.05]" key={row.key + day.dateStr}>
-                              {day.periods.map((p, pi) => {
-                                const cellBase = day.isToday
-                                  ? (rowIdx % 2 === 0 ? 'bg-hielo/[0.06]' : 'bg-hielo/[0.04]')
-                                  : (rowIdx % 2 === 0 ? 'bg-[rgba(9,16,22,0.5)]' : 'bg-[rgba(9,16,22,0.35)]');
+                      const isTemp = row.group === 'temp';
+                      const isTempHeader = row.key === 'tempMax';
+                      return (
+                        <div
+                          class={`flex border-b border-white/[0.04] ${isTemp ? 'border-white/[0.04]' : ''}`}
+                          key={row.key}
+                        >
+                          <div
+                            class={`w-16 shrink-0 px-2 py-2.5 text-[11px] font-semibold flex items-center border-r border-white/[0.05] ${row.rowStyle === 'nieve' ? 'bg-cyan-500/[0.12] text-cyan-200/80' : row.rowStyle === 'lluvia' ? 'bg-sky-500/[0.10] text-sky-200/80' : isTemp ? (row.key === 'tempMax' ? 'bg-amber-500/[0.06] text-amber-200/70' : 'bg-[rgba(9,16,22,0.75)] text-white/30') : rowIdx % 2 === 0 ? 'bg-[rgba(9,16,22,0.9)]' : 'bg-[rgba(9,16,22,0.75)]'}`}
+                          >
+                            <span
+                              class={
+                                row.rowStyle || isTemp
+                                  ? 'text-white/70'
+                                  : 'text-white/45'
+                              }
+                            >
+                              {row.label}
+                            </span>
+                            {row.unit && (
+                              <span class="text-white/20 text-[9px] ml-0.5">
+                                {row.unit}
+                              </span>
+                            )}
+                          </div>
+                          {days.map((day, colIdx) => {
+                            return (
+                              <div
+                                class="flex-1 min-w-[95px] grid grid-cols-3 border-l border-white/[0.05]"
+                                key={row.key + day.dateStr}
+                              >
+                                {day.periods.map((p, pi) => {
+                                  const cellBase = day.isToday
+                                    ? rowIdx % 2 === 0
+                                      ? 'bg-hielo/[0.06]'
+                                      : 'bg-hielo/[0.04]'
+                                    : rowIdx % 2 === 0
+                                      ? 'bg-[rgba(9,16,22,0.5)]'
+                                      : 'bg-[rgba(9,16,22,0.35)]';
 
-                                if (row.key === 'nieve') {
-                                  const style = getSnowCmColor(p.snowCm);
+                                  if (row.key === 'nieve') {
+                                    const style = getSnowCmColor(p.snowCm);
+                                    return (
+                                      <div
+                                        key={pi}
+                                        class={`text-center py-2 px-1 ${style.bg}`}
+                                      >
+                                        <span
+                                          class={`text-[11px] font-bold tabular-nums ${style.text}`}
+                                        >
+                                          {p.snowCm !== null
+                                            ? `${p.snowCm}`
+                                            : '—'}
+                                        </span>
+                                      </div>
+                                    );
+                                  }
+                                  if (row.key === 'lluvia') {
+                                    const style = getRainMmColor(p.precip);
+                                    return (
+                                      <div
+                                        key={pi}
+                                        class={`text-center py-2 px-1 ${style.bg}`}
+                                      >
+                                        <span
+                                          class={`text-[11px] tabular-nums ${style.text}`}
+                                        >
+                                          {p.precip !== null
+                                            ? `${p.precip}`
+                                            : '—'}
+                                        </span>
+                                      </div>
+                                    );
+                                  }
+                                  if (row.key === 'cota') {
+                                    const style = getCotaColor(
+                                      p.cota,
+                                      day.zoneAltitude,
+                                    );
+                                    return (
+                                      <div
+                                        key={pi}
+                                        class={`text-center py-2 px-1 ${style.bg}`}
+                                      >
+                                        <span
+                                          class={`text-[10px] tabular-nums ${style.text}`}
+                                        >
+                                          {p.cota !== null ? `${p.cota}` : '—'}
+                                        </span>
+                                      </div>
+                                    );
+                                  }
+                                  if (row.key === 'tempMax') {
+                                    const val = p.temp;
+                                    const colorClass = getTempColor(val);
+                                    return (
+                                      <div
+                                        key={pi}
+                                        class={`text-center py-2 px-1 ${cellBase}`}
+                                      >
+                                        <span
+                                          class={`text-[12px] font-bold tabular-nums ${colorClass}`}
+                                        >
+                                          {val !== null ? `${val}` : '—'}
+                                        </span>
+                                      </div>
+                                    );
+                                  }
+                                  if (row.key === 'tempMin') {
+                                    const val = p.feelsLike;
+                                    const colorClass = getTempColor(val);
+                                    return (
+                                      <div
+                                        key={pi}
+                                        class={`text-center py-2 px-1 ${cellBase}`}
+                                      >
+                                        <span
+                                          class={`text-[11px] tabular-nums ${colorClass}`}
+                                        >
+                                          {val !== null ? `${val}` : '—'}
+                                        </span>
+                                      </div>
+                                    );
+                                  }
+                                  if (row.key === 'viento') {
+                                    const speedVal = roundWind(p.windSpeed);
+                                    const dirStr = degreesToCardinal(p.windDir);
+                                    const windColor = getWindColor(speedVal);
+                                    const display =
+                                      speedVal === 0
+                                        ? 'Calma'
+                                        : `${dirStr} ${speedVal}`;
+                                    return (
+                                      <div
+                                        key={pi}
+                                        class={`text-center py-2 px-1 ${cellBase}`}
+                                      >
+                                        <span
+                                          class={`text-[10px] font-medium tabular-nums ${windColor}`}
+                                        >
+                                          {display}
+                                        </span>
+                                      </div>
+                                    );
+                                  }
+                                  if (row.key === 'humedad') {
+                                    return (
+                                      <div
+                                        key={pi}
+                                        class={`text-center py-2 px-1 ${cellBase}`}
+                                      >
+                                        <span class="text-[11px] text-white/40 tabular-nums">
+                                          {p.humidity !== null
+                                            ? `${p.humidity}`
+                                            : '—'}
+                                        </span>
+                                      </div>
+                                    );
+                                  }
+                                  if (row.key === 'nubosidad') {
+                                    return (
+                                      <div
+                                        key={pi}
+                                        class={`text-center py-2 px-1 ${cellBase}`}
+                                      >
+                                        <span class="text-[11px] text-white/40 tabular-nums">
+                                          {p.cloud !== null
+                                            ? `${p.cloud}`
+                                            : '—'}
+                                        </span>
+                                      </div>
+                                    );
+                                  }
                                   return (
-                                    <div key={pi} class={`text-center py-2 px-1 ${style.bg}`}>
-                                      <span class={`text-[11px] font-bold tabular-nums ${style.text}`}>
-                                        {p.snowCm !== null ? `${p.snowCm}` : '—'}
-                                      </span>
-                                    </div>
+                                    <div
+                                      key={pi}
+                                      class={`text-center py-2 px-1 ${cellBase}`}
+                                    />
                                   );
-                                }
-                                if (row.key === 'lluvia') {
-                                  const style = getRainMmColor(p.precip);
-                                  return (
-                                    <div key={pi} class={`text-center py-2 px-1 ${style.bg}`}>
-                                      <span class={`text-[11px] tabular-nums ${style.text}`}>
-                                        {p.precip !== null ? `${p.precip}` : '—'}
-                                      </span>
-                                    </div>
-                                  );
-                                }
-                                if (row.key === 'cota') {
-                                  const style = getCotaColor(p.cota, day.zoneAltitude);
-                                  return (
-                                    <div key={pi} class={`text-center py-2 px-1 ${style.bg}`}>
-                                      <span class={`text-[10px] tabular-nums ${style.text}`}>
-                                        {p.cota !== null ? `${p.cota}` : '—'}
-                                      </span>
-                                    </div>
-                                  );
-                                }
-                                if (row.key === 'tempMax') {
-                                  const val = p.temp;
-                                  const colorClass = getTempColor(val);
-                                  return (
-                                    <div key={pi} class={`text-center py-2 px-1 ${cellBase}`}>
-                                      <span class={`text-[12px] font-bold tabular-nums ${colorClass}`}>
-                                        {val !== null ? `${val}` : '—'}
-                                      </span>
-                                    </div>
-                                  );
-                                }
-                                if (row.key === 'tempMin') {
-                                  const val = p.feelsLike;
-                                  const colorClass = getTempColor(val);
-                                  return (
-                                    <div key={pi} class={`text-center py-2 px-1 ${cellBase}`}>
-                                      <span class={`text-[11px] tabular-nums ${colorClass}`}>
-                                        {val !== null ? `${val}` : '—'}
-                                      </span>
-                                    </div>
-                                  );
-                                }
-                                if (row.key === 'viento') {
-                                  const speedVal = roundWind(p.windSpeed);
-                                  const dirStr = degreesToCardinal(p.windDir);
-                                  const windColor = getWindColor(speedVal);
-                                  const display = speedVal === 0 ? 'Calma' : `${dirStr} ${speedVal}`;
-                                  return (
-                                    <div key={pi} class={`text-center py-2 px-1 ${cellBase}`}>
-                                      <span class={`text-[10px] font-medium tabular-nums ${windColor}`}>
-                                        {display}
-                                      </span>
-                                    </div>
-                                  );
-                                }
-                                if (row.key === 'humedad') {
-                                  return (
-                                    <div key={pi} class={`text-center py-2 px-1 ${cellBase}`}>
-                                      <span class="text-[11px] text-white/40 tabular-nums">
-                                        {p.humidity !== null ? `${p.humidity}` : '—'}
-                                      </span>
-                                    </div>
-                                  );
-                                }
-                                if (row.key === 'nubosidad') {
-                                  return (
-                                    <div key={pi} class={`text-center py-2 px-1 ${cellBase}`}>
-                                      <span class="text-[11px] text-white/40 tabular-nums">
-                                        {p.cloud !== null ? `${p.cloud}` : '—'}
-                                      </span>
-                                    </div>
-                                  );
-                                }
-return <div key={pi} class={`text-center py-2 px-1 ${cellBase}`}></div>;
-                              })}
-                            </div>
-                          );
-                        })}
-                      </div>
-                    );
+                                })}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      );
                     })}
                   </div>
 
                   <div class="scroll-hint md:hidden px-4 mb-2">
-                    <span class="text-[9px] text-white/25 tracking-wide">Deslizá para ver más días</span>
+                    <span class="text-[9px] text-white/25 tracking-wide">
+                      Deslizá para ver más días
+                    </span>
                   </div>
 
                   <div class="scroll-nav-btns absolute top-1/2 -translate-y-1/2 left-0 right-0 flex justify-between pointer-events-none px-1 md:hidden">
-                    <button class="scroll-btn scroll-left pointer-events-auto w-7 h-7 rounded-full bg-[rgba(9,16,22,0.85)] border border-white/[0.12] text-white/40 hover:text-white/70 flex items-center justify-center backdrop-blur-sm opacity-50" aria-label="Ver días anteriores" disabled>
-                      <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M7.5 9L4.5 6l3-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    <button
+                      class="scroll-btn scroll-left pointer-events-auto w-7 h-7 rounded-full bg-[rgba(9,16,22,0.85)] border border-white/[0.12] text-white/40 hover:text-white/70 flex items-center justify-center backdrop-blur-sm opacity-50"
+                      aria-label="Ver días anteriores"
+                      disabled
+                    >
+                      <svg
+                        width="12"
+                        height="12"
+                        viewBox="0 0 12 12"
+                        fill="none"
+                      >
+                        <path
+                          d="M7.5 9L4.5 6l3-3"
+                          stroke="currentColor"
+                          stroke-width="1.5"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        />
+                      </svg>
                     </button>
-                    <button class="scroll-btn scroll-right pointer-events-auto w-7 h-7 rounded-full bg-[rgba(9,16,22,0.85)] border border-white/[0.12] text-white/40 hover:text-white/70 flex items-center justify-center backdrop-blur-sm opacity-50" aria-label="Ver más días" disabled>
-                      <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M4.5 3l3 3-3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    <button
+                      class="scroll-btn scroll-right pointer-events-auto w-7 h-7 rounded-full bg-[rgba(9,16,22,0.85)] border border-white/[0.12] text-white/40 hover:text-white/70 flex items-center justify-center backdrop-blur-sm opacity-50"
+                      aria-label="Ver más días"
+                      disabled
+                    >
+                      <svg
+                        width="12"
+                        height="12"
+                        viewBox="0 0 12 12"
+                        fill="none"
+                      >
+                        <path
+                          d="M4.5 3l3 3-3 3"
+                          stroke="currentColor"
+                          stroke-width="1.5"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        />
+                      </svg>
                     </button>
                   </div>
                 </div>
               ) : (
                 <div class="rounded-xl px-4 py-8 text-center border border-white/[0.05] bg-[rgba(9,16,22,0.5)]">
-                  <p class="text-[12px] text-white/35">No hay datos de pronóstico disponibles.</p>
+                  <p class="text-[12px] text-white/35">
+                    No hay datos de pronóstico disponibles.
+                  </p>
                 </div>
               )}
             </div>
           );
-        })}
+        })
+      }
 
-        <div class="mt-4 flex items-center gap-3 text-[9px] text-white/20 tracking-wide pb-4">
-          <span>AM = Mañana · PM = Tarde · Noche = Noche</span>
-          <span>·</span>
-          <span>Cota en metros sobre nivel del mar</span>
-          <span>·</span>
-          <span>Viento = dirección + velocidad redondeada a múltiplos de 5</span>
-          <span>·</span>
-          <span>Actualizado {new Date(periods.today.updated).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })}</span>
-        </div>
+      <div
+        class="mt-4 flex items-center gap-3 text-[9px] text-white/20 tracking-wide pb-4"
+      >
+        <span>AM = Mañana · PM = Tarde · Noche = Noche</span>
+        <span>·</span>
+        <span>Cota en metros sobre nivel del mar</span>
+        <span>·</span>
+        <span>Viento = dirección + velocidad redondeada a múltiplos de 5</span>
+        <span>·</span>
+        <span
+          >Actualizado {
+            new Date(periods.today.updated).toLocaleTimeString('es-AR', {
+              hour: '2-digit',
+              minute: '2-digit',
+            })
+          }</span
+        >
+      </div>
 
-        <script>
-          function initScrollNav() {
-            var containers = document.querySelectorAll('[data-scroll-container]');
-            var leftBtns = document.querySelectorAll('.scroll-left');
-            var rightBtns = document.querySelectorAll('.scroll-right');
+      <script>
+        function initScrollNav() {
+          var containers = document.querySelectorAll('[data-scroll-container]');
+          var leftBtns = document.querySelectorAll('.scroll-left');
+          var rightBtns = document.querySelectorAll('.scroll-right');
 
-            function updateArrows(scrollEl) {
-              var left = scrollEl.parentElement.querySelector('.scroll-left');
-              var right = scrollEl.parentElement.querySelector('.scroll-right');
-              if (!left || !right) return;
-              left.disabled = scrollEl.scrollLeft <= 2;
-              right.disabled = scrollEl.scrollLeft + scrollEl.clientWidth >= scrollEl.scrollWidth - 2;
-              left.style.opacity = scrollEl.scrollLeft <= 2 ? '0.35' : '0.85';
-              right.style.opacity = scrollEl.scrollLeft + scrollEl.clientWidth >= scrollEl.scrollWidth - 2 ? '0.35' : '0.85';
-            }
-
-            containers.forEach(function(c) { updateArrows(c); });
-            containers.forEach(function(c) {
-              c.addEventListener('scroll', function() { updateArrows(c); }, { passive: true });
-            });
-
-            leftBtns.forEach(function(btn) {
-              btn.addEventListener('click', function() {
-                var container = btn.closest('.scroll-container').querySelector('[data-scroll-container]');
-                container.scrollBy({ left: -280, behavior: 'smooth' });
-              });
-            });
-
-            rightBtns.forEach(function(btn) {
-              btn.addEventListener('click', function() {
-                var container = btn.closest('.scroll-container').querySelector('[data-scroll-container]');
-                container.scrollBy({ left: 280, behavior: 'smooth' });
-              });
-            });
-
-            window.addEventListener('resize', function() {
-              containers.forEach(function(c) { updateArrows(c); });
-            });
+          function updateArrows(scrollEl) {
+            var left = scrollEl.parentElement.querySelector('.scroll-left');
+            var right = scrollEl.parentElement.querySelector('.scroll-right');
+            if (!left || !right) return;
+            left.disabled = scrollEl.scrollLeft <= 2;
+            right.disabled =
+              scrollEl.scrollLeft + scrollEl.clientWidth >=
+              scrollEl.scrollWidth - 2;
+            left.style.opacity = scrollEl.scrollLeft <= 2 ? '0.35' : '0.85';
+            right.style.opacity =
+              scrollEl.scrollLeft + scrollEl.clientWidth >=
+              scrollEl.scrollWidth - 2
+                ? '0.35'
+                : '0.85';
           }
 
-          var zoneBtns = document.querySelectorAll('.zone-btn');
-          var zoneTables = document.querySelectorAll('.zone-table');
+          containers.forEach(function (c) {
+            updateArrows(c);
+          });
+          containers.forEach(function (c) {
+            c.addEventListener(
+              'scroll',
+              function () {
+                updateArrows(c);
+              },
+              { passive: true },
+            );
+          });
 
-          zoneBtns.forEach(function(btn) {
-            btn.addEventListener('click', function() {
-              var z = btn.getAttribute('data-zone');
-              zoneBtns.forEach(function(b) {
-                b.classList.remove('bg-hielo/15', 'text-hielo', 'border', 'border-hielo/20');
-                b.classList.add('text-white/35', 'border-transparent');
-              });
-              btn.classList.remove('text-white/35', 'border-transparent');
-              btn.classList.add('bg-hielo/15', 'text-hielo', 'border', 'border-hielo/20');
-              zoneTables.forEach(function(t) {
-                t.style.display = t.getAttribute('data-zone') === z ? '' : 'none';
-              });
-              var guruEl = document.querySelector('[data-guru="' + z + '"]');
-              if (guruEl) {
-                document.querySelectorAll('[data-guru]').forEach(function(g) { g.style.display = 'none'; });
-                guruEl.style.display = '';
-              }
-              setTimeout(function() {
-                var visible = document.querySelector('.zone-table:not([style])') || document.querySelector('.zone-table[style=""]');
-                if (visible) {
-                  var c = visible.querySelector('[data-scroll-container]');
-                  if (c) c.scrollLeft = 0;
-                }
-              }, 10);
+          leftBtns.forEach(function (btn) {
+            btn.addEventListener('click', function () {
+              var container = btn
+                .closest('.scroll-container')
+                .querySelector('[data-scroll-container]');
+              container.scrollBy({ left: -280, behavior: 'smooth' });
             });
           });
 
-          initScrollNav();
-        </script>
+          rightBtns.forEach(function (btn) {
+            btn.addEventListener('click', function () {
+              var container = btn
+                .closest('.scroll-container')
+                .querySelector('[data-scroll-container]');
+              container.scrollBy({ left: 280, behavior: 'smooth' });
+            });
+          });
 
-      </main>
-    </div>
+          window.addEventListener('resize', function () {
+            containers.forEach(function (c) {
+              updateArrows(c);
+            });
+          });
+        }
+
+        var zoneBtns = document.querySelectorAll('.zone-btn');
+        var zoneTables = document.querySelectorAll('.zone-table');
+
+        zoneBtns.forEach(function (btn) {
+          btn.addEventListener('click', function () {
+            var z = btn.getAttribute('data-zone');
+            zoneBtns.forEach(function (b) {
+              b.classList.remove(
+                'bg-hielo/15',
+                'text-hielo',
+                'border',
+                'border-hielo/20',
+              );
+              b.classList.add('text-white/35', 'border-transparent');
+            });
+            btn.classList.remove('text-white/35', 'border-transparent');
+            btn.classList.add(
+              'bg-hielo/15',
+              'text-hielo',
+              'border',
+              'border-hielo/20',
+            );
+            zoneTables.forEach(function (t) {
+              t.style.display = t.getAttribute('data-zone') === z ? '' : 'none';
+            });
+            var guruEl = document.querySelector('[data-guru="' + z + '"]');
+            if (guruEl) {
+              document.querySelectorAll('[data-guru]').forEach(function (g) {
+                g.style.display = 'none';
+              });
+              guruEl.style.display = '';
+            }
+            setTimeout(function () {
+              var visible =
+                document.querySelector('.zone-table:not([style])') ||
+                document.querySelector('.zone-table[style=""]');
+              if (visible) {
+                var c = visible.querySelector('[data-scroll-container]');
+                if (c) c.scrollLeft = 0;
+              }
+            }, 10);
+          });
+        });
+
+        initScrollNav();
+      </script>
+    </main>
   </body>
 </html>
