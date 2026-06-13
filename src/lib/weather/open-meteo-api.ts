@@ -1,13 +1,13 @@
 export const CAVIAHUE_COORDS = {
   lat: -37.85,
   lon: -71.05,
-  name: 'Caviahue'
+  name: 'Caviahue',
 };
 
 export const ZONE_ELEVATIONS = {
   village: 1647,
   mid: 1846,
-  top: 2045
+  top: 2045,
 };
 
 export type OpenMeteoResponse = {
@@ -37,7 +37,7 @@ export type OpenMeteoResponse = {
 export function buildOpenMeteoUrl(
   lat: number,
   lon: number,
-  options?: { forecastDays?: number; timezone?: string }
+  options?: { forecastDays?: number; timezone?: string },
 ): string {
   const days = options?.forecastDays ?? 2;
   const tz = options?.timezone ?? 'auto';
@@ -54,10 +54,10 @@ export function buildOpenMeteoUrl(
       'wind_direction_10m',
       'wind_gusts_10m',
       'relative_humidity_2m',
-      'cloud_cover'
+      'cloud_cover',
     ].join(','),
     timezone: tz,
-    forecast_days: days.toString()
+    forecast_days: days.toString(),
   });
   return `https://api.open-meteo.com/v1/forecast?${params.toString()}`;
 }
@@ -65,7 +65,7 @@ export function buildOpenMeteoUrl(
 export async function fetchOpenMeteo(
   lat: number,
   lon: number,
-  options?: { forecastDays?: number; timezone?: string }
+  options?: { forecastDays?: number; timezone?: string },
 ): Promise<OpenMeteoResponse> {
   const url = buildOpenMeteoUrl(lat, lon, options);
   const res = await fetch(url);

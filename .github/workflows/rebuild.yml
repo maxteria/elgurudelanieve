@@ -9,6 +9,13 @@ jobs:
   trigger:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm ci
+      - name: Format check
+        run: npx prettier --check .
       - name: Trigger Vercel Deploy
         run: curl -X POST "${{ secrets.VERCEL_DEPLOY_HOOK_URL }}"
         continue-on-error: true

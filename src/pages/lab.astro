@@ -2,9 +2,16 @@
 import '../styles/tailwind.css';
 import type { PeriodKey, PeriodInterpretations } from '../lib/types';
 import type { DemoSenario } from '../data/demo-scenarios';
-import { getWeatherData, type WeatherMode } from '../lib/weather/weather-source';
+import {
+  getWeatherData,
+  type WeatherMode,
+} from '../lib/weather/weather-source';
 import { analyzeAllPeriods } from '../lib/period-engine';
-import { getTodayForecast, getTomorrowForecast, getSevenDayForecast } from '../lib/forecast-periods';
+import {
+  getTodayForecast,
+  getTomorrowForecast,
+  getSevenDayForecast,
+} from '../lib/forecast-periods';
 import { normalizedToLegacy } from '../lib/weather/convert-to-legacy';
 import { isValidScenario } from '../data/demo-scenarios';
 import MobileNav from '../components/MobileNav.astro';
@@ -19,12 +26,21 @@ import { generateTouristCopy, type GuruCopyInput } from '../lib/ai/guru-copy';
 
 const params = Astro.url.searchParams;
 const demoParam = params.get('demo');
-const activeScenario: DemoSenario | undefined = isValidScenario(demoParam) ? demoParam : undefined;
-const queryMode: WeatherMode | undefined = demoParam === '1' || activeScenario ? 'demo' : undefined;
-const envMode: WeatherMode | undefined = process.env.PUBLIC_WEATHER_MODE === 'demo' ? 'demo' : undefined;
+const activeScenario: DemoSenario | undefined = isValidScenario(demoParam)
+  ? demoParam
+  : undefined;
+const queryMode: WeatherMode | undefined =
+  demoParam === '1' || activeScenario ? 'demo' : undefined;
+const envMode: WeatherMode | undefined =
+  process.env.PUBLIC_WEATHER_MODE === 'demo' ? 'demo' : undefined;
 const activeMode: WeatherMode = queryMode ?? envMode ?? 'real';
 
-const { data: weather, normalized, weatherApi, source } = await getWeatherData({ mode: activeMode, scenario: activeScenario });
+const {
+  data: weather,
+  normalized,
+  weatherApi,
+  source,
+} = await getWeatherData({ mode: activeMode, scenario: activeScenario });
 const firstPeriod: PeriodKey = 'today';
 const periods = analyzeAllPeriods(normalized);
 const result = periods[firstPeriod];
@@ -33,39 +49,54 @@ const zoneList = [result.zones.village, result.zones.mid, result.zones.top];
 const isDemo = source === 'mock-demo';
 
 const periodKeys: PeriodKey[] = ['today', 'tomorrow', 'sevenDays'];
-const touristResults = await Promise.all(periodKeys.map(async (key) => {
-  const p = periods[key];
-  const input: GuruCopyInput = {
-    period: key,
-    mainAnswer: p.mainAnswer,
-    powderScore: p.powderScore,
-    bestWindow: p.bestWindow,
-    alerts: p.alerts,
-    zones: p.zones,
-    now: weatherApi ?? undefined
-  };
-  return generateTouristCopy(input);
-}));
-const touristCopies: Record<PeriodKey, string> = {} as Record<PeriodKey, string>;
-const touristSources: Record<PeriodKey, string> = {} as Record<PeriodKey, string>;
+const touristResults = await Promise.all(
+  periodKeys.map(async (key) => {
+    const p = periods[key];
+    const input: GuruCopyInput = {
+      period: key,
+      mainAnswer: p.mainAnswer,
+      powderScore: p.powderScore,
+      bestWindow: p.bestWindow,
+      alerts: p.alerts,
+      zones: p.zones,
+      now: weatherApi ?? undefined,
+    };
+    return generateTouristCopy(input);
+  }),
+);
+const touristCopies: Record<PeriodKey, string> = {} as Record<
+  PeriodKey,
+  string
+>;
+const touristSources: Record<PeriodKey, string> = {} as Record<
+  PeriodKey,
+  string
+>;
 periodKeys.forEach((key, i) => {
   touristCopies[key] = touristResults[i].touristCopy;
   touristSources[key] = touristResults[i].source;
 });
 
 const dailySummaries = getSevenDayForecast(normalized.hourly);
-const periodDataJson = JSON.stringify({ periods, dailySummaries, touristCopies, touristSources });
+const periodDataJson = JSON.stringify({
+  periods,
+  dailySummaries,
+  touristCopies,
+  touristSources,
+});
 
 function buildZoneHourly(period: PeriodKey) {
-  const hourly = period === 'today'
-    ? getTodayForecast(normalized.hourly)
-    : period === 'tomorrow'
-    ? getTomorrowForecast(normalized.hourly)
-    : normalized.hourly;
+  const hourly =
+    period === 'today'
+      ? getTodayForecast(normalized.hourly)
+      : period === 'tomorrow'
+        ? getTomorrowForecast(normalized.hourly)
+        : normalized.hourly;
   if (hourly.length === 0) return [];
   const midZone = normalized.zones.mid;
-  return hourly.map(h => {
-    const zoneOffset = (midZone.altitude - normalized.zones.village.altitude) * 0.0065;
+  return hourly.map((h) => {
+    const zoneOffset =
+      (midZone.altitude - normalized.zones.village.altitude) * 0.0065;
     const zoneTemp = Math.round((h.temp - zoneOffset) * 10) / 10;
     return {
       hour: new Date(h.time).getHours(),
@@ -74,7 +105,7 @@ function buildZoneHourly(period: PeriodKey) {
       wind: h.wind,
       precip: h.precipitation,
       snow_prob: 0,
-      freezing_level: h.freezingLevel
+      freezing_level: h.freezingLevel,
     };
   });
 }
@@ -87,242 +118,306 @@ const zoneHourlyTomorrow = buildZoneHourly('tomorrow');
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>El Gurú Lab | Dashboard técnico de nieve para Caviahue</title>
-    <meta name="description" content="Dashboard técnico de condiciones de nieve para Caviahue. Powder Score, cota, temperatura y mejores ventanas de nieve." />
+    <meta
+      name="description"
+      content="Dashboard técnico de condiciones de nieve para Caviahue. Powder Score, cota, temperatura y mejores ventanas de nieve."
+    />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="apple-touch-icon" href="/emblema.png" />
     <meta name="theme-color" content="#a8e7f9" />
     <link rel="manifest" href="/site.webmanifest" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
   </head>
-  <body class="text-white min-h-screen antialiased font-premium overflow-x-hidden">
+  <body
+    class="text-white min-h-screen antialiased font-premium overflow-x-hidden"
+  >
     <MobileNav activeSection="lab" />
     <main class="min-h-screen pt-12 px-4 md:px-8 pb-8">
-      {isDemo && (
-        <div class="absolute top-14 right-4 z-20 flex items-center gap-1 px-2 py-0.5 rounded-full border border-amber-400/20 bg-amber-400/5 text-[7px] tracking-[0.2em] uppercase text-amber-400/60 font-medium">
-          <span class="w-1.5 h-1.5 rounded-full bg-amber-400/50 animate-pulse" />
+      {
+        isDemo && (
+          <div class="absolute top-14 right-4 z-20 flex items-center gap-1 px-2 py-0.5 rounded-full border border-amber-400/20 bg-amber-400/5 text-[7px] tracking-[0.2em] uppercase text-amber-400/60 font-medium">
+            <span class="w-1.5 h-1.5 rounded-full bg-amber-400/50 animate-pulse" />
             Demo{activeScenario ? ` · ${activeScenario}` : ''}
           </div>
-        )}
+        )
+      }
 
-        <a href="/" class="inline-flex items-center gap-1.5 text-[9px] text-white/25 hover:text-hielo/50 transition-colors tracking-[0.15em] uppercase font-medium mb-6 group">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="group-hover:-translate-x-0.5 transition-transform"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-          Volver al Gurú
-        </a>
+      <a
+        href="/"
+        class="inline-flex items-center gap-1.5 text-[9px] text-white/25 hover:text-hielo/50 transition-colors tracking-[0.15em] uppercase font-medium mb-6 group"
+      >
+        <svg
+          width="12"
+          height="12"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.5"
+          class="group-hover:-translate-x-0.5 transition-transform"
+          ><path d="M19 12H5M12 19l-7-7 7-7"></path></svg
+        >
+        Volver al Gurú
+      </a>
 
-        <div class="mb-6">
-          <span class="text-[8px] text-hielo/40 tracking-[0.35em] uppercase font-semibold">EL GURÚ LAB</span>
-          <h1 class="text-2xl md:text-3xl font-extrabold text-white tracking-[-0.02em] mt-1">Los instrumentos con los que miro la montaña.</h1>
-          <p class="text-[11px] text-white/30 mt-1.5 leading-relaxed max-w-xl">Temperatura, cota, viento, humedad y señales de nieve para entender por qué el Gurú dice lo que dice.</p>
-        </div>
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
-          {result.weatherApi && <NowCard weatherApi={result.weatherApi} />}
-          <PowderScore value={result.powderScore.value} reason={result.powderScore.description} />
-          <SnowWindow
-            hasWindow={result.bestWindow.hasWindow}
-            from={result.bestWindow.from}
-            to={result.bestWindow.to}
-            label={result.bestWindow.label}
-            description={result.bestWindow.description}
-          />
-          <AlertsPanel alerts={result.alerts} />
-        </div>
+      <div class="mb-6">
+        <span
+          class="text-[8px] text-hielo/40 tracking-[0.35em] uppercase font-semibold"
+          >EL GURÚ LAB</span
+        >
+        <h1
+          class="text-2xl md:text-3xl font-extrabold text-white tracking-[-0.02em] mt-1"
+        >
+          Los instrumentos con los que miro la montaña.
+        </h1>
+        <p class="text-[11px] text-white/30 mt-1.5 leading-relaxed max-w-xl">
+          Temperatura, cota, viento, humedad y señales de nieve para entender
+          por qué el Gurú dice lo que dice.
+        </p>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
+        {result.weatherApi && <NowCard weatherApi={result.weatherApi} />}
+        <PowderScore
+          value={result.powderScore.value}
+          reason={result.powderScore.description}
+        />
+        <SnowWindow
+          hasWindow={result.bestWindow.hasWindow}
+          from={result.bestWindow.from}
+          to={result.bestWindow.to}
+          label={result.bestWindow.label}
+          description={result.bestWindow.description}
+        />
+        <AlertsPanel alerts={result.alerts} />
+      </div>
 
-        <div class="space-y-4" data-period-group>
-            <div class="rounded-xl px-4 py-2.5" style="background: rgba(9,16,22,0.6); border: 1px solid rgba(255,255,255,0.03);">
-              <div class="flex items-center gap-2 mb-2">
-                <div class="w-1 h-3 bg-gradient-to-b from-white/10 to-white/5 rounded-full"></div>
-                <span class="text-[8px] text-white/20 tracking-[0.22em] uppercase font-medium">LECTURA POR ALTURA</span>
-                <div class="flex-1 h-[1px] bg-white/[0.03]"></div>
-              </div>
-              <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                {zoneList.map(zone => (
-                  <ZoneCard zone={zone} />
-                ))}
-              </div>
+      <div class="space-y-4" data-period-group>
+        <div
+          class="rounded-xl px-4 py-2.5"
+          style="background: rgba(9,16,22,0.6); border: 1px solid rgba(255,255,255,0.03);"
+        >
+          <div class="flex items-center gap-2 mb-2">
+            <div
+              class="w-1 h-3 bg-gradient-to-b from-white/10 to-white/5 rounded-full"
+            >
             </div>
-
-            <ForecastChart
-              zoneHourlyToday={zoneHourlyToday}
-              zoneHourlyTomorrow={zoneHourlyTomorrow}
-              dailySummaries={dailySummaries}
-              periods={periods}
-            />
-
-            <div class="bg-[rgba(9,16,22,0.4)] border border-white/[0.03] rounded-lg px-3 py-2">
-              <span class="text-[6px] text-white/15 tracking-[0.25em] uppercase font-medium">Interpretación automática</span>
-              <GuruSummary summary={result.guruSummary} />
-            </div>
+            <span
+              class="text-[8px] text-white/20 tracking-[0.22em] uppercase font-medium"
+              >LECTURA POR ALTURA</span
+            >
+            <div class="flex-1 h-[1px] bg-white/[0.03]"></div>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {zoneList.map((zone) => <ZoneCard zone={zone} />)}
           </div>
         </div>
 
-      </main>
-    </div>
-    <div id="period-json" hidden>{periodDataJson}</div>
-    <script is:inline>
-      (function() {
-        var data = JSON.parse(document.getElementById('period-json').textContent);
-        var PERIODS = data.periods;
-        var TOURIST = data.touristCopies;
-        var TOURIST_SRC = data.touristSources;
-        var PERIOD_DATA = {
-          today: {
-            heroAnswer: PERIODS.today.mainAnswer,
-            powderScore: PERIODS.today.powderScore,
-            bestWindow: PERIODS.today.bestWindow,
-            alerts: PERIODS.today.alerts,
-            guruSummary: PERIODS.today.guruSummary,
-            zones: PERIODS.today.zones,
-            touristCopy: TOURIST.today,
-            touristSource: TOURIST_SRC.today
-          },
-          tomorrow: {
-            heroAnswer: PERIODS.tomorrow.mainAnswer,
-            powderScore: PERIODS.tomorrow.powderScore,
-            bestWindow: PERIODS.tomorrow.bestWindow,
-            alerts: PERIODS.tomorrow.alerts,
-            guruSummary: PERIODS.tomorrow.guruSummary,
-            zones: PERIODS.tomorrow.zones,
-            touristCopy: TOURIST.tomorrow,
-            touristSource: TOURIST_SRC.tomorrow
-          },
-          sevenDays: {
-            heroAnswer: PERIODS.sevenDays.mainAnswer,
-            powderScore: PERIODS.sevenDays.powderScore,
-            bestWindow: PERIODS.sevenDays.bestWindow,
-            alerts: PERIODS.sevenDays.alerts,
-            guruSummary: PERIODS.sevenDays.guruSummary,
-            zones: PERIODS.sevenDays.zones,
-            touristCopy: TOURIST.sevenDays,
-            touristSource: TOURIST_SRC.sevenDays
+        <ForecastChart
+          zoneHourlyToday={zoneHourlyToday}
+          zoneHourlyTomorrow={zoneHourlyTomorrow}
+          dailySummaries={dailySummaries}
+          periods={periods}
+        />
+
+        <div
+          class="bg-[rgba(9,16,22,0.4)] border border-white/[0.03] rounded-lg px-3 py-2"
+        >
+          <span
+            class="text-[6px] text-white/15 tracking-[0.25em] uppercase font-medium"
+            >Interpretación automática</span
+          >
+          <GuruSummary summary={result.guruSummary} />
+        </div>
+      </div>
+    </main>
+  </body>
+</html>
+<div id="period-json" hidden>{periodDataJson}</div>
+<script is:inline>
+  (function () {
+    var data = JSON.parse(document.getElementById('period-json').textContent);
+    var PERIODS = data.periods;
+    var TOURIST = data.touristCopies;
+    var TOURIST_SRC = data.touristSources;
+    var PERIOD_DATA = {
+      today: {
+        heroAnswer: PERIODS.today.mainAnswer,
+        powderScore: PERIODS.today.powderScore,
+        bestWindow: PERIODS.today.bestWindow,
+        alerts: PERIODS.today.alerts,
+        guruSummary: PERIODS.today.guruSummary,
+        zones: PERIODS.today.zones,
+        touristCopy: TOURIST.today,
+        touristSource: TOURIST_SRC.today,
+      },
+      tomorrow: {
+        heroAnswer: PERIODS.tomorrow.mainAnswer,
+        powderScore: PERIODS.tomorrow.powderScore,
+        bestWindow: PERIODS.tomorrow.bestWindow,
+        alerts: PERIODS.tomorrow.alerts,
+        guruSummary: PERIODS.tomorrow.guruSummary,
+        zones: PERIODS.tomorrow.zones,
+        touristCopy: TOURIST.tomorrow,
+        touristSource: TOURIST_SRC.tomorrow,
+      },
+      sevenDays: {
+        heroAnswer: PERIODS.sevenDays.mainAnswer,
+        powderScore: PERIODS.sevenDays.powderScore,
+        bestWindow: PERIODS.sevenDays.bestWindow,
+        alerts: PERIODS.sevenDays.alerts,
+        guruSummary: PERIODS.sevenDays.guruSummary,
+        zones: PERIODS.sevenDays.zones,
+        touristCopy: TOURIST.sevenDays,
+        touristSource: TOURIST_SRC.sevenDays,
+      },
+    };
+
+    function setActivePeriod(periodKey) {
+      var p = PERIOD_DATA[periodKey];
+      if (!p) return;
+
+      var heroAnswerEl = document.querySelector('[data-period-hero-answer]');
+      if (heroAnswerEl) {
+        var answerBadge = heroAnswerEl.querySelector(
+          '[data-period-hero-badge]',
+        );
+        var desc = heroAnswerEl.querySelector('[data-period-hero-desc]');
+        if (answerBadge) answerBadge.textContent = p.heroAnswer.label;
+        if (desc) desc.textContent = p.heroAnswer.description;
+      }
+
+      var powderEl = document.querySelector('[data-period-powder]');
+      if (powderEl) {
+        var val = powderEl.querySelector('[data-period-powder-val]');
+        var reason = powderEl.querySelector('[data-period-powder-reason]');
+        if (val) val.textContent = String(p.powderScore.value);
+        if (reason) reason.textContent = p.powderScore.description;
+      }
+
+      var windowEl = document.querySelector('[data-period-window]');
+      if (windowEl) {
+        var fromEl = windowEl.querySelector('[data-period-window-from]');
+        var toEl = windowEl.querySelector('[data-period-window-to]');
+        var descEl = windowEl.querySelector('[data-period-window-desc]');
+        var noWindow = windowEl.querySelector('[data-period-window-none]');
+        if (p.bestWindow.hasWindow) {
+          if (fromEl) {
+            fromEl.textContent = p.bestWindow.from || '';
+            fromEl.style.display = '';
           }
-        };
-
-        function setActivePeriod(periodKey) {
-          var p = PERIOD_DATA[periodKey];
-          if (!p) return;
-
-          var heroAnswerEl = document.querySelector('[data-period-hero-answer]');
-          if (heroAnswerEl) {
-            var answerBadge = heroAnswerEl.querySelector('[data-period-hero-badge]');
-            var desc = heroAnswerEl.querySelector('[data-period-hero-desc]');
-            if (answerBadge) answerBadge.textContent = p.heroAnswer.label;
-            if (desc) desc.textContent = p.heroAnswer.description;
+          if (toEl) {
+            toEl.textContent = p.bestWindow.to || '';
+            toEl.style.display = '';
           }
-
-          var powderEl = document.querySelector('[data-period-powder]');
-          if (powderEl) {
-            var val = powderEl.querySelector('[data-period-powder-val]');
-            var reason = powderEl.querySelector('[data-period-powder-reason]');
-            if (val) val.textContent = String(p.powderScore.value);
-            if (reason) reason.textContent = p.powderScore.description;
+          if (descEl) {
+            descEl.textContent = p.bestWindow.description;
+            descEl.style.display = '';
           }
-
-          var windowEl = document.querySelector('[data-period-window]');
-          if (windowEl) {
-            var fromEl = windowEl.querySelector('[data-period-window-from]');
-            var toEl = windowEl.querySelector('[data-period-window-to]');
-            var descEl = windowEl.querySelector('[data-period-window-desc]');
-            var noWindow = windowEl.querySelector('[data-period-window-none]');
-            if (p.bestWindow.hasWindow) {
-              if (fromEl) { fromEl.textContent = p.bestWindow.from || ''; fromEl.style.display = ''; }
-              if (toEl) { toEl.textContent = p.bestWindow.to || ''; toEl.style.display = ''; }
-              if (descEl) { descEl.textContent = p.bestWindow.description; descEl.style.display = ''; }
-              if (noWindow) noWindow.style.display = 'none';
-            } else {
-              if (fromEl) fromEl.style.display = 'none';
-              if (toEl) toEl.style.display = 'none';
-              if (descEl) descEl.style.display = 'none';
-              if (noWindow) noWindow.style.display = '';
-            }
-          }
-
-          var alertsEl = document.querySelector('[data-period-alerts]');
-          if (alertsEl) {
-            var items = alertsEl.querySelectorAll('[data-period-alert-item]');
-            var noneEl = alertsEl.querySelector('[data-period-alerts-none]');
-            var alerts = p.alerts.slice(0, 2);
-            items.forEach(function(el, i) {
-              if (i < alerts.length) {
-                var msg = el.querySelector('[data-period-alert-msg]');
-                if (msg) msg.textContent = alerts[i].message;
-                el.style.display = '';
-              } else {
-                el.style.display = 'none';
-              }
-            });
-            if (noneEl) noneEl.style.display = alerts.length === 0 ? '' : 'none';
-          }
-
-          var guruEl = document.querySelector('[data-period-guru]');
-          if (guruEl) {
-            var text = guruEl.querySelector('[data-period-guru-text]');
-            if (text) text.textContent = p.guruSummary;
-          }
-
-          var touristEl = document.querySelector('[data-period-guru-tourist]');
-          if (touristEl) {
-            var touristText = touristEl.querySelector('[data-period-guru-tourist-text]');
-            if (touristText) touristText.textContent = p.touristCopy;
-          }
-
-          var heroSub = document.querySelector('[data-period-hero-subtitle]');
-          if (heroSub) {
-            var labels = { today: 'Hoy', tomorrow: 'Mañana', sevenDays: '7 días' };
-            heroSub.textContent = 'Pronóstico para ' + (labels[periodKey] || periodKey);
-          }
-
-          var tabs = document.querySelectorAll('.period-tab');
-          tabs.forEach(function(t) {
-            var isActive = t.dataset.period === periodKey;
-            t.className = isActive
-              ? 'period-tab text-hielo/70 font-semibold bg-hielo/[0.06] px-2 py-0.5 rounded-full'
-              : 'period-tab text-white/20 px-1.5 py-0.5';
-          });
-          var charts = document.querySelectorAll('.period-chart');
-          charts.forEach(function(c) {
-            c.style.display = c.dataset.period === periodKey ? 'block' : 'none';
-          });
-
-          var zoneCards = document.querySelectorAll('[data-period-zone]');
-          var zones = p.zones;
-          if (zones) {
-            var zoneKeys = ['village', 'mid', 'top'];
-            zoneCards.forEach(function(card, i) {
-              if (i < zoneKeys.length) {
-                var z = zones[zoneKeys[i]];
-                if (!z) return;
-                var tempEl = card.querySelector('[data-period-zone-temp]');
-                var feelsEl = card.querySelector('[data-period-zone-feels]');
-                var windEl = card.querySelector('[data-period-zone-wind]');
-                var snowEl = card.querySelector('[data-period-zone-snow]');
-                var answerEl = card.querySelector('[data-period-zone-answer]');
-                if (tempEl) tempEl.textContent = Math.round(z.current.temp) + '\u00b0';
-                if (feelsEl) feelsEl.textContent = String(Math.round(z.current.feelsLike));
-                if (windEl) windEl.textContent = Math.round(z.current.wind) + ' km/h';
-                if (snowEl) snowEl.textContent = Math.round(z.current.snowChance) + '%';
-                if (answerEl) {
-                  var ft = z.answer.label;
-                  if (z.id === 'village' && z.current.precipitation === 0) ft = 'Sin precipitación activa';
-                  else if (z.id === 'top' && z.current.freezingLevel > 2500) ft = 'Cota alta para acumulación relevante';
-                  answerEl.textContent = ft;
-                }
-              }
-            });
-          }
+          if (noWindow) noWindow.style.display = 'none';
+        } else {
+          if (fromEl) fromEl.style.display = 'none';
+          if (toEl) toEl.style.display = 'none';
+          if (descEl) descEl.style.display = 'none';
+          if (noWindow) noWindow.style.display = '';
         }
+      }
 
-        document.addEventListener('click', function(e) {
-          var tab = e.target.closest('.period-tab');
-          if (tab) {
-            var period = tab.dataset.period;
-            if (period && PERIOD_DATA[period]) {
-              setActivePeriod(period);
+      var alertsEl = document.querySelector('[data-period-alerts]');
+      if (alertsEl) {
+        var items = alertsEl.querySelectorAll('[data-period-alert-item]');
+        var noneEl = alertsEl.querySelector('[data-period-alerts-none]');
+        var alerts = p.alerts.slice(0, 2);
+        items.forEach(function (el, i) {
+          if (i < alerts.length) {
+            var msg = el.querySelector('[data-period-alert-msg]');
+            if (msg) msg.textContent = alerts[i].message;
+            el.style.display = '';
+          } else {
+            el.style.display = 'none';
+          }
+        });
+        if (noneEl) noneEl.style.display = alerts.length === 0 ? '' : 'none';
+      }
+
+      var guruEl = document.querySelector('[data-period-guru]');
+      if (guruEl) {
+        var text = guruEl.querySelector('[data-period-guru-text]');
+        if (text) text.textContent = p.guruSummary;
+      }
+
+      var touristEl = document.querySelector('[data-period-guru-tourist]');
+      if (touristEl) {
+        var touristText = touristEl.querySelector(
+          '[data-period-guru-tourist-text]',
+        );
+        if (touristText) touristText.textContent = p.touristCopy;
+      }
+
+      var heroSub = document.querySelector('[data-period-hero-subtitle]');
+      if (heroSub) {
+        var labels = { today: 'Hoy', tomorrow: 'Mañana', sevenDays: '7 días' };
+        heroSub.textContent =
+          'Pronóstico para ' + (labels[periodKey] || periodKey);
+      }
+
+      var tabs = document.querySelectorAll('.period-tab');
+      tabs.forEach(function (t) {
+        var isActive = t.dataset.period === periodKey;
+        t.className = isActive
+          ? 'period-tab text-hielo/70 font-semibold bg-hielo/[0.06] px-2 py-0.5 rounded-full'
+          : 'period-tab text-white/20 px-1.5 py-0.5';
+      });
+      var charts = document.querySelectorAll('.period-chart');
+      charts.forEach(function (c) {
+        c.style.display = c.dataset.period === periodKey ? 'block' : 'none';
+      });
+
+      var zoneCards = document.querySelectorAll('[data-period-zone]');
+      var zones = p.zones;
+      if (zones) {
+        var zoneKeys = ['village', 'mid', 'top'];
+        zoneCards.forEach(function (card, i) {
+          if (i < zoneKeys.length) {
+            var z = zones[zoneKeys[i]];
+            if (!z) return;
+            var tempEl = card.querySelector('[data-period-zone-temp]');
+            var feelsEl = card.querySelector('[data-period-zone-feels]');
+            var windEl = card.querySelector('[data-period-zone-wind]');
+            var snowEl = card.querySelector('[data-period-zone-snow]');
+            var answerEl = card.querySelector('[data-period-zone-answer]');
+            if (tempEl)
+              tempEl.textContent = Math.round(z.current.temp) + '\u00b0';
+            if (feelsEl)
+              feelsEl.textContent = String(Math.round(z.current.feelsLike));
+            if (windEl)
+              windEl.textContent = Math.round(z.current.wind) + ' km/h';
+            if (snowEl)
+              snowEl.textContent = Math.round(z.current.snowChance) + '%';
+            if (answerEl) {
+              var ft = z.answer.label;
+              if (z.id === 'village' && z.current.precipitation === 0)
+                ft = 'Sin precipitación activa';
+              else if (z.id === 'top' && z.current.freezingLevel > 2500)
+                ft = 'Cota alta para acumulación relevante';
+              answerEl.textContent = ft;
             }
           }
         });
-      })();
-    </script>
-  </body>
-</html>
+      }
+    }
+
+    document.addEventListener('click', function (e) {
+      var tab = e.target.closest('.period-tab');
+      if (tab) {
+        var period = tab.dataset.period;
+        if (period && PERIOD_DATA[period]) {
+          setActivePeriod(period);
+        }
+      }
+    });
+  })();
+</script>

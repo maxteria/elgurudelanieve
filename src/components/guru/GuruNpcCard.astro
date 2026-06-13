@@ -15,22 +15,37 @@ const sourceLabel = source === 'ai' ? 'Gurú IA' : 'Gurú local';
   </div>
 
   <div class="relative w-full max-w-lg mt-0">
-    <div class="absolute -top-3 left-1/2 -translate-x-1/2 w-5 h-5 bg-[rgba(9,16,22,0.97)] border-l border-t border-hielo/20 rotate-45 z-10"></div>
+    <div
+      class="absolute -top-3 left-1/2 -translate-x-1/2 w-5 h-5 bg-[rgba(9,16,22,0.97)] border-l border-t border-hielo/20 rotate-45 z-10"
+    >
+    </div>
 
-    <div class="bg-[rgba(9,16,22,0.97)] border border-hielo/20 rounded-2xl px-6 py-5 shadow-[0_8px_50px_rgba(0,0,0,0.6),0_0_40px_rgba(168,231,249,0.1)]">
+    <div
+      class="bg-[rgba(9,16,22,0.97)] border border-hielo/20 rounded-2xl px-6 py-5 shadow-[0_8px_50px_rgba(0,0,0,0.6),0_0_40px_rgba(168,231,249,0.1)]"
+    >
       <div class="flex items-center justify-center gap-2 mb-3">
-        <span class="text-[8px] text-hielo/60 tracking-[0.3em] uppercase font-bold">EL GURÚ MIRA LA MONTAÑA</span>
+        <span
+          class="text-[8px] text-hielo/60 tracking-[0.3em] uppercase font-bold"
+          >EL GURÚ MIRA LA MONTAÑA</span
+        >
       </div>
 
-      {snowLabel && (
-        <div class="mb-3">
-          <span class="inline-block text-[9px] tracking-[0.2em] uppercase font-semibold text-hielo/50 px-3 py-1 rounded-full bg-hielo/[0.05] border border-hielo/10">
-            {snowLabel}
-          </span>
-        </div>
-      )}
+      {
+        snowLabel && (
+          <div class="mb-3">
+            <span class="inline-block text-[9px] tracking-[0.2em] uppercase font-semibold text-hielo/50 px-3 py-1 rounded-full bg-hielo/[0.05] border border-hielo/10">
+              {snowLabel}
+            </span>
+          </div>
+        )
+      }
 
-      <p class="text-[15px] font-medium text-white/85 leading-relaxed" data-guru-npc-text>{touristCopy}</p>
+      <p
+        class="text-[15px] font-medium text-white/85 leading-relaxed"
+        data-guru-npc-text
+      >
+        {touristCopy}
+      </p>
     </div>
   </div>
 </section>

@@ -8,7 +8,11 @@ const { updated, source, weatherApi, activeSection } = Astro.props as {
 
 const hasWeatherApi = !!weatherApi;
 const labels = {
-  'open-meteo': ['DATOS REALES', hasWeatherApi ? 'Open-Meteo + WeatherAPI' : 'Open-Meteo', 'text-hielo/40'],
+  'open-meteo': [
+    'DATOS REALES',
+    hasWeatherApi ? 'Open-Meteo + WeatherAPI' : 'Open-Meteo',
+    'text-hielo/40',
+  ],
   'mock-demo': ['MODO DEMO', 'Mock local', 'text-amber-400/50'],
   'mock-fallback': ['FALLBACK', 'Mock local', 'text-naranja/50'],
 };
@@ -22,10 +26,14 @@ if (updated) {
   const yesterday = new Date(now);
   yesterday.setDate(yesterday.getDate() - 1);
   const isYesterday = d.toDateString() === yesterday.toDateString();
-  const time = d.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+  const time = d.toLocaleTimeString('es-AR', {
+    hour: '2-digit',
+    minute: '2-digit',
+  });
   if (isToday) updatedLabel = `hoy ${time}`;
   else if (isYesterday) updatedLabel = `ayer ${time}`;
-  else updatedLabel = `${d.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit' })} ${time}`;
+  else
+    updatedLabel = `${d.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit' })} ${time}`;
 }
 
 const navItems = [
@@ -41,46 +49,83 @@ function isActive(key: string) {
 }
 ---
 
-<aside class="hidden md:flex flex-col w-[180px] min-h-screen bg-[#101217]/95 border-r border-white/[0.04] text-hielo shrink-0">
+<aside
+  class="hidden md:flex flex-col w-[180px] min-h-screen bg-[#101217]/95 border-r border-white/[0.04] text-hielo shrink-0"
+>
   <div class="flex flex-col items-start px-4 pt-6 pb-4">
-    <h2 class="text-[8px] font-bold tracking-[0.28em] uppercase text-white/20 mb-4">Estación 2026</h2>
+    <h2
+      class="text-[8px] font-bold tracking-[0.28em] uppercase text-white/20 mb-4"
+    >
+      Estación 2026
+    </h2>
     <div class="flex items-start gap-2.5">
-      <img src="/emblema.png" alt="Emblema de El Gurú de la Nieve" class="w-9 h-9 shrink-0 mt-0.5" />
+      <img
+        src="/emblema.png"
+        alt="Emblema de El Gurú de la Nieve"
+        class="w-9 h-9 shrink-0 mt-0.5"
+      />
       <div class="leading-tight">
-        <div class="text-white text-sm font-extrabold tracking-[0.1em] leading-none">EL GURÚ</div>
-        <div class="text-hielo text-sm font-extrabold tracking-[0.1em] leading-none mt-0.5">DE LA NIEVE</div>
-        <div class="text-white/30 text-[8px] tracking-[0.2em] mt-2">CAVIAHUE</div>
+        <div
+          class="text-white text-sm font-extrabold tracking-[0.1em] leading-none"
+        >
+          EL GURÚ
+        </div>
+        <div
+          class="text-hielo text-sm font-extrabold tracking-[0.1em] leading-none mt-0.5"
+        >
+          DE LA NIEVE
+        </div>
+        <div class="text-white/30 text-[8px] tracking-[0.2em] mt-2">
+          CAVIAHUE
+        </div>
       </div>
     </div>
   </div>
-  <nav class="flex flex-col gap-1 px-4 mt-6 text-[9px] uppercase tracking-[0.18em]">
-    {navItems.map(item => (
-      <a
-        href={item.href}
-        class={`block px-2 py-1.5 rounded-lg transition-colors ${
-          isActive(item.key)
-            ? 'text-hielo/80 font-semibold bg-hielo/[0.06]'
-            : 'text-white/25 hover:text-white/50'
-        }`}
-      >
-        {item.label}
-      </a>
-    ))}
+  <nav
+    class="flex flex-col gap-1 px-4 mt-6 text-[9px] uppercase tracking-[0.18em]"
+  >
+    {
+      navItems.map((item) => (
+        <a
+          href={item.href}
+          class={`block px-2 py-1.5 rounded-lg transition-colors ${
+            isActive(item.key)
+              ? 'text-hielo/80 font-semibold bg-hielo/[0.06]'
+              : 'text-white/25 hover:text-white/50'
+          }`}
+        >
+          {item.label}
+        </a>
+      ))
+    }
   </nav>
   <div class="mt-auto px-4 pb-6 space-y-2.5">
     <div class="flex items-center gap-1.5">
-      <span class={`text-[7px] tracking-[0.2em] uppercase font-medium ${sl[2]}`}>{sl[0]}</span>
+      <span class={`text-[7px] tracking-[0.2em] uppercase font-medium ${sl[2]}`}
+        >{sl[0]}</span
+      >
       <span class="text-[6px] text-white/12">·</span>
       <span class="text-[7px] text-white/20">{sl[1]}</span>
     </div>
-    {updated && (
-      <div class="text-[10px] text-white/15 leading-relaxed">
-        <div class="text-white/20">Actualizado</div>
-        <div class="text-hielo/30 font-mono tracking-tight">{updatedLabel}</div>
-      </div>
-    )}
-    {weatherApi && (
-      <div class="text-[6px] text-white/10 leading-relaxed tracking-[0.1em] pt-1" title="Fuentes de datos">Ahora: WeatherAPI · Pronóstico: Open-Meteo</div>
-    )}
+    {
+      updated && (
+        <div class="text-[10px] text-white/15 leading-relaxed">
+          <div class="text-white/20">Actualizado</div>
+          <div class="text-hielo/30 font-mono tracking-tight">
+            {updatedLabel}
+          </div>
+        </div>
+      )
+    }
+    {
+      weatherApi && (
+        <div
+          class="text-[6px] text-white/10 leading-relaxed tracking-[0.1em] pt-1"
+          title="Fuentes de datos"
+        >
+          Ahora: WeatherAPI · Pronóstico: Open-Meteo
+        </div>
+      )
+    }
   </div>
 </aside>

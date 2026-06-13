@@ -27,7 +27,11 @@ async function fetchAllStations(): Promise<SMNApiStation[]> {
 export async function fetchSMNCurrent(): Promise<SMNCurrent | null> {
   try {
     const stations = await fetchAllStations();
-    const closest = findClosestStation(stations, CAVIAHUE_COORDS.lat, CAVIAHUE_COORDS.lon);
+    const closest = findClosestStation(
+      stations,
+      CAVIAHUE_COORDS.lat,
+      CAVIAHUE_COORDS.lon,
+    );
 
     if (!closest) {
       console.warn('[SMN] No se encontraron estaciones');

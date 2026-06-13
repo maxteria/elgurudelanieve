@@ -36,11 +36,17 @@ export type WeatherAPIResponse = {
 const API_KEY_ENV = 'WEATHERAPI_KEY';
 
 export function getWeatherAPIKey(): string | undefined {
-  return (import.meta.env[API_KEY_ENV] as string | undefined)
-    || process.env[API_KEY_ENV];
+  return (
+    (import.meta.env[API_KEY_ENV] as string | undefined) ||
+    process.env[API_KEY_ENV]
+  );
 }
 
-export function buildWeatherAPIUrl(lat: number, lon: number, key: string): string {
+export function buildWeatherAPIUrl(
+  lat: number,
+  lon: number,
+  key: string,
+): string {
   const params = new URLSearchParams({
     key,
     q: `${lat},${lon}`,
@@ -52,7 +58,7 @@ export function buildWeatherAPIUrl(lat: number, lon: number, key: string): strin
 export async function fetchWeatherAPI(
   lat: number,
   lon: number,
-  key: string
+  key: string,
 ): Promise<WeatherAPIResponse> {
   const url = buildWeatherAPIUrl(lat, lon, key);
   const res = await fetch(url);
@@ -62,7 +68,9 @@ export async function fetchWeatherAPI(
   return res.json();
 }
 
-export function normalizeWeatherAPI(raw: WeatherAPIResponse): WeatherAPICurrent {
+export function normalizeWeatherAPI(
+  raw: WeatherAPIResponse,
+): WeatherAPICurrent {
   return {
     temp: Math.round(raw.current.temp_c * 10) / 10,
     feelsLike: Math.round(raw.current.feelslike_c * 10) / 10,

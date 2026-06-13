@@ -7,25 +7,87 @@ const center = 52;
 const isHigh = value >= 60;
 const isMid = value >= 35 && value < 60;
 ---
-<div class:list={[
-  "rounded-xl px-4 py-3 flex flex-col items-center relative overflow-hidden",
-  isHigh ? "bg-[rgba(9,16,22,0.9)] border border-hielo/25 shadow-[0_8px_32px_rgba(168,231,249,0.1)]" : 
-  isMid ? "bg-[rgba(9,16,22,0.85)] border border-hielo/10 shadow-[0_4px_24px_rgba(0,0,0,0.4)]" :
-  "bg-[rgba(9,16,22,0.85)] border border-white/[0.05] shadow-[0_4px_20px_rgba(0,0,0,0.3)]"
-]} data-period-powder>
-  {isHigh && <div class="absolute inset-0 bg-gradient-to-b from-hielo/[0.06] to-transparent pointer-events-none"></div>}
-  <span class="text-[8px] text-white/25 tracking-[0.35em] uppercase mb-2 font-medium relative z-10">Índice de Powder</span>
-  <svg viewBox="0 0 104 104" width="88" height="88" class:list={["drop-shadow-[0_0_12px_rgba(168,231,249,0.12)] relative z-10", isHigh && "drop-shadow-[0_0_18px_rgba(168,231,249,0.2)]"]}>
+
+<div
+  class:list={[
+    'rounded-xl px-4 py-3 flex flex-col items-center relative overflow-hidden',
+    isHigh
+      ? 'bg-[rgba(9,16,22,0.9)] border border-hielo/25 shadow-[0_8px_32px_rgba(168,231,249,0.1)]'
+      : isMid
+        ? 'bg-[rgba(9,16,22,0.85)] border border-hielo/10 shadow-[0_4px_24px_rgba(0,0,0,0.4)]'
+        : 'bg-[rgba(9,16,22,0.85)] border border-white/[0.05] shadow-[0_4px_20px_rgba(0,0,0,0.3)]',
+  ]}
+  data-period-powder
+>
+  {
+    isHigh && (
+      <div class="absolute inset-0 bg-gradient-to-b from-hielo/[0.06] to-transparent pointer-events-none" />
+    )
+  }
+  <span
+    class="text-[8px] text-white/25 tracking-[0.35em] uppercase mb-2 font-medium relative z-10"
+    >Índice de Powder</span
+  >
+  <svg
+    viewBox="0 0 104 104"
+    width="88"
+    height="88"
+    class:list={[
+      'drop-shadow-[0_0_12px_rgba(168,231,249,0.12)] relative z-10',
+      isHigh && 'drop-shadow-[0_0_18px_rgba(168,231,249,0.2)]',
+    ]}
+  >
     <defs>
       <filter id="gGlowF">
-        <feGaussianBlur stdDeviation="2.5" result="blur"/>
-        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+        <feGaussianBlur stdDeviation="2.5" result="blur"></feGaussianBlur>
+        <feMerge
+          ><feMergeNode in="blur"></feMergeNode><feMergeNode in="SourceGraphic"
+          ></feMergeNode></feMerge
+        >
       </filter>
     </defs>
-    <circle cx={center} cy={center} r={radius} fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="6" />
-    <circle cx={center} cy={center} r={radius} fill="none" stroke={isHigh ? "#a8e7f9" : isMid ? "#78dcff" : "rgba(255,255,255,0.2)"} stroke-width="6" stroke-linecap="round" stroke-dasharray={circumference} stroke-dashoffset={offset} transform={`rotate(-90 ${center} ${center})`} filter="url(#gGlowF)" class="transition-all duration-700" />
-    <text x={center} y={center-1} text-anchor="middle" fill={isHigh ? "#a8e7f9" : isMid ? "#78dcff" : "rgba(255,255,255,0.4)"} font-size="28" font-weight="900" font-family="Inter, sans-serif" data-period-powder-val>{value}</text>
-    <text x={center} y={center+15} text-anchor="middle" fill="rgba(168,231,249,0.3)" font-size="9" font-weight="500" font-family="Inter, sans-serif">/100</text>
+    <circle
+      cx={center}
+      cy={center}
+      r={radius}
+      fill="none"
+      stroke="rgba(255,255,255,0.04)"
+      stroke-width="6"></circle>
+    <circle
+      cx={center}
+      cy={center}
+      r={radius}
+      fill="none"
+      stroke={isHigh ? '#a8e7f9' : isMid ? '#78dcff' : 'rgba(255,255,255,0.2)'}
+      stroke-width="6"
+      stroke-linecap="round"
+      stroke-dasharray={circumference}
+      stroke-dashoffset={offset}
+      transform={`rotate(-90 ${center} ${center})`}
+      filter="url(#gGlowF)"
+      class="transition-all duration-700"></circle>
+    <text
+      x={center}
+      y={center - 1}
+      text-anchor="middle"
+      fill={isHigh ? '#a8e7f9' : isMid ? '#78dcff' : 'rgba(255,255,255,0.4)'}
+      font-size="28"
+      font-weight="900"
+      font-family="Inter, sans-serif"
+      data-period-powder-val>{value}</text
+    >
+    <text
+      x={center}
+      y={center + 15}
+      text-anchor="middle"
+      fill="rgba(168,231,249,0.3)"
+      font-size="9"
+      font-weight="500"
+      font-family="Inter, sans-serif">/100</text
+    >
   </svg>
-  <span class="text-[10px] text-hielo/65 font-medium text-center mt-2 leading-relaxed max-w-[160px] relative z-10" data-period-powder-reason>{reason}</span>
+  <span
+    class="text-[10px] text-hielo/65 font-medium text-center mt-2 leading-relaxed max-w-[160px] relative z-10"
+    data-period-powder-reason>{reason}</span
+  >
 </div>

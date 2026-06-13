@@ -18,31 +18,50 @@ function isActive(key: string) {
 }
 ---
 
-<header class="fixed top-0 left-0 right-0 z-50 bg-[rgba(9,16,22,0.97)] border-b border-white/[0.06] backdrop-blur-md">
+<header
+  class="fixed top-0 left-0 right-0 z-50 bg-[rgba(9,16,22,0.97)] border-b border-white/[0.06] backdrop-blur-md"
+>
   <div class="flex items-center justify-between h-12 px-4">
     <div class="flex items-center gap-2.5">
-      <img src="/emblema.png" alt="El Gurú de la Nieve" class="w-6 h-6 shrink-0" />
-      <span class="text-[10px] font-extrabold tracking-[0.18em] text-white/70">EL GURÚ</span>
-      <span class="hidden md:inline text-[7px] text-white/25 tracking-[0.2em] ml-0.5">DE LA NIEVE</span>
+      <img
+        src="/emblema.png"
+        alt="El Gurú de la Nieve"
+        class="w-6 h-6 shrink-0"
+      />
+      <span class="text-[10px] font-extrabold tracking-[0.18em] text-white/70"
+        >EL GURÚ</span
+      >
+      <span
+        class="hidden md:inline text-[7px] text-white/25 tracking-[0.2em] ml-0.5"
+        >DE LA NIEVE</span
+      >
     </div>
 
-    <nav class="hidden md:flex items-center gap-1" role="navigation" aria-label="Navegación principal">
-      {navItems.map(item => (
-        <a
-          href={item.href}
-          class={`text-[9px] uppercase tracking-[0.15em] font-semibold px-2.5 py-1 rounded-md transition-colors ${
-            isActive(item.key)
-              ? 'text-hielo/90 bg-hielo/[0.08]'
-              : 'text-white/35 hover:text-white/60'
-          }`}
-        >
-          {item.label}
-        </a>
-      ))}
+    <nav
+      class="hidden md:flex items-center gap-1"
+      role="navigation"
+      aria-label="Navegación principal"
+    >
+      {
+        navItems.map((item) => (
+          <a
+            href={item.href}
+            class={`text-[9px] uppercase tracking-[0.15em] font-semibold px-2.5 py-1 rounded-md transition-colors ${
+              isActive(item.key)
+                ? 'text-hielo/90 bg-hielo/[0.08]'
+                : 'text-white/35 hover:text-white/60'
+            }`}
+          >
+            {item.label}
+          </a>
+        ))
+      }
     </nav>
 
     <div class="flex items-center gap-3">
-      <span class="hidden md:block text-[7px] text-white/20 tracking-[0.2em]">Estación 2026</span>
+      <span class="hidden md:block text-[7px] text-white/20 tracking-[0.2em]"
+        >Estación 2026</span
+      >
       <button
         id="mobile-menu-btn"
         class="md:hidden w-9 h-9 flex items-center justify-center rounded-lg text-white/50 hover:text-white/80 transition-colors"
@@ -50,11 +69,32 @@ function isActive(key: string) {
         aria-expanded="false"
         aria-controls="mobile-drawer"
       >
-        <svg id="burger-icon" width="18" height="12" viewBox="0 0 18 12" fill="none">
-          <path d="M1 1h16M1 6h16M1 11h16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        <svg
+          id="burger-icon"
+          width="18"
+          height="12"
+          viewBox="0 0 18 12"
+          fill="none"
+        >
+          <path
+            d="M1 1h16M1 6h16M1 11h16"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"></path>
         </svg>
-        <svg id="close-icon" class="hidden" width="14" height="14" viewBox="0 0 14 14" fill="none">
-          <path d="M1 1l12 12M13 1L1 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        <svg
+          id="close-icon"
+          class="hidden"
+          width="14"
+          height="14"
+          viewBox="0 0 14 14"
+          fill="none"
+        >
+          <path
+            d="M1 1l12 12M13 1L1 13"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"></path>
         </svg>
       </button>
     </div>
@@ -69,26 +109,37 @@ function isActive(key: string) {
   aria-label="Menú de navegación"
 >
   <nav class="px-6 py-6 space-y-1" role="navigation">
-    {navItems.map(item => (
-      <a
-        href={item.href}
-        class={`block px-3 py-3 rounded-lg text-[11px] uppercase tracking-[0.15em] font-semibold transition-colors ${
-          isActive(item.key)
-            ? 'text-hielo bg-hielo/[0.08]'
-            : 'text-white/35 hover:text-white/60'
-        }`}
-      >
-        {item.label}
-      </a>
-    ))}
+    {
+      navItems.map((item) => (
+        <a
+          href={item.href}
+          class={`block px-3 py-3 rounded-lg text-[11px] uppercase tracking-[0.15em] font-semibold transition-colors ${
+            isActive(item.key)
+              ? 'text-hielo bg-hielo/[0.08]'
+              : 'text-white/35 hover:text-white/60'
+          }`}
+        >
+          {item.label}
+        </a>
+      ))
+    }
   </nav>
   <div class="px-6 pt-4 pb-8 space-y-2 border-t border-white/[0.06]">
-    <div class="text-[7px] text-white/20 tracking-[0.25em] uppercase">Estación 2026</div>
-    <div class="text-[8px] text-white/25 tracking-wide">Open-Meteo · WeatherAPI</div>
+    <div class="text-[7px] text-white/20 tracking-[0.25em] uppercase">
+      Estación 2026
+    </div>
+    <div class="text-[8px] text-white/25 tracking-wide">
+      Open-Meteo · WeatherAPI
+    </div>
   </div>
 </div>
 
-<div id="drawer-overlay" class="hidden fixed inset-0 top-12 z-30 bg-black/50" aria-hidden="true"></div>
+<div
+  id="drawer-overlay"
+  class="hidden fixed inset-0 top-12 z-30 bg-black/50"
+  aria-hidden="true"
+>
+</div>
 
 <script>
   function initMobileNav() {
@@ -122,13 +173,14 @@ function isActive(key: string) {
       document.body.style.overflow = '';
     }
 
-    btn.addEventListener('click', function() {
-      if (isOpen) closeMenu(); else openMenu();
+    btn.addEventListener('click', function () {
+      if (isOpen) closeMenu();
+      else openMenu();
     });
 
     overlay.addEventListener('click', closeMenu);
 
-    document.addEventListener('keydown', function(e) {
+    document.addEventListener('keydown', function (e) {
       if (e.key === 'Escape' && isOpen) closeMenu();
     });
 

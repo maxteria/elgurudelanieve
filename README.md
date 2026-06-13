@@ -5,22 +5,27 @@ Dashboard de condiciones de nieve para Caviahue, Patagonia Argentina.
 ## Modos de datos
 
 ### Modo real (default)
+
 ```bash
 npm run build
 ```
+
 - Consulta [Open-Meteo API](https://open-meteo.com/) durante el build
 - Sin necesidad de API key
 - Genera HTML estático con los últimos datos disponibles
 
 ### Modo demo
+
 ```bash
 npm run build:demo
 ```
+
 - Usa `weather.mock.json` como fuente
 - Muestra datos simulados con nieve activa para testing visual
 - Badge "Demo" visible en la interfaz
 
 ### Desarrollo local
+
 ```bash
 npm run dev
 # http://localhost:4321       → datos reales (Open-Meteo)
@@ -37,8 +42,8 @@ El sitio es **Astro estático** (SSG). Los datos se consultan en build-time. Par
 # .github/workflows/rebuild.yml
 on:
   schedule:
-    - cron: '0 * * * *'  # cada 1 hora
-  workflow_dispatch:      # manual
+    - cron: '0 * * * *' # cada 1 hora
+  workflow_dispatch: # manual
 
 jobs:
   build:
@@ -48,7 +53,7 @@ jobs:
       - uses: actions/setup-node@v4
       - run: npm ci
       - run: npm run build
-      - run: npm run build:demo  # build opcional para preview demo
+      - run: npm run build:demo # build opcional para preview demo
 ```
 
 ### Opción 2: Deploy Hook externo
@@ -68,16 +73,17 @@ El build completo toma ~2 segundos, el costo de rebuild cada hora es despreciabl
 
 ## Scripts disponibles
 
-| Comando | Descripción |
-|---|---|
-| `npm run dev` | Dev server con recarga en caliente |
-| `npm run build` | Build producción (modo real, Open-Meteo) |
+| Comando              | Descripción                                  |
+| -------------------- | -------------------------------------------- |
+| `npm run dev`        | Dev server con recarga en caliente           |
+| `npm run build`      | Build producción (modo real, Open-Meteo)     |
 | `npm run build:demo` | Build con datos mock (nieve activa simulada) |
-| `npm run preview` | Previsualizar build local |
+| `npm run preview`    | Previsualizar build local                    |
 
 ## Modos de prueba
 
 ### Real
+
 Usa Open-Meteo para forecast y WeatherAPI para estado actual.
 
 ```
@@ -85,6 +91,7 @@ URL: /
 ```
 
 ### Demo default
+
 Usa el mock base existente (`weather.mock.json`).
 
 ```
@@ -92,30 +99,39 @@ URL: ?demo=1
 ```
 
 ### Demo seco
+
 Escenario sin precipitación, cota alta y score bajo.
+
 ```
 URL: ?demo=seco
 ```
+
 - SIN SEÑAL DE NIEVE
 - Score bajo
 - Sin ventana clara
 - "La cota de nieve está alta para Caviahue"
 
 ### Demo nieve
+
 Escenario con temperatura favorable, cota baja y precipitación.
+
 ```
 URL: ?demo=nieve
 ```
+
 - SEÑAL DE NIEVE
 - Score medio/alto
 - Ventana clara
 - "Hay condiciones para nevada en el pueblo"
 
 ### Demo mixto
+
 Escenario con lluvia abajo y nieve hacia centro/cumbre.
+
 ```
 URL: ?demo=mixto
 ```
+
 - Pueblo sin señal clara
 - Centro/cumbre con mejor señal
 - "Puede llover abajo y nevar mejor hacia centro/cumbre"
@@ -135,6 +151,7 @@ npm run build
 ```
 
 Verificar:
+
 - [ ] tabs Hoy / Mañana / 7 días funcionan
 - [ ] NowCard sigue usando WeatherAPI
 - [ ] SMN sigue fuera de UI

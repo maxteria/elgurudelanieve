@@ -11,15 +11,15 @@ function makeHourly(
   freezingLevel: number,
   humidity: number,
   wind: number,
-  snowProb: number
+  snowProb: number,
 ): HourlyForecast[] {
   const hourly: HourlyForecast[] = [];
   for (let h = 0; h < HOURS; h++) {
-    const diurnal = Math.sin(((h % 24) - 6) * Math.PI / 12) * 2;
+    const diurnal = Math.sin((((h % 24) - 6) * Math.PI) / 12) * 2;
     hourly.push({
       hour: h,
       temp: Math.round((baseTemp + diurnal) * 10) / 10,
-      feels_like: Math.round((baseTemp + diurnal - (wind * 0.15)) * 10) / 10,
+      feels_like: Math.round((baseTemp + diurnal - wind * 0.15) * 10) / 10,
       wind: Math.round(wind * 10) / 10,
       precip,
       snow_prob: precip > 0 ? snowProb : 0,
@@ -30,19 +30,23 @@ function makeHourly(
   return hourly;
 }
 
-function makeData(puebloHourly: HourlyForecast[], centerTemp: number, topTemp: number): WeatherData {
+function makeData(
+  puebloHourly: HourlyForecast[],
+  centerTemp: number,
+  topTemp: number,
+): WeatherData {
   function makeZoneHours(
     baseHours: HourlyForecast[],
     offset: number,
     freezingLevel: number,
-    precip: number
+    precip: number,
   ): HourlyForecast[] {
     return baseHours.map((h, i) => {
       const zoneTemp = Math.round((h.temp - offset) * 10) / 10;
       return {
         hour: h.hour,
         temp: zoneTemp,
-        feels_like: Math.round((zoneTemp - (h.wind * 0.15)) * 10) / 10,
+        feels_like: Math.round((zoneTemp - h.wind * 0.15) * 10) / 10,
         wind: h.wind,
         precip,
         snow_prob: precip > 0 ? 90 : 0,
@@ -54,8 +58,18 @@ function makeData(puebloHourly: HourlyForecast[], centerTemp: number, topTemp: n
 
   const centerFL = puebloHourly[0].freezing_level;
   const centerPrecip = puebloHourly[0].precip;
-  const centerHours = makeZoneHours(puebloHourly, centerTemp - puebloHourly[0].temp, centerFL, centerPrecip);
-  const topHours = makeZoneHours(puebloHourly, topTemp - puebloHourly[0].temp, centerFL, centerPrecip);
+  const centerHours = makeZoneHours(
+    puebloHourly,
+    centerTemp - puebloHourly[0].temp,
+    centerFL,
+    centerPrecip,
+  );
+  const topHours = makeZoneHours(
+    puebloHourly,
+    topTemp - puebloHourly[0].temp,
+    centerFL,
+    centerPrecip,
+  );
 
   return {
     updated: BASE_DATE,

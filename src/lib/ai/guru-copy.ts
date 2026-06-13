@@ -32,7 +32,7 @@ export function generateFallbackTouristCopy(data: GuruCopyInput): string {
   const mainStatus = data.mainAnswer.status;
   const hasWindow = data.bestWindow.hasWindow;
   const cotaAlta = v.freezingLevel > 2500;
-  const hasWindAlert = data.alerts.some(a => a.type === 'viento');
+  const hasWindAlert = data.alerts.some((a) => a.type === 'viento');
   const mixed = v.temp > 1.5 && m.temp <= 0.5 && v.precipitation > 0.5;
 
   // 1. Lluvia abajo / nieve arriba
@@ -129,9 +129,13 @@ function buildUserPrompt(data: GuruCopyInput): string {
     `Estado principal: ${data.mainAnswer.label}`,
     `Score de polvo: ${data.powderScore.value}/100`,
     `Ventana de acumulación: ${data.bestWindow.hasWindow ? `${data.bestWindow.from} a ${data.bestWindow.to}` : 'Sin ventana clara'}`,
-    `Alertas: ${data.alerts.length > 0 ? data.alerts.map(a => a.message).join('; ') : 'Sin alertas'}`,
-    data.now ? `Ahora en Caviahue: ${data.now.condition}, ${data.now.temp}°C` : null
-  ].filter(Boolean).join('\n');
+    `Alertas: ${data.alerts.length > 0 ? data.alerts.map((a) => a.message).join('; ') : 'Sin alertas'}`,
+    data.now
+      ? `Ahora en Caviahue: ${data.now.condition}, ${data.now.temp}°C`
+      : null,
+  ]
+    .filter(Boolean)
+    .join('\n');
 
   return `Generá el texto turístico para el dashboard basado en este diagnóstico:
 
@@ -143,7 +147,11 @@ ${zoneLines}
 Respondé solo con el texto turístico, sin explicaciones adicionales.`;
 }
 
-async function callGemini(systemPrompt: string, userPrompt: string, apiKey: string): Promise<string | null> {
+async function callGemini(
+  systemPrompt: string,
+  userPrompt: string,
+  apiKey: string,
+): Promise<string | null> {
   try {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
@@ -158,11 +166,11 @@ async function callGemini(systemPrompt: string, userPrompt: string, apiKey: stri
           contents: [{ role: 'user', parts: [{ text: userPrompt }] }],
           generation_config: {
             maxOutputTokens: 200,
-            temperature: 0.7
-          }
+            temperature: 0.7,
+          },
         }),
-        signal: controller.signal
-      }
+        signal: controller.signal,
+      },
     );
 
     clearTimeout(timeoutId);
@@ -180,7 +188,7 @@ async function callGemini(systemPrompt: string, userPrompt: string, apiKey: stri
 
     const json = await res.json();
     const text = json?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
-    
+
     if (!text) {
       console.warn('[Gemini] Empty response');
       return null;
@@ -197,7 +205,9 @@ async function callGemini(systemPrompt: string, userPrompt: string, apiKey: stri
   }
 }
 
-export async function generateTouristCopy(data: GuruCopyInput): Promise<GuruCopyOutput> {
+export async function generateTouristCopy(
+  data: GuruCopyInput,
+): Promise<GuruCopyOutput> {
   const apiKey = getGeminiKey();
 
   if (apiKey) {

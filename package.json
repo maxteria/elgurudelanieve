@@ -8,7 +8,13 @@
     "build": "astro build",
     "build:demo": "node scripts/build-demo.mjs",
     "preview": "astro preview",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "vitest run",
+    "format": "prettier --write ."
+  },
+  "vitest": {
+    "include": [
+      "src/**/__tests__/**/*.test.ts"
+    ]
   },
   "keywords": [],
   "author": "",
@@ -21,5 +27,10 @@
     "postcss": "^8.5.15",
     "tailwindcss": "^4.3.0",
     "typescript": "^6.0.3"
+  },
+  "devDependencies": {
+    "prettier": "^3.8.4",
+    "prettier-plugin-astro": "^0.14.1",
+    "vitest": "^4.1.8"
   }
 }

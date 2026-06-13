@@ -1,19 +1,49 @@
 ---
 const { summary } = Astro.props;
 ---
-<section class="bg-[rgba(9,16,22,0.85)] border border-white/[0.06] rounded-xl px-4 py-3 shadow-[0_4px_20px_rgba(0,0,0,0.35)] relative overflow-hidden flex items-center min-h-[52px]" data-period-guru>
-  <svg class="absolute right-0 top-0 h-full opacity-[0.04] pointer-events-none" viewBox="0 0 160 80" preserveAspectRatio="xMaxYMid meet">
-    <path d="M0,40 L15,20 L40,35 L65,10 L95,30 L120,8 L145,25 L160,18 L160,80 L0,80 Z" fill="white"/>
+
+<section
+  class="bg-[rgba(9,16,22,0.85)] border border-white/[0.06] rounded-xl px-4 py-3 shadow-[0_4px_20px_rgba(0,0,0,0.35)] relative overflow-hidden flex items-center min-h-[52px]"
+  data-period-guru
+>
+  <svg
+    class="absolute right-0 top-0 h-full opacity-[0.04] pointer-events-none"
+    viewBox="0 0 160 80"
+    preserveAspectRatio="xMaxYMid meet"
+  >
+    <path
+      d="M0,40 L15,20 L40,35 L65,10 L95,30 L120,8 L145,25 L160,18 L160,80 L0,80 Z"
+      fill="white"></path>
   </svg>
   <div class="flex items-center gap-3 relative z-10 w-full">
-    <div class="w-8 h-8 rounded-full bg-gradient-to-br from-hielo/20 to-hielo/5 border border-hielo/15 flex items-center justify-center shrink-0 shadow-[0_0_10px_rgba(168,231,249,0.06)]">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#a8e7f9" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
+    <div
+      class="w-8 h-8 rounded-full bg-gradient-to-br from-hielo/20 to-hielo/5 border border-hielo/15 flex items-center justify-center shrink-0 shadow-[0_0_10px_rgba(168,231,249,0.06)]"
+    >
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="#a8e7f9"
+        stroke-width="1.5"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path d="M12 2L2 7l10 5 10-5-10-5z"></path><path d="M2 17l10 5 10-5"
+        ></path><path d="M2 12l10 5 10-5"></path>
       </svg>
     </div>
     <div class="flex-1 min-w-0">
-      <span class="text-[7px] text-white/25 tracking-[0.3em] uppercase font-medium">Interpretación Técnica</span>
-      <p class="text-[11px] font-medium text-hielo/75 leading-relaxed mt-0.5" data-period-guru-text>{summary}</p>
+      <span
+        class="text-[7px] text-white/25 tracking-[0.3em] uppercase font-medium"
+        >Interpretación Técnica</span
+      >
+      <p
+        class="text-[11px] font-medium text-hielo/75 leading-relaxed mt-0.5"
+        data-period-guru-text
+      >
+        {summary}
+      </p>
     </div>
   </div>
 </section>

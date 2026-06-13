@@ -1,11 +1,20 @@
-import type { NormalizedSnowForecast, NormalizedZoneForecast, NormalizedHourlyForecast, WeatherAPICurrent } from './types';
+import type {
+  NormalizedSnowForecast,
+  NormalizedZoneForecast,
+  NormalizedHourlyForecast,
+  WeatherAPICurrent,
+} from './types';
 import type { WeatherData } from '../types';
 import type { SMNCurrent } from './smn';
 import type { DemoSenario } from '../../data/demo-scenarios';
 import { fetchOpenMeteo, CAVIAHUE_COORDS } from './open-meteo-api';
 import { normalizeOpenMeteoResponse } from './normalize-weather';
 import { normalizedToLegacy } from './convert-to-legacy';
-import { fetchWeatherAPI, normalizeWeatherAPI, getWeatherAPIKey } from './weather-api';
+import {
+  fetchWeatherAPI,
+  normalizeWeatherAPI,
+  getWeatherAPIKey,
+} from './weather-api';
 import { fetchSMNCurrent } from './smn';
 import { compareSources, logComparison } from './smn';
 import mockData from '../../data/weather.mock.json';
@@ -32,9 +41,15 @@ async function fetchWeatherAPICurrent(): Promise<WeatherAPICurrent | null> {
   const apiKey = getWeatherAPIKey();
   if (!apiKey) return null;
   try {
-    const raw = await fetchWeatherAPI(CAVIAHUE_COORDS.lat, CAVIAHUE_COORDS.lon, apiKey);
+    const raw = await fetchWeatherAPI(
+      CAVIAHUE_COORDS.lat,
+      CAVIAHUE_COORDS.lon,
+      apiKey,
+    );
     const current = normalizeWeatherAPI(raw);
-    console.info(`[WeatherSource] WeatherAPI: ${current.temp}°C, ${current.condition}`);
+    console.info(
+      `[WeatherSource] WeatherAPI: ${current.temp}°C, ${current.condition}`,
+    );
     return current;
   } catch (err) {
     console.warn('[WeatherSource] WeatherAPI fetch failed');
@@ -42,15 +57,23 @@ async function fetchWeatherAPICurrent(): Promise<WeatherAPICurrent | null> {
   }
 }
 
-function logTemperatureDiff(weatherApi: WeatherAPICurrent, normalized: NormalizedSnowForecast): void {
+function logTemperatureDiff(
+  weatherApi: WeatherAPICurrent,
+  normalized: NormalizedSnowForecast,
+): void {
   const villageTemp = normalized.zones.village.temp;
   const diff = Math.abs(weatherApi.temp - villageTemp);
   if (diff > 2) {
-    console.info(`[WeatherSource] Diferencia actual: WeatherAPI ${weatherApi.temp}°C vs Open-Meteo Pueblo ${villageTemp}°C (${Math.round(diff * 10) / 10}°C de diferencia)`);
+    console.info(
+      `[WeatherSource] Diferencia actual: WeatherAPI ${weatherApi.temp}°C vs Open-Meteo Pueblo ${villageTemp}°C (${Math.round(diff * 10) / 10}°C de diferencia)`,
+    );
   }
 }
 
-export async function getWeatherData(options?: { mode?: WeatherMode; scenario?: DemoSenario }): Promise<WeatherResult> {
+export async function getWeatherData(options?: {
+  mode?: WeatherMode;
+  scenario?: DemoSenario;
+}): Promise<WeatherResult> {
   const activeMode = resolveMode(options?.mode);
 
   const [smn] = await Promise.all([fetchSMNCurrent()]);
@@ -60,7 +83,9 @@ export async function getWeatherData(options?: { mode?: WeatherMode; scenario?: 
       ? getDemoScenarioData(options.scenario)
       : (mockData as WeatherData);
     const scenarioLabel = options?.scenario ?? 'default';
-    console.info(`[WeatherSource] Demo mode active — scenario: ${scenarioLabel}`);
+    console.info(
+      `[WeatherSource] Demo mode active — scenario: ${scenarioLabel}`,
+    );
     const normalized = legacyToNormalized(data);
     const weatherApi = await fetchWeatherAPICurrent();
     if (weatherApi) logTemperatureDiff(weatherApi, normalized);
@@ -73,7 +98,9 @@ export async function getWeatherData(options?: { mode?: WeatherMode; scenario?: 
 
   try {
     const [raw, weatherApi] = await Promise.all([
-      fetchOpenMeteo(CAVIAHUE_COORDS.lat, CAVIAHUE_COORDS.lon, { forecastDays: 16 }),
+      fetchOpenMeteo(CAVIAHUE_COORDS.lat, CAVIAHUE_COORDS.lon, {
+        forecastDays: 16,
+      }),
       fetchWeatherAPICurrent(),
     ]);
     const normalized = normalizeOpenMeteoResponse(raw);
@@ -85,7 +112,10 @@ export async function getWeatherData(options?: { mode?: WeatherMode; scenario?: 
     }
     return { data, normalized, weatherApi, smn, source: 'open-meteo' };
   } catch (err) {
-    console.warn('[WeatherSource] Open-Meteo fetch failed, using mock fallback:', err);
+    console.warn(
+      '[WeatherSource] Open-Meteo fetch failed, using mock fallback:',
+      err,
+    );
     const data = mockData as WeatherData;
     const normalized = legacyToNormalized(data);
     const weatherApi = await fetchWeatherAPICurrent();
@@ -100,15 +130,20 @@ export async function getWeatherData(options?: { mode?: WeatherMode; scenario?: 
 
 function legacyToNormalized(data: WeatherData): NormalizedSnowForecast {
   const zones = data.zones;
-  const village = zones.find(z => z.name === 'Pueblo')!;
-  const mid = zones.find(z => z.name === 'Centro')!;
-  const top = zones.find(z => z.name === 'Cumbre')!;
+  const village = zones.find((z) => z.name === 'Pueblo')!;
+  const mid = zones.find((z) => z.name === 'Centro')!;
+  const top = zones.find((z) => z.name === 'Cumbre')!;
 
   const baseDate = data.updated || new Date().toISOString();
   const baseTime = new Date(baseDate);
 
   const hourly: NormalizedHourlyForecast[] = village.hourly.map((h, i) => ({
-    time: new Date(baseTime.getFullYear(), baseTime.getMonth(), baseTime.getDate(), h.hour).toISOString(),
+    time: new Date(
+      baseTime.getFullYear(),
+      baseTime.getMonth(),
+      baseTime.getDate(),
+      h.hour,
+    ).toISOString(),
     temp: h.temp,
     feelsLike: h.feels_like,
     precipitation: h.precip,
@@ -117,7 +152,7 @@ function legacyToNormalized(data: WeatherData): NormalizedSnowForecast {
     wind: h.wind,
     windGusts: h.wind + 10,
     humidity: 60,
-    cloudCover: 70
+    cloudCover: 70,
   }));
 
   function makeZone(f: typeof village): NormalizedZoneForecast {
@@ -131,7 +166,7 @@ function legacyToNormalized(data: WeatherData): NormalizedSnowForecast {
       wind: first.wind,
       precipitation: first.precip,
       snowChance: first.snow_prob,
-      freezingLevel: first.freezing_level
+      freezingLevel: first.freezing_level,
     };
   }
 
@@ -141,8 +176,8 @@ function legacyToNormalized(data: WeatherData): NormalizedSnowForecast {
     zones: {
       village: makeZone(village),
       mid: makeZone(mid),
-      top: makeZone(top)
+      top: makeZone(top),
     },
-    hourly
+    hourly,
   };
 }

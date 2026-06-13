@@ -22,7 +22,7 @@ export type SourceComparison = {
 export function compareSources(
   smn: SMNCurrent | null,
   weatherApi: WeatherAPICurrent | null,
-  normalized: NormalizedSnowForecast | null
+  normalized: NormalizedSnowForecast | null,
 ): SourceComparison {
   const villageTemp = normalized?.zones?.village?.temp ?? null;
   const updated = normalized?.updatedAt ?? null;
@@ -52,7 +52,9 @@ export function compareSources(
 export function logComparison(cmp: SourceComparison): void {
   if (!cmp.smn) return;
 
-  const parts: string[] = [`[SMN] ${cmp.smn.stationName} (a ${cmp.smn.distanceKm} km)`];
+  const parts: string[] = [
+    `[SMN] ${cmp.smn.stationName} (a ${cmp.smn.distanceKm} km)`,
+  ];
 
   if (cmp.smn.temp != null) {
     parts.push(`temp: ${cmp.smn.temp}°C`);
@@ -68,10 +70,14 @@ export function logComparison(cmp: SourceComparison): void {
   }
 
   if (cmp.differences.smnVsWeatherApi != null) {
-    parts.push(`vs WeatherAPI: ${cmp.differences.smnVsWeatherApi > 0 ? '+' : ''}${cmp.differences.smnVsWeatherApi}°C`);
+    parts.push(
+      `vs WeatherAPI: ${cmp.differences.smnVsWeatherApi > 0 ? '+' : ''}${cmp.differences.smnVsWeatherApi}°C`,
+    );
   }
   if (cmp.differences.smnVsOpenMeteo != null) {
-    parts.push(`vs Open-Meteo Pueblo: ${cmp.differences.smnVsOpenMeteo > 0 ? '+' : ''}${cmp.differences.smnVsOpenMeteo}°C`);
+    parts.push(
+      `vs Open-Meteo Pueblo: ${cmp.differences.smnVsOpenMeteo > 0 ? '+' : ''}${cmp.differences.smnVsOpenMeteo}°C`,
+    );
   }
 
   console.info(parts.join(' · '));
