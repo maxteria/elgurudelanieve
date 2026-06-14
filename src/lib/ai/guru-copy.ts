@@ -351,7 +351,8 @@ No digas "el Gurú ve..." ni "el Gurú dice...".
 No inventes datos. No contradigas el diagnóstico técnico.
 No prometas nieve si no hay señal clara.
 No uses "garantizado", "imposible", "seguro".
-No uses tecnicismos: freezing level, mm, hPa.
+No uses tecnicismos: hPa, mm de acumulación.
+Podés mencionar cota de nieve si ayuda a explicar la situación.
 No inventes horarios fuera de la ventana marcada.
 No inventes acumulación.
 
@@ -372,6 +373,11 @@ Reglas de modulación de mood:
 - powderScore < 35 y estado de nieve = no → neutral
 - Si hay alerta de peligro (viento, etc.) → warning
 
+Reglas de certeza:
+- Alta: probabilidad > 60% + cota de nieve baja + acumulación marcada
+- Media: probabilidad 30-60% o cota media o señal mixta
+- Baja: probabilidad < 30% o cota alta o ventana lejana (>3 días)
+
 Respondé SOLO con el JSON, sin markdown, sin texto adicional.`;
 }
 
@@ -381,9 +387,9 @@ function buildUserPrompt(data: GuruCopyInput): string {
     return `${Math.round(m * 100)}`;
   };
   const zoneLines = [
-    `- Pueblo: ${data.zones.village.answer.label} (${data.zones.village.current.temp}°C, ${data.zones.village.current.precipitation}mm precip, nieve en pista: ${toCm(data.zones.village.current.snowDepth)}cm)`,
-    `- Centro: ${data.zones.mid.answer.label} (${data.zones.mid.current.temp}°C, ${data.zones.mid.current.precipitation}mm precip, nieve en pista: ${toCm(data.zones.mid.current.snowDepth)}cm)`,
-    `- Cumbre: ${data.zones.top.answer.label} (${data.zones.top.current.temp}°C, ${data.zones.top.current.precipitation}mm precip, nieve en pista: ${toCm(data.zones.top.current.snowDepth)}cm)`,
+    `- Pueblo (${data.zones.village.current.temp}°C, ${data.zones.village.current.precipitation}mm precip, nieve: ${toCm(data.zones.village.current.snowDepth)}cm, cota: ${data.zones.village.current.freezingLevel ?? 'N/A'}m, prob: ${data.zones.village.current.precipitationProbability ?? 'N/A'}%)`,
+    `- Centro (${data.zones.mid.current.temp}°C, ${data.zones.mid.current.precipitation}mm precip, nieve: ${toCm(data.zones.mid.current.snowDepth)}cm, cota: ${data.zones.mid.current.freezingLevel ?? 'N/A'}m, prob: ${data.zones.mid.current.precipitationProbability ?? 'N/A'}%)`,
+    `- Cumbre (${data.zones.top.current.temp}°C, ${data.zones.top.current.precipitation}mm precip, nieve: ${toCm(data.zones.top.current.snowDepth)}cm, cota: ${data.zones.top.current.freezingLevel ?? 'N/A'}m, prob: ${data.zones.top.current.precipitationProbability ?? 'N/A'}%)`,
   ].join('\n');
 
   const diagnostics = [
@@ -398,6 +404,9 @@ function buildUserPrompt(data: GuruCopyInput): string {
       : null,
     data.zones.village.current.weatherCode !== undefined
       ? `Código WMO: ${data.zones.village.current.weatherCode}`
+      : null,
+    data.nextDays && data.nextDays.length > 0
+      ? `Próximos días: ${data.nextDays.map((d) => `${d.weekday}: ${d.totalSnow > 0 ? `${d.totalSnow}cm nieve` : 'sin nieve'} (${d.tempMin}°C/${d.tempMax}°C, ${d.avgWind}km/h viento)`).join(' | ')}`
       : null,
   ]
     .filter(Boolean)
