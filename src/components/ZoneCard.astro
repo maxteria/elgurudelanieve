@@ -89,6 +89,18 @@ if (id === 'village' && current.precipitation === 0) {
         >{current.snowChance}%</span
       >
     </div>
+    {
+      current.snowDepth !== undefined && (
+        <div class="flex items-center justify-between pt-1 border-t border-white/[0.02]">
+          <span class="text-white/25">Nieve en pista</span>
+          <span class="text-white/70 font-semibold tabular-nums">
+            {current.snowDepth === 0
+              ? 'Sin nieve acumulada'
+              : `${Math.round(current.snowDepth * 100)} cm`}
+          </span>
+        </div>
+      )
+    }
   </div>
 
   <div class="mt-auto pt-1.5 border-t border-white/[0.03]">

@@ -22,6 +22,7 @@ import SnowWindow from '../components/SnowWindow.astro';
 import AlertsPanel from '../components/AlertsPanel.astro';
 import GuruSummary from '../components/GuruSummary.astro';
 import { generateTouristCopy, type GuruCopyInput } from '../lib/ai/guru-copy';
+import type { GuruNpcOutput } from '../lib/ai/types';
 
 const params = Astro.url.searchParams;
 const demoParam = params.get('demo');
@@ -61,6 +62,10 @@ const touristResults = await Promise.all(
     return generateTouristCopy(input);
   }),
 );
+const touristData: Record<PeriodKey, GuruNpcOutput> = {} as Record<
+  PeriodKey,
+  GuruNpcOutput
+>;
 const touristCopies: Record<PeriodKey, string> = {} as Record<
   PeriodKey,
   string
@@ -69,9 +74,26 @@ const touristSources: Record<PeriodKey, string> = {} as Record<
   PeriodKey,
   string
 >;
+const touristMoods: Record<PeriodKey, string> = {} as Record<
+  PeriodKey,
+  string
+>;
+const touristCertainties: Record<PeriodKey, string> = {} as Record<
+  PeriodKey,
+  string
+>;
+const touristTips: Record<PeriodKey, string | null> = {} as Record<
+  PeriodKey,
+  string | null
+>;
 periodKeys.forEach((key, i) => {
-  touristCopies[key] = touristResults[i].touristCopy;
-  touristSources[key] = touristResults[i].source;
+  const r = touristResults[i];
+  touristData[key] = r;
+  touristCopies[key] = r.message;
+  touristSources[key] = r.source;
+  touristMoods[key] = r.mood;
+  touristCertainties[key] = r.certainty;
+  touristTips[key] = r.tip;
 });
 
 const dailySummaries = getSevenDayForecast(normalized.hourly);
@@ -80,6 +102,9 @@ const periodDataJson = JSON.stringify({
   dailySummaries,
   touristCopies,
   touristSources,
+  touristMoods,
+  touristCertainties,
+  touristTips,
 });
 
 function buildZoneHourly(period: PeriodKey) {
@@ -101,7 +126,7 @@ function buildZoneHourly(period: PeriodKey) {
       feels_like: h.feelsLike,
       wind: h.wind,
       precip: h.precipitation,
-      snow_prob: 0,
+      snow_prob: h.precipitationProbability ?? 0,
       freezing_level: h.freezingLevel,
     };
   });
@@ -240,6 +265,9 @@ const zoneHourlyTomorrow = buildZoneHourly('tomorrow');
     var PERIODS = data.periods;
     var TOURIST = data.touristCopies;
     var TOURIST_SRC = data.touristSources;
+    var TOURIST_MOODS = data.touristMoods;
+    var TOURIST_CERTS = data.touristCertainties;
+    var TOURIST_TIPS = data.touristTips;
     var PERIOD_DATA = {
       today: {
         heroAnswer: PERIODS.today.mainAnswer,
@@ -250,6 +278,9 @@ const zoneHourlyTomorrow = buildZoneHourly('tomorrow');
         zones: PERIODS.today.zones,
         touristCopy: TOURIST.today,
         touristSource: TOURIST_SRC.today,
+        mood: TOURIST_MOODS.today,
+        certainty: TOURIST_CERTS.today,
+        tip: TOURIST_TIPS.today,
       },
       tomorrow: {
         heroAnswer: PERIODS.tomorrow.mainAnswer,
@@ -260,6 +291,9 @@ const zoneHourlyTomorrow = buildZoneHourly('tomorrow');
         zones: PERIODS.tomorrow.zones,
         touristCopy: TOURIST.tomorrow,
         touristSource: TOURIST_SRC.tomorrow,
+        mood: TOURIST_MOODS.tomorrow,
+        certainty: TOURIST_CERTS.tomorrow,
+        tip: TOURIST_TIPS.tomorrow,
       },
       sevenDays: {
         heroAnswer: PERIODS.sevenDays.mainAnswer,
@@ -270,6 +304,9 @@ const zoneHourlyTomorrow = buildZoneHourly('tomorrow');
         zones: PERIODS.sevenDays.zones,
         touristCopy: TOURIST.sevenDays,
         touristSource: TOURIST_SRC.sevenDays,
+        mood: TOURIST_MOODS.sevenDays,
+        certainty: TOURIST_CERTS.sevenDays,
+        tip: TOURIST_TIPS.sevenDays,
       },
     };
 
@@ -348,6 +385,35 @@ const zoneHourlyTomorrow = buildZoneHourly('tomorrow');
 
       var touristEl = document.querySelector('[data-period-guru-tourist]');
       if (touristEl) {
+        /* Update mood attribute on the container */
+        touristEl.setAttribute('data-mood', p.mood || 'neutral');
+
+        /* Update mood dot */
+        var moodDot = touristEl.querySelector('[data-mood-indicator]');
+        if (moodDot) {
+          moodDot.style.background =
+            'var(--mood-color, #94a3b8)';
+        }
+
+        /* Update certainty label */
+        var certLabel = touristEl.querySelector('[data-certainty-label]');
+        if (certLabel) {
+          var labels = { alta: 'Alta', media: 'Media', baja: 'Baja' };
+          certLabel.textContent = labels[p.certainty] || p.certainty;
+        }
+
+        /* Update tip line */
+        var tipLine = touristEl.querySelector('[data-tip-line]');
+        if (tipLine) {
+          if (p.tip) {
+            tipLine.style.display = '';
+            tipLine.querySelector('span').textContent = p.tip;
+          } else {
+            tipLine.style.display = 'none';
+          }
+        }
+
+        /* Update text content */
         var touristText = touristEl.querySelector(
           '[data-period-guru-tourist-text]',
         );

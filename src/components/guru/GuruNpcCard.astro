@@ -1,9 +1,36 @@
 ---
-const { touristCopy, source, snowLabel } = Astro.props;
+import type { GuruMood, GuruCertainty, GuruSource } from '../../lib/ai/types';
+
+interface Props {
+  mood: GuruMood;
+  certainty: GuruCertainty;
+  message: string;
+  tip: string | null;
+  source: GuruSource;
+  snowLabel?: string;
+}
+
+const { mood, certainty, message, tip, source, snowLabel } = Astro.props as Props;
 const sourceLabel = source === 'ai' ? 'Gurú IA' : 'Gurú local';
+
+const certaintyLabels: Record<string, string> = {
+  alta: 'Alta',
+  media: 'Media',
+  baja: 'Baja',
+};
+const certaintySegments: Record<string, number> = {
+  alta: 3,
+  media: 2,
+  baja: 1,
+};
+const segments = certaintySegments[certainty] ?? 1;
 ---
 
-<section class="relative flex flex-col items-center pt-4 pb-6" data-guru-npc>
+<section
+  class="relative flex flex-col items-center pt-4 pb-6"
+  data-guru-npc
+  data-mood={mood}
+>
   <div class="relative mb-[-20px] z-20">
     <img
       src="/emblema.png"
@@ -12,6 +39,13 @@ const sourceLabel = source === 'ai' ? 'Gurú IA' : 'Gurú local';
     />
     <div class="absolute inset-0 bg-hielo/10 rounded-full blur-xl z-0"></div>
     <div class="absolute -inset-4 bg-hielo/6 rounded-full blur-3xl z-0"></div>
+
+    <!-- Mood dot (bottom-right of emblem) -->
+    <div
+      class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-2 border-[rgba(9,16,22,0.97)] shadow-[0_0_8px_var(--mood-color)] z-20"
+      style="background: var(--mood-color, #94a3b8)"
+      data-mood-indicator
+    ></div>
   </div>
 
   <div class="relative w-full max-w-lg mt-0">
@@ -40,12 +74,49 @@ const sourceLabel = source === 'ai' ? 'Gurú IA' : 'Gurú local';
         )
       }
 
+      <!-- Certainty bar -->
+      <div class="flex items-center gap-3 mb-3">
+        <div class="certainty-bar">
+          {Array.from({ length: 3 }, (_, i) => (
+            <div
+              class={`certainty-bar__segment${i < segments ? ' certainty-bar__segment--filled' : ''}`}
+            ></div>
+          ))}
+        </div>
+        <span
+          class="text-[10px] font-medium tracking-wide"
+          style="color: var(--mood-color, #94a3b8)"
+          data-certainty-label
+        >
+          {certaintyLabels[certainty] ?? certainty}
+        </span>
+        <span
+          class="text-[8px] text-white/25 ml-auto tracking-[0.15em]"
+        >
+          {sourceLabel}
+        </span>
+      </div>
+
       <p
         class="text-[15px] font-medium text-white/85 leading-relaxed"
         data-guru-npc-text
       >
-        {touristCopy}
+        {message}
       </p>
+
+      <!-- Tip section (conditional) -->
+      {
+        tip && (
+          <div class="tip-callout" data-tip-callout>
+            <svg class="tip-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="16" x2="12" y2="12"/>
+              <line x1="12" y1="8" x2="12.01" y2="8"/>
+            </svg>
+            <span>{tip}</span>
+          </div>
+        )
+      }
     </div>
   </div>
 </section>

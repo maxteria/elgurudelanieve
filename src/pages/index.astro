@@ -11,6 +11,7 @@ import { isValidScenario } from '../data/demo-scenarios';
 import MobileNav from '../components/MobileNav.astro';
 import GuruNpcCard from '../components/guru/GuruNpcCard.astro';
 import { generateTouristCopy, type GuruCopyInput } from '../lib/ai/guru-copy';
+import type { GuruNpcOutput } from '../lib/ai/types';
 
 const params = Astro.url.searchParams;
 const demoParam = params.get('demo');
@@ -49,27 +50,22 @@ const touristResults = await Promise.all(
     return generateTouristCopy(input);
   }),
 );
-const touristCopies: Record<PeriodKey, string> = {} as Record<
+const touristData: Record<PeriodKey, GuruNpcOutput> = {} as Record<
   PeriodKey,
-  string
->;
-const touristSources: Record<PeriodKey, string> = {} as Record<
-  PeriodKey,
-  string
+  GuruNpcOutput
 >;
 periodKeys.forEach((key, i) => {
-  touristCopies[key] = touristResults[i].touristCopy;
-  touristSources[key] = touristResults[i].source;
+  touristData[key] = touristResults[i];
 });
 
 const mainCopy =
-  touristCopies.today ||
+  touristData.today?.message ||
   'Hoy no veo nieve, rider. La montaña está fría, pero seca. No te manijees todavía: por ahora es día de encerar la tabla y mirar el cerro de reojo.';
 const tomorrowCopy =
-  touristCopies.tomorrow ||
+  touristData.tomorrow?.message ||
   'Mañana lo veo parecido: frío hay, pero sin humedad no hay negocio.';
 const weekCopy =
-  touristCopies.sevenDays ||
+  touristData.sevenDays?.message ||
   'Más adelante voy a mirar si baja la cota y entra precipitación.';
 
 const freez = result.zones.village.current.freezingLevel;
@@ -141,8 +137,11 @@ const cotaLabel =
 
       <div class="max-w-xl mx-auto space-y-6">
         <GuruNpcCard
-          touristCopy={mainCopy}
-          source={touristSources.today || 'fallback'}
+          mood={touristData.today?.mood ?? 'neutral'}
+          certainty={touristData.today?.certainty ?? 'baja'}
+          message={mainCopy}
+          tip={touristData.today?.tip ?? null}
+          source={touristData.today?.source ?? 'fallback'}
           snowLabel={result.snowLabel}
         />
 
