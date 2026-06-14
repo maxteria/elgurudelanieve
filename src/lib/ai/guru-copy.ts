@@ -1,4 +1,5 @@
 import type { SnowInterpretation, PeriodKey } from '../types';
+import type { DailySummary } from '../weather/types';
 import type { GuruNpcOutput, GuruMood, GuruCertainty } from './types';
 
 export type GuruCopyInput = {
@@ -13,6 +14,7 @@ export type GuruCopyInput = {
     top: SnowInterpretation['zones']['top'];
   };
   now?: SnowInterpretation['weatherApi'];
+  nextDays?: DailySummary[];
 };
 
 const GEMINI_KEY_ENV = 'GEMINI_API_KEY';
@@ -148,6 +150,60 @@ const MIXED_PRECIP: Variant[] = [
   },
 ];
 
+// ─── Multi-Period Fallback ───────────────────────────────────────────────────
+
+const SNOW_SOON: Variant[] = [
+  {
+    message:
+      'Hoy no cae nada, pero no te desconectes: los próximos días vienen con blanco. La montaña se está preparando.',
+    tip: 'Dejá todo listo, que en un par de días puede haber pólvora.',
+  },
+  {
+    message:
+      'Hoy está seco, pero los modelos marcan nieve en los próximos días. No es promesa, pero la señal es buena.',
+    tip: 'Mantené la tabla encerada por si el viento gira.',
+  },
+];
+
+const SNOW_LATER: Variant[] = [
+  {
+    message:
+      'Hoy no veo blanco, pero más adelante en la semana puede asomarse algo. Hay que tener paciencia.',
+    tip: 'Seguí mirando las actualizaciones. Caviahue cambia rápido.',
+  },
+  {
+    message:
+      'Sin nieve por ahora. Los datos de más adelante muestran posibilidad, pero está lejos para afirmarlo.',
+    tip: 'No te manijees. Si la señal se sostiene, los próximos días traen noticias.',
+  },
+];
+
+/**
+ * Check if nextDays has upcoming snowfall within a window.
+ * Returns { daysUntil, totalSnow } or null if none found.
+ */
+function findNextSnowWindow(
+  nextDays: DailySummary[] | undefined,
+): { daysUntil: number; totalSnow: number } | null {
+  if (!nextDays || nextDays.length === 0) return null;
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  for (const day of nextDays) {
+    const date = new Date(day.date + 'T00:00:00');
+    const diffMs = date.getTime() - today.getTime();
+    const daysUntil = Math.round(diffMs / (1000 * 60 * 60 * 24));
+    if (daysUntil < 0) continue; // skip past days
+
+    if (day.totalSnow > 0) {
+      return { daysUntil, totalSnow: day.totalSnow };
+    }
+  }
+
+  return null;
+}
+
 const WINDY: Variant[] = [
   {
     message:
@@ -161,9 +217,7 @@ const WINDY: Variant[] = [
   },
 ];
 
-export function generateFallbackNpcMessage(
-  data: GuruCopyInput,
-): GuruNpcOutput {
+export function generateFallbackNpcMessage(data: GuruCopyInput): GuruNpcOutput {
   const v = data.zones.village.current;
   const m = data.zones.mid.current;
   const t = data.zones.top.current;
@@ -185,25 +239,45 @@ export function generateFallbackNpcMessage(
     return { mood: 'warning', certainty: 'alta', ...v, source: 'fallback' };
   }
 
-  // 3. Sin nieve a la vista / cota alta
+  // 3. Multi-period fallback: status=no but snow in upcoming days
+  if (mainStatus === 'no' && data.nextDays) {
+    const window = findNextSnowWindow(data.nextDays);
+    if (window && window.daysUntil <= 7 && window.daysUntil >= 1) {
+      if (window.daysUntil <= 3) {
+        // Snow in next 1-3 days: higher urgency
+        const msg = pick(SNOW_SOON);
+        return {
+          mood: 'cautious',
+          certainty: 'media',
+          ...msg,
+          source: 'fallback',
+        };
+      }
+      // Snow in 4-7 days: lower urgency
+      const msg = pick(SNOW_LATER);
+      return { mood: 'neutral', certainty: 'baja', ...msg, source: 'fallback' };
+    }
+  }
+
+  // 4. Sin nieve a la vista / cota alta
   if (mainStatus === 'no' && cotaAlta) {
     const v = pick(NO_SNOW_HIGH_ALTITUDE);
     return { mood: 'neutral', certainty: 'alta', ...v, source: 'fallback' };
   }
 
-  // 4. Frío seco
+  // 5. Frío seco
   if (mainStatus === 'no' && v.precipitation <= 0.2 && v.temp <= 2) {
     const v = pick(COLD_DRY);
     return { mood: 'neutral', certainty: 'alta', ...v, source: 'fallback' };
   }
 
-  // 5. Sin nieve a la vista genérico
+  // 6. Sin nieve a la vista genérico
   if (mainStatus === 'no') {
     const v = pick(NO_SNOW_GENERIC);
     return { mood: 'neutral', certainty: 'baja', ...v, source: 'fallback' };
   }
 
-  // 6. Nieve probable (yes)
+  // 7. Nieve probable (yes)
   if (mainStatus === 'yes' && hasWindow) {
     return {
       mood: 'confident',
@@ -225,7 +299,7 @@ export function generateFallbackNpcMessage(
     };
   }
 
-  // 7. Ventana clara (possible con ventana)
+  // 8. Ventana clara (possible con ventana)
   if (mainStatus === 'possible' && hasWindow) {
     return {
       mood: 'cautious',
@@ -236,7 +310,7 @@ export function generateFallbackNpcMessage(
     };
   }
 
-  // 8. Posible nieve sin ventana
+  // 9. Posible nieve sin ventana
   if (mainStatus === 'possible') {
     return {
       mood: 'cautious',

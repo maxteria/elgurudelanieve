@@ -67,7 +67,8 @@ const certaintyLabels: Record<string, string> = {
         class="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-[rgba(9,16,22,0.92)] z-10"
         style="background: var(--mood-color, #94a3b8)"
         data-mood-indicator
-      ></div>
+      >
+      </div>
     </div>
 
     <!-- Content -->
@@ -93,10 +94,19 @@ const certaintyLabels: Record<string, string> = {
           class="certainty-info"
           data-tip="3 barras = certeza alta · 2 = media · 1 = baja"
         >
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="10"/>
-            <line x1="12" y1="16" x2="12" y2="12"/>
-            <line x1="12" y1="8" x2="12.01" y2="8"/>
+          <svg
+            width="10"
+            height="10"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="16" x2="12" y2="12"></line>
+            <line x1="12" y1="8" x2="12.01" y2="8"></line>
           </svg>
         </span>
       </div>
@@ -110,10 +120,18 @@ const certaintyLabels: Record<string, string> = {
       {
         tip && (
           <div class="flex items-start gap-1.5 mt-2" data-tip-line>
-            <svg class="tip-icon mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="12" cy="12" r="10"/>
-              <line x1="12" y1="16" x2="12" y2="12"/>
-              <line x1="12" y1="8" x2="12.01" y2="8"/>
+            <svg
+              class="tip-icon mt-0.5"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="16" x2="12" y2="12" />
+              <line x1="12" y1="8" x2="12.01" y2="8" />
             </svg>
             <span class="text-[11px] text-white/50 leading-relaxed">{tip}</span>
           </div>

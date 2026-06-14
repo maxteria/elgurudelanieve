@@ -62,6 +62,39 @@ export type WeatherAPICurrent = {
   updatedAt: string;
 };
 
+export type AicStationData = {
+  stationName: string;
+  date: string;
+  humidity: number | null;
+  precipitation: number | null;
+  pressure: number | null;
+  tempMin: number | null;
+  tempMax: number | null;
+  windDir: number | null;
+  windSpeed: number | null;
+  windMax: number | null;
+  snowWaterEq: number | null;
+  updatedAt: string;
+};
+
+export type OpenMeteoCurrentWeather = {
+  time: string;
+  temperature: number;
+  windspeed: number;
+  winddirection: number;
+  isDay: number;
+  weathercode: number;
+};
+
+export type OpenMeteoDaily = {
+  time: string[];
+  temperature_2m_max: number[];
+  temperature_2m_min: number[];
+  precipitation_sum: number[];
+  snowfall_sum: number[];
+  precipitation_probability_max: number[];
+};
+
 export type NormalizedSnowForecast = {
   updatedAt: string;
   location: {
@@ -75,4 +108,7 @@ export type NormalizedSnowForecast = {
     top: NormalizedZoneForecast;
   };
   hourly: NormalizedHourlyForecast[];
+  yesterday?: AicStationData;
+  currentWeather?: OpenMeteoCurrentWeather;
+  daily?: OpenMeteoDaily;
 };

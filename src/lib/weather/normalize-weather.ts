@@ -1,7 +1,4 @@
-import {
-  ZONE_ELEVATIONS,
-  CAVIAHUE_COORDS,
-} from './open-meteo-api';
+import { ZONE_ELEVATIONS, CAVIAHUE_COORDS } from './open-meteo-api';
 import type { OpenMeteoResponse } from './open-meteo-api';
 import type {
   NormalizedSnowForecast,
@@ -33,7 +30,9 @@ export function normalizeOpenMeteoResponse(
     cloudCover: Math.round(raw.hourly.cloud_cover[i]),
     snowDepth: Math.round(raw.hourly.snow_depth[i] * 100) / 100,
     weatherCode: Math.round(raw.hourly.weather_code[i]),
-    precipitationProbability: Math.round(raw.hourly.precipitation_probability[i]),
+    precipitationProbability: Math.round(
+      raw.hourly.precipitation_probability[i],
+    ),
   }));
 
   const now = new Date();
@@ -80,12 +79,8 @@ export function normalizeOpenMeteoResponse(
     const zoneFreezing = current.freezingLevel;
     const zoneFeelsLike = estimateFeelsLike(zoneTemp, zoneWind);
     const zoneSnowChance =
-      current.precipitationProbability ?? snowChance(
-        zoneTemp,
-        zonePrecip,
-        zoneFreezing,
-        altitude,
-      );
+      current.precipitationProbability ??
+      snowChance(zoneTemp, zonePrecip, zoneFreezing, altitude);
 
     if (import.meta.env.DEV) {
       console.debug(
@@ -126,5 +121,28 @@ export function normalizeOpenMeteoResponse(
       top: makeZoneForecast('top', 'Cumbre', ZONE_ELEVATIONS.top),
     },
     hourly,
+    // Pass through current_weather if available (maps snake_case → camelCase)
+    currentWeather: raw.current_weather
+      ? {
+          time: raw.current_weather.time,
+          temperature: raw.current_weather.temperature,
+          windspeed: raw.current_weather.windspeed,
+          winddirection: raw.current_weather.winddirection,
+          isDay: raw.current_weather.is_day,
+          weathercode: raw.current_weather.weathercode,
+        }
+      : undefined,
+    // Pass through daily aggregates if available
+    daily: raw.daily
+      ? {
+          time: raw.daily.time,
+          temperature_2m_max: raw.daily.temperature_2m_max,
+          temperature_2m_min: raw.daily.temperature_2m_min,
+          precipitation_sum: raw.daily.precipitation_sum,
+          snowfall_sum: raw.daily.snowfall_sum,
+          precipitation_probability_max:
+            raw.daily.precipitation_probability_max,
+        }
+      : undefined,
   };
 }

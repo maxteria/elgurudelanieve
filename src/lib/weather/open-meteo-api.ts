@@ -1,6 +1,6 @@
 export const CAVIAHUE_COORDS = {
-  lat: -37.85,
-  lon: -71.05,
+  lat: -37.86,
+  lon: -71.08,
   name: 'Caviahue',
 };
 
@@ -19,22 +19,41 @@ export type OpenMeteoResponse = {
   timezone_abbreviation: string;
   elevation: number;
   hourly_units: Record<string, string>;
-    hourly: {
-      time: string[];
-      temperature_2m: number[];
-      apparent_temperature: number[];
-      precipitation: number[];
-      snowfall: number[];
-      freezinglevel_height: number[];
-      wind_speed_10m: number[];
-      wind_direction_10m: number[];
-      wind_gusts_10m: number[];
-      relative_humidity_2m: number[];
-      cloud_cover: number[];
-      snow_depth: number[];
-      weather_code: number[];
-      precipitation_probability: number[];
-    };
+  hourly: {
+    time: string[];
+    temperature_2m: number[];
+    apparent_temperature: number[];
+    precipitation: number[];
+    snowfall: number[];
+    freezinglevel_height: number[];
+    wind_speed_10m: number[];
+    wind_direction_10m: number[];
+    wind_gusts_10m: number[];
+    relative_humidity_2m: number[];
+    cloud_cover: number[];
+    snow_depth: number[];
+    weather_code: number[];
+    precipitation_probability: number[];
+  };
+  /** Open-Meteo current_weather=true response */
+  current_weather?: {
+    time: string;
+    temperature: number;
+    windspeed: number;
+    winddirection: number;
+    is_day: number;
+    weathercode: number;
+    interval: number;
+  };
+  /** Open-Meteo daily= params response */
+  daily?: {
+    time: string[];
+    temperature_2m_max: number[];
+    temperature_2m_min: number[];
+    precipitation_sum: number[];
+    snowfall_sum: number[];
+    precipitation_probability_max: number[];
+  };
 };
 
 export function buildOpenMeteoUrl(
@@ -62,6 +81,14 @@ export function buildOpenMeteoUrl(
       'weather_code',
       'precipitation_probability',
     ].join(','),
+    daily: [
+      'temperature_2m_max',
+      'temperature_2m_min',
+      'precipitation_sum',
+      'snowfall_sum',
+      'precipitation_probability_max',
+    ].join(','),
+    current_weather: 'true',
     timezone: tz,
     forecast_days: days.toString(),
   });

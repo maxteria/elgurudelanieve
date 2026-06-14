@@ -92,6 +92,9 @@ function makeForecast(
       top: makeZone('top', 'Cumbre (alto)', 2045, topTemp),
     },
     hourly: baseHourly,
+    yesterday: undefined,
+    currentWeather: undefined,
+    daily: undefined,
   };
 }
 

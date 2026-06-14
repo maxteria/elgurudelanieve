@@ -16,6 +16,7 @@ import {
 import { fetchSMNCurrent } from './smn';
 import { compareSources, logComparison } from './smn';
 import { getDemoScenarioData } from '../../data/demo-scenarios';
+import { fetchAicStationData } from './sources/aic-scraper';
 
 export type WeatherMode = 'real' | 'demo';
 export type DataSource = 'open-meteo' | 'mock-demo' | 'mock-fallback';
@@ -92,13 +93,21 @@ export async function getWeatherData(options?: {
   }
 
   try {
-    const [raw, weatherApi] = await Promise.all([
+    const [raw, weatherApi, aicData] = await Promise.all([
       fetchOpenMeteo(CAVIAHUE_COORDS.lat, CAVIAHUE_COORDS.lon, {
         forecastDays: 16,
       }),
       fetchWeatherAPICurrent(),
+      fetchAicStationData(),
     ]);
     const normalized = normalizeOpenMeteoResponse(raw);
+    // Merge AIC yesterday data if available (optional — build never breaks)
+    if (aicData) {
+      normalized.yesterday = aicData;
+      console.info(
+        `[WeatherSource] AIC yesterday: ${aicData.tempMin}°C / ${aicData.tempMax}°C`,
+      );
+    }
     if (weatherApi) logTemperatureDiff(weatherApi, normalized);
     if (smn && normalized) {
       const cmp = compareSources(smn, weatherApi, normalized);

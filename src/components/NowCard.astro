@@ -1,13 +1,67 @@
 ---
-import type { WeatherAPICurrent } from '../lib/weather/types';
+import type {
+  WeatherAPICurrent,
+  OpenMeteoCurrentWeather,
+} from '../lib/weather/types';
 
-const { weatherApi } = Astro.props as { weatherApi: WeatherAPICurrent };
+type Props = {
+  /** Open-Meteo current_weather — primary source for temp/wind/WMO */
+  currentWeather?: OpenMeteoCurrentWeather;
+  /** WeatherAPI — decorative source for icon/condition text fallback */
+  weatherApi?: WeatherAPICurrent;
+};
+
+const { currentWeather, weatherApi } = Astro.props as Props;
+
+/**
+ * WMO weather code → Spanish condition mapping.
+ * Used when Open-Meteo current_weather is available.
+ */
+function wmoCondition(code: number): string {
+  if (code === 0) return 'Despejado';
+  if (code <= 3) return 'Parcialmente nublado';
+  if (code === 45 || code === 48) return 'Niebla';
+  if (code >= 51 && code <= 57) return 'Llovizna';
+  if (code >= 61 && code <= 67) return 'Lluvia';
+  if (code >= 71 && code <= 77) return 'Nevada';
+  if (code >= 80 && code <= 82) return 'Chubascos';
+  if (code === 85 || code === 86) return 'Chubascos de nieve';
+  if (code >= 95) return 'Tormenta';
+  return 'N/D';
+}
+
+// ─── Resolve display values ────────────────────────────────────────────────
+
+// Temperature: OM primary, WA fallback
+const displayTemp = currentWeather?.temperature ?? weatherApi?.temp ?? null;
+// Wind + unit: OM primary (m/s → km/h × 3.6), WA fallback (already km/h)
+const displayWindKmh: number | null =
+  currentWeather?.windspeed != null
+    ? Math.round(currentWeather.windspeed * 3.6)
+    : (weatherApi?.wind ?? null);
+// Condition text: OM WMO → text primary, WA condition text fallback
+const displayCondition: string | null =
+  currentWeather?.weathercode != null
+    ? wmoCondition(currentWeather.weathercode)
+    : (weatherApi?.condition ?? null);
+// FeelsLike, humidity, cloudCover: only from WA (OM doesn't provide these for current_weather)
+const displayFeelsLike = weatherApi?.feelsLike ?? null;
+const displayHumidity = weatherApi?.humidity ?? null;
+const displayCloudCover = weatherApi?.cloudCover ?? null;
+
+// Source label
+const sourceLabel = currentWeather ? 'Open-Meteo' : 'WeatherAPI';
 
 function formatTime(iso: string): string {
   const d = new Date(iso);
   return d.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
 }
-const updatedTime = formatTime(weatherApi.updatedAt);
+
+const updatedTime = currentWeather
+  ? formatTime(currentWeather.time)
+  : weatherApi
+    ? formatTime(weatherApi.updatedAt)
+    : '';
 ---
 
 <div
@@ -25,44 +79,57 @@ const updatedTime = formatTime(weatherApi.updatedAt);
     >
   </div>
   <div class="flex items-center gap-3">
+    {
+      weatherApi?.icon && (
+        <img
+          src={weatherApi.icon.startsWith('//') ? `https:${weatherApi.icon}` : weatherApi.icon}
+          alt={weatherApi.condition ?? ''}
+          class="w-9 h-9 -ml-1"
+        />
+      )
+    }
     <span class="text-[36px] font-extrabold text-hielo leading-none"
-      >{weatherApi.temp}°C</span
+      >{displayTemp ?? '--'}°C</span
     >
     <span class="text-[10px] text-hielo/60 font-medium mt-2"
-      >{weatherApi.condition}</span
+      >{displayCondition ?? 'Sin datos'}</span
     >
   </div>
   <div class="grid grid-cols-2 gap-x-3 gap-y-1 mt-2.5 text-[9px]">
     <div class="flex items-center justify-between">
       <span class="text-white/25">Sensación</span>
       <span class="text-white/70 font-semibold tabular-nums"
-        >{weatherApi.feelsLike}°C</span
+        >{displayFeelsLike != null ? `${displayFeelsLike}°C` : '--'}</span
       >
     </div>
     <div class="flex items-center justify-between">
       <span class="text-white/25">Viento</span>
       <span class="text-white/70 font-semibold tabular-nums"
-        >{weatherApi.wind} km/h</span
+        >{displayWindKmh != null ? `${displayWindKmh} km/h` : '--'}</span
       >
     </div>
-    <div
-      class="flex items-center justify-between pt-1 border-t border-white/[0.02]"
-    >
-      <span class="text-white/25">Humedad</span>
-      <span class="text-white/70 font-semibold tabular-nums"
-        >{weatherApi.humidity}%</span
-      >
-    </div>
-    <div
-      class="flex items-center justify-between pt-1 border-t border-white/[0.02]"
-    >
-      <span class="text-white/25">Nubosidad</span>
-      <span class="text-white/70 font-semibold tabular-nums"
-        >{weatherApi.cloudCover}%</span
-      >
-    </div>
+    {
+      displayHumidity != null && (
+        <div class="flex items-center justify-between pt-1 border-t border-white/[0.02]">
+          <span class="text-white/25">Humedad</span>
+          <span class="text-white/70 font-semibold tabular-nums">
+            {displayHumidity}%
+          </span>
+        </div>
+      )
+    }
+    {
+      displayCloudCover != null && (
+        <div class="flex items-center justify-between pt-1 border-t border-white/[0.02]">
+          <span class="text-white/25">Nubosidad</span>
+          <span class="text-white/70 font-semibold tabular-nums">
+            {displayCloudCover}%
+          </span>
+        </div>
+      )
+    }
   </div>
   <div class="mt-2 text-[7px] text-white/15 tracking-[0.1em]">
-    WeatherAPI · actualizado {updatedTime}
+    {sourceLabel} · actualizado {updatedTime || '--'}
   </div>
 </div>

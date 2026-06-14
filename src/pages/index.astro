@@ -12,6 +12,7 @@ import MobileNav from '../components/MobileNav.astro';
 import GuruNpcCard from '../components/guru/GuruNpcCard.astro';
 import { generateTouristCopy, type GuruCopyInput } from '../lib/ai/guru-copy';
 import type { GuruNpcOutput } from '../lib/ai/types';
+import { getSevenDayForecast } from '../lib/forecast-periods';
 
 const params = Astro.url.searchParams;
 const demoParam = params.get('demo');
@@ -34,6 +35,7 @@ const result = periods[firstPeriod];
 if (weatherApi) result.weatherApi = weatherApi;
 const isDemo = source === 'mock-demo';
 
+const dailySummaries = getSevenDayForecast(normalized.hourly);
 const periodKeys: PeriodKey[] = ['today', 'tomorrow', 'sevenDays'];
 const touristResults = await Promise.all(
   periodKeys.map(async (key) => {
@@ -46,6 +48,7 @@ const touristResults = await Promise.all(
       alerts: p.alerts,
       zones: p.zones,
       now: weatherApi ?? undefined,
+      nextDays: dailySummaries,
     };
     return generateTouristCopy(input);
   }),
@@ -146,7 +149,7 @@ const cotaLabel =
         />
 
         {
-          result.weatherApi && (
+          (normalized.currentWeather || result.weatherApi) && (
             <div class="flex items-center gap-x-3 gap-y-1.5 text-[10px] text-white/40 px-4 py-2.5 bg-hielo/[0.03] border border-hielo/8 rounded-xl font-medium tracking-wide">
               <span class="text-[8px] text-hielo/30 font-semibold tracking-[0.25em] uppercase shrink-0">
                 NOW
@@ -155,31 +158,40 @@ const cotaLabel =
               <span>
                 Temp{' '}
                 <span class="text-white/60 tabular-nums">
-                  {result.weatherApi.temp}
+                  {normalized.currentWeather?.temperature ??
+                    result.weatherApi?.temp}
                 </span>
                 °C
               </span>
-              <span class="text-hielo/20">·</span>
-              <span>
-                Sens.{' '}
-                <span class="text-white/60 tabular-nums">
-                  {result.weatherApi.feelsLike}
-                </span>
-                °
-              </span>
-              {result.weatherApi.wind != null && result.weatherApi.wind > 0 && (
+              {result.weatherApi?.feelsLike != null && (
                 <>
                   <span class="text-hielo/20">·</span>
                   <span>
-                    Viento{' '}
+                    Sens.{' '}
                     <span class="text-white/60 tabular-nums">
-                      {result.weatherApi.wind}
-                    </span>{' '}
-                    km/h
+                      {result.weatherApi.feelsLike}
+                    </span>
+                    °
                   </span>
                 </>
               )}
-              {result.weatherApi.humidity != null && (
+              {(() => {
+                const windKmh =
+                  normalized.currentWeather?.windspeed != null
+                    ? Math.round(normalized.currentWeather.windspeed * 3.6)
+                    : result.weatherApi?.wind;
+                return windKmh != null && windKmh > 0 ? (
+                  <>
+                    <span class="text-hielo/20">·</span>
+                    <span>
+                      Viento{' '}
+                      <span class="text-white/60 tabular-nums">{windKmh}</span>{' '}
+                      km/h
+                    </span>
+                  </>
+                ) : null;
+              })()}
+              {result.weatherApi?.humidity != null && (
                 <>
                   <span class="text-hielo/20">·</span>
                   <span>
@@ -191,7 +203,7 @@ const cotaLabel =
                   </span>
                 </>
               )}
-              {result.weatherApi.cloudCover != null && (
+              {result.weatherApi?.cloudCover != null && (
                 <>
                   <span class="text-hielo/20">·</span>
                   <span>
@@ -205,8 +217,6 @@ const cotaLabel =
               )}
               <span class="text-hielo/20">·</span>
               <span>{cotaLabel}</span>
-              <span class="text-hielo/20">·</span>
-              <span class="text-white/50">Cielo limpio</span>
             </div>
           )
         }

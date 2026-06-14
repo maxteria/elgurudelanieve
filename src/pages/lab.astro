@@ -46,6 +46,7 @@ if (weatherApi) result.weatherApi = weatherApi;
 const zoneList = [result.zones.village, result.zones.mid, result.zones.top];
 const isDemo = source === 'mock-demo';
 
+const dailySummaries = getSevenDayForecast(normalized.hourly);
 const periodKeys: PeriodKey[] = ['today', 'tomorrow', 'sevenDays'];
 const touristResults = await Promise.all(
   periodKeys.map(async (key) => {
@@ -58,6 +59,7 @@ const touristResults = await Promise.all(
       alerts: p.alerts,
       zones: p.zones,
       now: weatherApi ?? undefined,
+      nextDays: dailySummaries,
     };
     return generateTouristCopy(input);
   }),
@@ -74,10 +76,7 @@ const touristSources: Record<PeriodKey, string> = {} as Record<
   PeriodKey,
   string
 >;
-const touristMoods: Record<PeriodKey, string> = {} as Record<
-  PeriodKey,
-  string
->;
+const touristMoods: Record<PeriodKey, string> = {} as Record<PeriodKey, string>;
 const touristCertainties: Record<PeriodKey, string> = {} as Record<
   PeriodKey,
   string
@@ -96,7 +95,6 @@ periodKeys.forEach((key, i) => {
   touristTips[key] = r.tip;
 });
 
-const dailySummaries = getSevenDayForecast(normalized.hourly);
 const periodDataJson = JSON.stringify({
   periods,
   dailySummaries,
@@ -202,7 +200,10 @@ const zoneHourlyTomorrow = buildZoneHourly('tomorrow');
         </p>
       </div>
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
-        {result.weatherApi && <NowCard weatherApi={result.weatherApi} />}
+        <NowCard
+          currentWeather={normalized.currentWeather}
+          weatherApi={result.weatherApi ?? undefined}
+        />
         <PowderScore
           value={result.powderScore.value}
           reason={result.powderScore.description}
@@ -391,8 +392,7 @@ const zoneHourlyTomorrow = buildZoneHourly('tomorrow');
         /* Update mood dot */
         var moodDot = touristEl.querySelector('[data-mood-indicator]');
         if (moodDot) {
-          moodDot.style.background =
-            'var(--mood-color, #94a3b8)';
+          moodDot.style.background = 'var(--mood-color, #94a3b8)';
         }
 
         /* Update certainty label */
