@@ -15,9 +15,9 @@ const { mood, certainty, message, tip, source, snowLabel } =
 const sourceLabel = source === 'ai' ? 'Gurú IA' : 'Gurú local';
 
 const certaintyLabels: Record<string, string> = {
-  alta: 'Alta',
-  media: 'Media',
-  baja: 'Baja',
+  alta: 'Nivel de certeza: Alto',
+  media: 'Nivel de certeza: Medio',
+  baja: 'Nivel de certeza: Bajo',
 };
 const certaintySegments: Record<string, number> = {
   alta: 3,

@@ -13,9 +13,9 @@ const { mood, certainty, message, tip, source } = Astro.props as Props;
 const sourceLabel = source === 'ai' ? 'Gurú AI' : 'Gurú local';
 
 const certaintyLabels: Record<string, string> = {
-  alta: 'Alta',
-  media: 'Media',
-  baja: 'Baja',
+  alta: 'Nivel de certeza: Alto',
+  media: 'Nivel de certeza: Medio',
+  baja: 'Nivel de certeza: Bajo',
 };
 ---
 
