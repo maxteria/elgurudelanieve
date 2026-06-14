@@ -17,7 +17,8 @@ export type GuruCopyInput = {
   nextDays?: DailySummary[];
 };
 
-const GEMINI_KEY_ENV = 'GEMINI_API_KEY';
+const LLM_KEY_ENV = 'OPENROUTER_API_KEY';
+const LLM_MODEL = 'google/gemini-3.1-flash-lite';
 
 const VALID_MOODS: GuruMood[] = [
   'excited',
@@ -29,16 +30,16 @@ const VALID_MOODS: GuruMood[] = [
 
 const VALID_CERTAINTIES: GuruCertainty[] = ['alta', 'media', 'baja'];
 
-function getGeminiKey(): string | undefined {
+function getLlmKey(): string | undefined {
   // Local dev: Astro/Vite loads .env into import.meta.env
   // Vercel/CI: env vars are in process.env
   try {
-    const metaKey = import.meta.env?.[GEMINI_KEY_ENV];
+    const metaKey = import.meta.env?.[LLM_KEY_ENV];
     if (metaKey) return metaKey;
   } catch {
     // import.meta.env not available (plain Node.js test runner, etc.)
   }
-  return process.env[GEMINI_KEY_ENV];
+  return process.env[LLM_KEY_ENV];
 }
 
 // ─── JSON Parser ────────────────────────────────────────────────────────────
@@ -331,7 +332,7 @@ export function generateFallbackNpcMessage(data: GuruCopyInput): GuruNpcOutput {
   };
 }
 
-// ─── Gemini Prompt ──────────────────────────────────────────────────────────
+// ─── LLM Prompts ────────────────────────────────────────────────────────────
 
 function buildSystemPrompt(): string {
   return `Sos El Gurú de la Nieve. Un guía de montaña que hace 30 inviernos que mira Caviahue. Conocés cada ladera, cada viento, cada cambio de temperatura.
@@ -412,9 +413,9 @@ ${zoneLines}
 Recordá: SOLO JSON, sin markdown, sin texto alrededor.`;
 }
 
-// ─── Gemini API Call ────────────────────────────────────────────────────────
+// ─── OpenRouter / LLM API Call ──────────────────────────────────────────────
 
-async function callGemini(
+async function callLlm(
   systemPrompt: string,
   userPrompt: string,
   apiKey: string,
@@ -424,18 +425,24 @@ async function callGemini(
     const timeoutId = setTimeout(() => controller.abort(), 10000);
 
     const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+      'https://openrouter.ai/api/v1/chat/completions',
       {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${apiKey}`,
+          'HTTP-Referer': 'https://elgurudelanieve.vercel.app',
+          'X-Title': 'El Gurú de la Nieve',
+        },
         body: JSON.stringify({
-          system_instruction: { parts: [{ text: systemPrompt }] },
-          contents: [{ role: 'user', parts: [{ text: userPrompt }] }],
-          generation_config: {
-            maxOutputTokens: 400,
-            temperature: 0.7,
-            response_mime_type: 'application/json',
-          },
+          model: LLM_MODEL,
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userPrompt },
+          ],
+          max_tokens: 400,
+          temperature: 0.7,
+          response_format: { type: 'json_object' },
         }),
         signal: controller.signal,
       },
@@ -445,29 +452,34 @@ async function callGemini(
 
     if (!res.ok) {
       if (res.status === 429) {
-        console.warn('[Gemini] Rate limited');
-      } else if (res.status === 401) {
-        console.warn('[Gemini] Invalid API key');
+        console.warn('[LLM] Rate limited');
+      } else if (res.status === 401 || res.status === 403) {
+        console.warn('[LLM] Invalid API key');
       } else {
-        console.warn(`[Gemini] HTTP ${res.status}`);
+        console.warn(`[LLM] HTTP ${res.status}`);
       }
       return null;
     }
 
     const json = await res.json();
-    const text = json?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
 
+    if (json?.error) {
+      console.warn(`[LLM] API error: ${json.error.message}`);
+      return null;
+    }
+
+    const text = json?.choices?.[0]?.message?.content?.trim();
     if (!text) {
-      console.warn('[Gemini] Empty response');
+      console.warn('[LLM] Empty response');
       return null;
     }
 
     return text;
   } catch (err) {
     if (err instanceof Error && err.name === 'AbortError') {
-      console.warn('[Gemini] Timeout (10s)');
+      console.warn('[LLM] Timeout (10s)');
     } else {
-      console.warn('[Gemini] Network error');
+      console.warn('[LLM] Network error');
     }
     return null;
   }
@@ -478,12 +490,12 @@ async function callGemini(
 export async function generateGuruNpcMessage(
   data: GuruCopyInput,
 ): Promise<GuruNpcOutput> {
-  const apiKey = getGeminiKey();
+  const apiKey = getLlmKey();
 
   if (apiKey) {
     const systemPrompt = buildSystemPrompt();
     const userPrompt = buildUserPrompt(data);
-    const result = await callGemini(systemPrompt, userPrompt, apiKey);
+    const result = await callLlm(systemPrompt, userPrompt, apiKey);
     if (result) {
       const parsed = extractJsonGuruResponse(result);
       if (parsed) return parsed;
@@ -499,5 +511,5 @@ export async function generateGuruNpcMessage(
 export const generateTouristCopy = generateGuruNpcMessage;
 
 export function hasGeminiKey(): boolean {
-  return !!getGeminiKey();
+  return !!getLlmKey();
 }
