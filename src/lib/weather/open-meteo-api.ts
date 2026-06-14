@@ -19,19 +19,22 @@ export type OpenMeteoResponse = {
   timezone_abbreviation: string;
   elevation: number;
   hourly_units: Record<string, string>;
-  hourly: {
-    time: string[];
-    temperature_2m: number[];
-    apparent_temperature: number[];
-    precipitation: number[];
-    snowfall: number[];
-    freezinglevel_height: number[];
-    wind_speed_10m: number[];
-    wind_direction_10m: number[];
-    wind_gusts_10m: number[];
-    relative_humidity_2m: number[];
-    cloud_cover: number[];
-  };
+    hourly: {
+      time: string[];
+      temperature_2m: number[];
+      apparent_temperature: number[];
+      precipitation: number[];
+      snowfall: number[];
+      freezinglevel_height: number[];
+      wind_speed_10m: number[];
+      wind_direction_10m: number[];
+      wind_gusts_10m: number[];
+      relative_humidity_2m: number[];
+      cloud_cover: number[];
+      snow_depth: number[];
+      weather_code: number[];
+      precipitation_probability: number[];
+    };
 };
 
 export function buildOpenMeteoUrl(
@@ -55,6 +58,9 @@ export function buildOpenMeteoUrl(
       'wind_gusts_10m',
       'relative_humidity_2m',
       'cloud_cover',
+      'snow_depth',
+      'weather_code',
+      'precipitation_probability',
     ].join(','),
     timezone: tz,
     forecast_days: days.toString(),

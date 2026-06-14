@@ -1,9 +1,9 @@
 import {
-  OpenMeteoResponse,
   ZONE_ELEVATIONS,
   CAVIAHUE_COORDS,
 } from './open-meteo-api';
-import {
+import type { OpenMeteoResponse } from './open-meteo-api';
+import type {
   NormalizedSnowForecast,
   NormalizedHourlyForecast,
   NormalizedZoneForecast,
@@ -31,6 +31,9 @@ export function normalizeOpenMeteoResponse(
     windGusts: Math.round(raw.hourly.wind_gusts_10m[i] * 10) / 10,
     humidity: Math.round(raw.hourly.relative_humidity_2m[i]),
     cloudCover: Math.round(raw.hourly.cloud_cover[i]),
+    snowDepth: Math.round(raw.hourly.snow_depth[i] * 100) / 100,
+    weatherCode: Math.round(raw.hourly.weather_code[i]),
+    precipitationProbability: Math.round(raw.hourly.precipitation_probability[i]),
   }));
 
   const now = new Date();
@@ -76,12 +79,13 @@ export function normalizeOpenMeteoResponse(
     const zonePrecip = current.precipitation;
     const zoneFreezing = current.freezingLevel;
     const zoneFeelsLike = estimateFeelsLike(zoneTemp, zoneWind);
-    const zoneSnowChance = snowChance(
-      zoneTemp,
-      zonePrecip,
-      zoneFreezing,
-      altitude,
-    );
+    const zoneSnowChance =
+      current.precipitationProbability ?? snowChance(
+        zoneTemp,
+        zonePrecip,
+        zoneFreezing,
+        altitude,
+      );
 
     if (import.meta.env.DEV) {
       console.debug(
@@ -103,6 +107,9 @@ export function normalizeOpenMeteoResponse(
       snowChance: zoneSnowChance,
       freezingLevel: zoneFreezing,
       humidity: current.humidity,
+      snowDepth: current.snowDepth,
+      weatherCode: current.weatherCode,
+      precipitationProbability: current.precipitationProbability,
     };
   }
 

@@ -11,6 +11,9 @@ export type NormalizedZoneForecast = {
   snowChance: number;
   freezingLevel: number;
   humidity: number;
+  snowDepth: number;
+  weatherCode: number;
+  precipitationProbability: number;
 };
 
 export type NormalizedHourlyForecast = {
@@ -25,6 +28,9 @@ export type NormalizedHourlyForecast = {
   windGusts: number;
   humidity: number;
   cloudCover: number;
+  snowDepth: number;
+  weatherCode: number;
+  precipitationProbability: number;
 };
 
 export type DailySummary = {

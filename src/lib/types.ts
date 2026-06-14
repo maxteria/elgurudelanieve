@@ -4,11 +4,17 @@ export interface HourlyForecast {
   temp: number;
   feels_like: number;
   wind: number;
+  windDir: number;
+  cloudCover: number;
+  windGusts: number;
   precip: number;
   snow_prob: number;
   freezing_level: number;
   humidity: number;
   snowfall: number;
+  snowDepth: number;
+  weatherCode: number;
+  precipitationProbability: number;
 }
 
 export interface ZoneForecast {
@@ -47,6 +53,9 @@ export interface ZoneInterpretation {
     snowChance: number;
     freezingLevel: number;
     humidity: number;
+    snowDepth: number;
+    precipitationProbability: number;
+    weatherCode: number;
   };
   answer: {
     status: 'yes' | 'possible' | 'no';
