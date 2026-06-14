@@ -98,8 +98,9 @@ const payload: HistoricoPayload = {
 
 const totalDays = allEntries.length;
 
-// ─── Default view: last 14 days for initial server render ──────────────
-const defaultDays = 14;
+// ─── Default range: smallest preset that covers all records ──────────
+const RANGE_OPTIONS = [7, 14, 30, 90];
+const defaultDays = RANGE_OPTIONS.find((opt) => opt >= totalDays) ?? 90;
 const defaultFromDate = new Date();
 defaultFromDate.setDate(defaultFromDate.getDate() - defaultDays);
 const defaultFromStr = defaultFromDate.toISOString().split('T')[0];
@@ -219,7 +220,8 @@ const defaultRest = defaultFiltered.slice(3);
   if (!ALL_DATA || !ALL_DATA.entries || !ALL_DATA.entries.length) return;
 
   var ENTRIES = ALL_DATA.entries; // sorted descending by date
-  var DEFAULT_DAYS = 14;
+  var RANGE_OPTS = [7, 14, 30, 90];
+  var DEFAULT_DAYS = RANGE_OPTS.find(function (o) { return o >= ALL_DATA.entries.length; }) || 90;
 
   // ── DOM refs ───────────────────────────────────────────────────
   var cardsEl = document.getElementById('hc-cards');
