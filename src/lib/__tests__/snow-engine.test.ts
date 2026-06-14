@@ -29,6 +29,9 @@ function makeHourlyForecast(
     windGusts: 10,
     humidity: 60,
     cloudCover: 50,
+    snowDepth: 0.15,
+    weatherCode: 0,
+    precipitationProbability: 0,
     ...overrides,
   };
 }
@@ -69,6 +72,9 @@ function makeZoneSnapshot(
     snowChance: 0,
     freezingLevel: firstHour.freezingLevel,
     humidity: firstHour.humidity,
+    snowDepth: firstHour.snowDepth,
+    weatherCode: firstHour.weatherCode,
+    precipitationProbability: firstHour.precipitationProbability,
   };
 }
 
@@ -188,6 +194,9 @@ describe('analyzeWeather', () => {
           snowChance: 0,
           freezingLevel: 2000,
           humidity: 60,
+          snowDepth: 0.05,
+          weatherCode: 0,
+          precipitationProbability: 0,
         },
         mid: {
           id: 'mid',
@@ -200,6 +209,9 @@ describe('analyzeWeather', () => {
           snowChance: 0,
           freezingLevel: 2000,
           humidity: 60,
+          snowDepth: 0.05,
+          weatherCode: 0,
+          precipitationProbability: 0,
         },
         top: {
           id: 'top',
@@ -212,6 +224,9 @@ describe('analyzeWeather', () => {
           snowChance: 0,
           freezingLevel: 2000,
           humidity: 60,
+          snowDepth: 0.05,
+          weatherCode: 0,
+          precipitationProbability: 0,
         },
       },
       hourly: [],

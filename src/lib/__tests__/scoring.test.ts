@@ -11,11 +11,17 @@ function makeHour(
     temp: -2,
     feels_like: -5,
     wind: 10,
+    windDir: 180,
+    cloudCover: 40,
+    windGusts: 14,
     precip: 0,
     snow_prob: 0,
     freezing_level: 1500,
     humidity: 60,
     snowfall: 0,
+    snowDepth: 0,
+    weatherCode: 0,
+    precipitationProbability: 0,
     ...overrides,
   };
 }
@@ -23,7 +29,7 @@ function makeHour(
 describe('calculatePowderScore', () => {
   it('returns 0 for a completely dry forecast', () => {
     const forecast: HourlyForecast[] = Array.from({ length: 24 }, (_, i) =>
-      makeHour(i),
+      makeHour(i, { windDir: 0 }),
     );
     const result = calculatePowderScore(forecast, 1647);
     expect(result.value).toBe(0);
@@ -41,8 +47,8 @@ describe('calculatePowderScore', () => {
       }),
     );
     const result = calculatePowderScore(forecast, 1647);
-    // Base 60 + temp bonus (<= 0 = 12) = 72, no wind bonus (wind=10)
-    expect(result.value).toBe(72);
+    // Base 60 + temp bonus (<= 0 = 12) + windDir bonus (180 = +15) = 87
+    expect(result.value).toBe(87);
     expect(result.snowWindow).toEqual([10, 14]);
   });
 
@@ -57,8 +63,8 @@ describe('calculatePowderScore', () => {
       }),
     );
     const result = calculatePowderScore(forecast, 1647);
-    // Base 60 + temp bonus 12 + snowfall bonus (2 >= 1.5 => 14) = 86
-    expect(result.value).toBe(86);
+    // Base 60 + temp bonus 12 + snowfall bonus 14 + windDir bonus 15 = 101, capped at 100
+    expect(result.value).toBe(100);
     expect(result.reason).toBeTruthy();
   });
 
@@ -105,11 +111,13 @@ describe('calculatePowderScore', () => {
         feels_like: -8,
         freezing_level: 2500,
         snowfall: 2,
+        // Wind from north (no bonus) to isolate the altitude test
+        windDir: 0,
       }),
     );
     const result = calculatePowderScore(forecast, 1647);
     // Freezing level 2500 > 1647 + 150 = 1797, so no base snow score
-    // No precip+freezing combo, score should be 0 (or very low from wind)
-    expect(result.value).toBeLessThan(10);
+    // No precip+freezing combo, score should be 0
+    expect(result.value).toBe(0);
   });
 });
