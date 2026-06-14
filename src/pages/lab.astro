@@ -208,6 +208,28 @@ const zoneHourlyTomorrow = buildZoneHourly('tomorrow');
           por qué el Gurú dice lo que dice.
         </p>
       </div>
+      <div class="flex items-center gap-4 mb-5 overflow-x-auto scrollbar-none">
+        <span
+          class="text-[8px] text-white/20 tracking-[0.3em] uppercase font-medium shrink-0"
+          >Período</span
+        >
+        <div class="flex gap-1.5 text-[8px]">
+          {
+            ['today', 'tomorrow', 'sevenDays'].map((key, i) => {
+              const labels = ['Hoy', 'Mañana', '7 días'];
+              return (
+                <span
+                  class={`period-tab ${i === 0 ? 'text-hielo/70 font-semibold bg-hielo/[0.06] px-2.5 py-1 rounded-full' : 'text-white/20 px-2 py-1'}`}
+                  data-period={key}
+                >
+                  {labels[i]}
+                </span>
+              );
+            })
+          }
+        </div>
+      </div>
+
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
         <NowCard
           currentWeather={normalized.currentWeather}

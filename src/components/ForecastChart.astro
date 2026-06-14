@@ -263,23 +263,11 @@ const firstKey = periodKeys[0];
 <div
   class="bg-[rgba(9,16,22,0.85)] border border-white/[0.06] rounded-xl px-4 py-3 shadow-[0_4px_20px_rgba(0,0,0,0.35)]"
 >
-  <div class="flex items-center justify-between mb-1.5">
+  <div class="mb-1.5">
     <span
       class="text-[7px] text-white/25 tracking-[0.3em] uppercase font-medium"
       >Temperatura y Cota</span
     >
-    <div class="flex gap-1.5 text-[8px] period-tabs">
-      {
-        periodKeys.map((key, i) => (
-          <span
-            class={`period-tab ${i === 0 ? 'text-hielo/70 font-semibold bg-hielo/[0.06] px-2 py-0.5 rounded-full' : 'text-white/20 px-1.5 py-0.5'}`}
-            data-period={key}
-          >
-            {periodLabels[i]}
-          </span>
-        ))
-      }
-    </div>
   </div>
 
   {
