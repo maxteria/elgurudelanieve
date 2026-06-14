@@ -72,6 +72,87 @@ export function extractJsonGuruResponse(text: string): GuruNpcOutput | null {
 
 // ─── Fallback ───────────────────────────────────────────────────────────────
 
+type Variant = { message: string; tip: string | null };
+
+function pick<T>(arr: T[]): T {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+
+const NO_SNOW_HIGH_ALTITUDE: Variant[] = [
+  {
+    message:
+      'Hoy no veo nieve, rider. La montaña está fría pero seca. No te hagas ilusiones todavía: andá encerando la tabla.',
+    tip: 'Aprovechá para hacer mantenimiento y estar listo cuando llegue.',
+  },
+  {
+    message:
+      'No hay señal de blanca, la cota está por las nubes. Paciencia, que Caviahue no te falla cuando llega la humedad.',
+    tip: 'Es buen momento para revisar cantos y ceras.',
+  },
+  {
+    message:
+      'Cerro seco y frío, sin onda para nieve. No te manijees al pedo — cuando cambie, te aviso.',
+    tip: 'Andá calentando que en cualquier momento cae algo.',
+  },
+  {
+    message:
+      'La montaña está quieta, cota alta, sin precipitación. Día de manteca, no de nieve.',
+    tip: 'Afilá la tabla y esperá la próxima.',
+  },
+];
+
+const NO_SNOW_GENERIC: Variant[] = [
+  {
+    message:
+      'Hoy no veo nevada, la montaña está tranquila. Esperá que llegue moisture o no hay nada que hacer.',
+    tip: 'Seguí mirando las actualizaciones, Caviahue cambia rápido.',
+  },
+  {
+    message:
+      'Sin blanco a la vista por ahora. La atmósfera no está dando señales, pero esto cambia en un par de horas.',
+    tip: 'Dejá la tabla lista por si gira el viento.',
+  },
+];
+
+const COLD_DRY: Variant[] = [
+  {
+    message:
+      'Hace frío y seco, pero sin nieve. Buen día para andar ligero y mirar el cerro desde abajo.',
+    tip: 'Si querés recorrer, las vistas están despejadas.',
+  },
+  {
+    message:
+      'Frío seco, cero humedad. La montaña está linda para caminar, no para deslizar.',
+    tip: 'Aprovechá el día despejado para conocer Caviahue.',
+  },
+];
+
+const MIXED_PRECIP: Variant[] = [
+  {
+    message:
+      'Abajo puede venir más húmedo que blanco, pero arriba la historia mejora. Centro y cumbre tienen mejor pinta para ver nieve.',
+    tip: 'Si subís, llevá capa impermeable. Arriba puede estar firme.',
+  },
+  {
+    message:
+      'La cosa está dividida: abajo lluvia, arriba nieve. Si te animás a subir, arriba hay más chances de blanco.',
+    tip: 'La clave está en la cota. Arriba de los 2000 mejora.',
+  },
+];
+
+const WINDY: Variant[] = [
+  {
+    message:
+      'Veo viento importante. Puede haber nevada débil, pero el viento complica la experiencia en altura.',
+    tip: 'Evitá las cotas más expuestas si querés tablar tranquilo.',
+  },
+  {
+    message:
+      'El viento está bravo allá arriba. Si hay nieve, va a volar — mejor buscar reparo en cotas medias.',
+    tip: 'Andá abrigado y priorizá sectores con bosque.',
+  },
+];
+
 export function generateFallbackNpcMessage(
   data: GuruCopyInput,
 ): GuruNpcOutput {
@@ -86,62 +167,32 @@ export function generateFallbackNpcMessage(
 
   // 1. Lluvia abajo / nieve arriba
   if (mixed) {
-    return {
-      mood: 'cautious',
-      certainty: 'media',
-      message:
-        'Abajo puede venir más húmedo que blanco, pero arriba la historia mejora. Centro y cumbre tienen mejor pinta para ver nieve.',
-      tip: 'Si subís, llevá capa impermeable. Arriba puede estar firme.',
-      source: 'fallback',
-    };
+    const v = pick(MIXED_PRECIP);
+    return { mood: 'cautious', certainty: 'media', ...v, source: 'fallback' };
   }
 
   // 2. Viento fuerte
   if (hasWindAlert && mainStatus !== 'no') {
-    return {
-      mood: 'warning',
-      certainty: 'alta',
-      message:
-        'Veo viento importante. Puede haber nevada débil, pero el viento complica la experiencia en altura.',
-      tip: 'Evitá las cotas más expuestas si querés tablar tranquilo.',
-      source: 'fallback',
-    };
+    const v = pick(WINDY);
+    return { mood: 'warning', certainty: 'alta', ...v, source: 'fallback' };
   }
 
   // 3. Sin nieve a la vista / cota alta
   if (mainStatus === 'no' && cotaAlta) {
-    return {
-      mood: 'neutral',
-      certainty: 'alta',
-      message:
-        'Hoy no veo nieve, rider. La montaña está fría pero seca. No te hagas ilusiones todavía: andá encerando la tabla.',
-      tip: 'Aprovechá para hacer mantenimiento y estar listo cuando llegue.',
-      source: 'fallback',
-    };
+    const v = pick(NO_SNOW_HIGH_ALTITUDE);
+    return { mood: 'neutral', certainty: 'alta', ...v, source: 'fallback' };
   }
 
   // 4. Frío seco
   if (mainStatus === 'no' && v.precipitation <= 0.2 && v.temp <= 2) {
-    return {
-      mood: 'neutral',
-      certainty: 'alta',
-      message:
-        'Hace frío y seco, pero sin nieve. Buen día para andar ligero y mirar el cerro desde abajo.',
-      tip: 'Si querés recorrer, las vistas están despejadas.',
-      source: 'fallback',
-    };
+    const v = pick(COLD_DRY);
+    return { mood: 'neutral', certainty: 'alta', ...v, source: 'fallback' };
   }
 
   // 5. Sin nieve a la vista genérico
   if (mainStatus === 'no') {
-    return {
-      mood: 'neutral',
-      certainty: 'baja',
-      message:
-        'Hoy no veo nevada, la montaña está tranquila. Esperá que llegue moisture o no hay nada que hacer.',
-      tip: 'Seguí mirando las actualizaciones, Caviahue cambia rápido.',
-      source: 'fallback',
-    };
+    const v = pick(NO_SNOW_GENERIC);
+    return { mood: 'neutral', certainty: 'baja', ...v, source: 'fallback' };
   }
 
   // 6. Nieve probable (yes)

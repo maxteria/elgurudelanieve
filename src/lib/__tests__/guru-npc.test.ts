@@ -302,8 +302,8 @@ describe('generateFallbackNpcMessage', () => {
     const result = generateFallbackNpcMessage(input);
     expect(result.mood).toBe('neutral');
     expect(result.certainty).toBe('alta');
-    // Should match cold-dry branch (not no-snow-generic)
-    expect(result.tip).toBe('Si querés recorrer, las vistas están despejadas.');
+    // Should match cold-dry branch (not no-snow-generic which has baja certainty)
+    expect(result.tip).toMatch(/vistas|despejado|Caviahue/);
   });
 
   it('branch: no-snow-generic (sin nieve genérico)', () => {
