@@ -597,9 +597,7 @@ const defaultRest = defaultFiltered.slice(3);
     if (cardsEl) {
       cardsEl.innerHTML =
         top.length > 0
-          ? '<div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">' +
-            renderCards(top) +
-            '</div>'
+          ? renderCards(top)
           : '';
     }
 

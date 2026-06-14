@@ -41,6 +41,6 @@ Chain strategy: pending
 ## Phase 4: Verify
 
 - [x] 4.1 Run `npm run build` — zero type errors, successful build
-- [ ] 4.2 Manual: top-3 cards render, table shows older days, SWE chart renders
-- [ ] 4.3 Manual: 7d/14d/30d/90d quick-selects toggle rows, URL params drive filter state
-- [ ] 4.4 Manual: responsive — cards stack vertically on mobile, 3-col grid at desktop
+- [x] 4.2 Manual: top-3 cards render, table shows older days, SWE chart renders
+- [x] 4.3 Manual: 7d/14d/30d/90d quick-selects toggle rows, URL params drive filter state
+- [x] 4.4 Manual: responsive — cards stack vertically on mobile, 3-col grid at desktop
