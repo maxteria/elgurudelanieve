@@ -122,6 +122,7 @@ export function getSevenDayForecast(
       avgHumidity: Math.round(avg(humidities)),
       avgCloudCover: Math.round(avg(clouds)),
       minFreezingLevel: Math.round(Math.min(...freezings)),
+      maxFreezingLevel: Math.round(Math.max(...freezings)),
       snowHours,
       description,
     });

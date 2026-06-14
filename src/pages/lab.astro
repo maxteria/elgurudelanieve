@@ -124,9 +124,17 @@ function buildZoneHourly(period: PeriodKey) {
       temp: zoneTemp,
       feels_like: h.feelsLike,
       wind: h.wind,
+      windDir: h.windDir,
+      cloudCover: h.cloudCover,
+      windGusts: h.windGusts,
       precip: h.precipitation,
       snow_prob: h.precipitationProbability ?? 0,
       freezing_level: h.freezingLevel,
+      humidity: h.humidity,
+      snowfall: h.snowfall,
+      snowDepth: h.snowDepth,
+      weatherCode: h.weatherCode,
+      precipitationProbability: h.precipitationProbability ?? 0,
     };
   });
 }
@@ -256,6 +264,107 @@ const zoneHourlyTomorrow = buildZoneHourly('tomorrow');
           >
           <GuruSummary summary={result.guruSummary} />
         </div>
+
+        {
+          normalized.aicHistory && normalized.aicHistory.length > 0 ? (
+            <div
+              class="bg-[rgba(9,16,22,0.4)] border border-white/[0.03] rounded-lg px-3 py-2"
+            >
+              <div class="flex items-center gap-2 mb-2">
+                <div class="w-1 h-3 bg-gradient-to-b from-white/10 to-white/5 rounded-full"></div>
+                <span
+                  class="text-[6px] text-white/15 tracking-[0.25em] uppercase font-medium"
+                  >Historial AIC</span
+                >
+              </div>
+              <div class="max-h-64 overflow-y-auto">
+                <table class="w-full text-[9px]">
+                  <thead>
+                    <tr class="text-white/25 border-b border-white/[0.03]">
+                      <th class="text-left py-1 pr-2 font-medium">Fecha</th>
+                      <th class="text-right px-1 font-medium">Precip.</th>
+                      <th class="text-right px-1 font-medium">Humedad</th>
+                      <th class="text-right px-1 font-medium">T. m&iacute;n</th>
+                      <th class="text-right px-1 font-medium">T. m&aacute;x</th>
+                      <th class="text-right px-1 font-medium">Viento</th>
+                      <th class="text-right pl-1 font-medium">Dir.</th>
+                      <th class="text-right pl-1 font-medium">Nieve</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {
+                      normalized.aicHistory.map((entry) => {
+                        const dateStr = entry.date
+                          ? new Date(entry.date).toLocaleDateString('es-AR', {
+                              day: '2-digit',
+                              month: '2-digit',
+                            })
+                          : '--';
+                        const compassDir =
+                          entry.windDir != null
+                            ? ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'][
+                                Math.round(entry.windDir / 45) % 8
+                              ]
+                            : null;
+                        return (
+                          <tr class="border-b border-white/[0.01] hover:bg-white/[0.02]">
+                            <td class="py-1 pr-2 text-white/70">{dateStr}</td>
+                            <td class="text-right px-1 text-white/60 tabular-nums">
+                              {entry.precipitation != null
+                                ? `${entry.precipitation} mm`
+                                : '--'}
+                            </td>
+                            <td class="text-right px-1 text-white/60 tabular-nums">
+                              {entry.humidity != null
+                                ? `${entry.humidity}%`
+                                : '--'}
+                            </td>
+                            <td class="text-right px-1 text-white/60 tabular-nums">
+                              {entry.tempMin != null
+                                ? `${entry.tempMin}\u00b0C`
+                                : '--'}
+                            </td>
+                            <td class="text-right px-1 text-white/60 tabular-nums">
+                              {entry.tempMax != null
+                                ? `${entry.tempMax}\u00b0C`
+                                : '--'}
+                            </td>
+                            <td class="text-right px-1 text-white/60 tabular-nums">
+                              {entry.windSpeed != null
+                                ? `${entry.windSpeed} km/h`
+                                : '--'}
+                            </td>
+                            <td class="text-right pl-1 text-white/40 tabular-nums">
+                              {compassDir ?? '--'}
+                            </td>
+                            <td class="text-right pl-1 text-white/60 tabular-nums">
+                              {entry.snowWaterEq != null
+                                ? `${entry.snowWaterEq} mm`
+                                : '--'}
+                            </td>
+                          </tr>
+                        );
+                      })
+                    }
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          ) : (
+            <div
+              class="bg-[rgba(9,16,22,0.4)] border border-white/[0.03] rounded-lg px-3 py-2"
+            >
+              <div class="flex items-center gap-2 mb-2">
+                <div class="w-1 h-3 bg-gradient-to-b from-white/10 to-white/5 rounded-full"></div>
+                <span
+                  class="text-[6px] text-white/15 tracking-[0.25em] uppercase font-medium"
+                  >Historial AIC</span
+                >
+              </div>
+              <p class="text-white/30 text-[10px]">Sin datos hist&oacute;ricos</p>
+            </div>
+          )
+        }
       </div>
     </main>
   </body>
@@ -461,6 +570,17 @@ const zoneHourlyTomorrow = buildZoneHourly('tomorrow');
               windEl.textContent = Math.round(z.current.wind) + ' km/h';
             if (snowEl)
               snowEl.textContent = Math.round(z.current.snowChance) + '%';
+            var snowDepthEl = card.querySelector(
+              '[data-period-zone-snowdepth]',
+            );
+            if (snowDepthEl && z.current.snowDepth !== undefined) {
+              var sd = Math.round(z.current.snowDepth * 100);
+              snowDepthEl.textContent =
+                sd === 0 ? 'Sin nieve acumulada' : sd + ' cm';
+              snowDepthEl.parentElement.style.display = '';
+            } else if (snowDepthEl) {
+              snowDepthEl.parentElement.style.display = 'none';
+            }
             if (answerEl) {
               var ft = z.answer.label;
               if (z.id === 'village' && z.current.precipitation === 0)

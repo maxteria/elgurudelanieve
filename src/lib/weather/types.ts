@@ -47,6 +47,7 @@ export type DailySummary = {
   avgHumidity: number;
   avgCloudCover: number;
   minFreezingLevel: number;
+  maxFreezingLevel: number;
   snowHours: number;
   description: string;
 };

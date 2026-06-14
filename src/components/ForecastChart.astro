@@ -25,9 +25,10 @@ function renderHourlyChart(hours) {
     padB = 22;
   const pw = cw - padL - padR,
     ph = ch - padT - padB;
+  const n = displayHours.length;
 
   function xp(i) {
-    return padL + (i / (displayHours.length - 1)) * pw;
+    return padL + (i / (n - 1)) * pw;
   }
   function yt(t) {
     return padT + ph - ((t - minTemp + 1) / (tempRange + 2)) * ph;
@@ -37,6 +38,38 @@ function renderHourlyChart(hours) {
       padT + ph - ((f - minFreeze) / Math.max(maxFreeze - minFreeze, 80)) * ph
     );
   }
+
+  // Precipitation bars (bottom 30% of chart)
+  const barMaxH = ph * 0.3;
+  const barW = pw / (n - 1) * 0.6;
+  const precipBars = displayHours
+    .map((hr, i) => {
+      if (!hr.precip || hr.precip <= 0) return '';
+      const h = Math.min((hr.precip / 10) * barMaxH, barMaxH);
+      const x = xp(i) - barW / 2;
+      const y = padT + ph - h;
+      return `<rect x="${x}" y="${y}" width="${barW}" height="${h}" rx="1" fill="rgba(168,231,249,0.2)"/>`;
+    })
+    .join('');
+
+  // Cloud cover dots (near bottom of chart)
+  const cloudDots = displayHours
+    .map((hr, i) => {
+      if (hr.cloudCover === undefined || hr.cloudCover === null) return '';
+      const opacity = Math.max(0, Math.min(1, hr.cloudCover / 100));
+      return `<circle cx="${xp(i)}" cy="${ch - padB - 15}" r="2" fill="rgba(255,255,255,0.4)" opacity="${opacity}"/>`;
+    })
+    .join('');
+
+  // Wind arrows (above time labels)
+  const windArrows = displayHours
+    .map((hr, i) => {
+      if (hr.windDir === undefined || hr.windDir === null) return '';
+      const cx = xp(i);
+      const cy = ch - padB - 6;
+      return `<g transform="translate(${cx},${cy}) rotate(${hr.windDir})"><path d="M0,-4 L3,0 L-3,0 Z" fill="rgba(255,255,255,0.25)" stroke="none"/></g>`;
+    })
+    .join('');
 
   const tpts = displayHours.map((h, i) => `${xp(i)},${yt(h.temp)}`).join(' ');
   const fpts = displayHours
@@ -69,6 +102,7 @@ function renderHourlyChart(hours) {
     .join('');
 
   return `<svg viewBox="0 0 ${cw} ${ch}" class="w-full h-auto" preserveAspectRatio="xMidYMid meet">
+      ${precipBars}
       <line x1="${padL}" y1="${padT}" x2="${cw - padR}" y2="${padT}" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>
       <line x1="${padL}" y1="${padT + ph * 0.33}" x2="${cw - padR}" y2="${padT + ph * 0.33}" stroke="rgba(255,255,255,0.02)" stroke-width="1"/>
       <line x1="${padL}" y1="${padT + ph * 0.67}" x2="${cw - padR}" y2="${padT + ph * 0.67}" stroke="rgba(255,255,255,0.02)" stroke-width="1"/>
@@ -81,8 +115,10 @@ function renderHourlyChart(hours) {
       <rect x="${xp(tipIdx) - 28}" y="${yf(tooltip.freezing_level) - 28}" width="56" height="18" rx="3" fill="rgba(9,16,22,0.92)" stroke="rgba(255,126,56,0.2)" stroke-width="0.5"/>
       <text x="${xp(tipIdx)}" y="${yf(tooltip.freezing_level) - 21}" text-anchor="middle" fill="rgba(168,231,249,0.5)" font-size="7" font-family="Inter, sans-serif">${String(tooltip.hour).padStart(2, '0')}:00</text>
       <text x="${xp(tipIdx)}" y="${yf(tooltip.freezing_level) - 14}" text-anchor="middle" fill="rgba(255,126,56,0.5)" font-size="7" font-family="Inter, sans-serif">Cota: ${tooltip.freezing_level}m</text>
+      ${cloudDots}
+      ${windArrows}
       ${displayHours.map((hr, i) => `<text x="${xp(i)}" y="${xLabelY}" text-anchor="middle" fill="rgba(255,255,255,0.12)" font-size="7" font-family="Inter, sans-serif">${String(hr.hour).padStart(2, '0')}</text>`).join('')}
-      <text x="${xp(displayHours.length - 1) + (xp(1) - xp(0))}" y="${xLabelY}" text-anchor="middle" fill="rgba(255,255,255,0.12)" font-size="7" font-family="Inter, sans-serif">00</text>
+      <text x="${xp(n - 1) + (xp(1) - xp(0))}" y="${xLabelY}" text-anchor="middle" fill="rgba(255,255,255,0.12)" font-size="7" font-family="Inter, sans-serif">00</text>
     </svg>`;
 }
 
@@ -93,6 +129,13 @@ function renderDailyChart(dailySummaries) {
   const minTemp = Math.min(...days.map((d) => d.tempMin));
   const tempRange = Math.max(maxTemp - minTemp, 4);
 
+  // Wind scale
+  const maxWind = Math.max(...days.map((d) => d.avgWind || 0), 10);
+  // Freezing level scale
+  const minFreeze = Math.min(...days.map((d) => d.minFreezingLevel));
+  const maxFreeze = Math.max(...days.map((d) => d.maxFreezingLevel));
+  const freezeRange = Math.max(maxFreeze - minFreeze, 100);
+
   const cw = 760,
     ch = 130,
     padL = 40,
@@ -101,12 +144,22 @@ function renderDailyChart(dailySummaries) {
     padB = 22;
   const pw = cw - padL - padR,
     ph = ch - padT - padB;
+  const n = days.length;
 
   function xp(i) {
-    return padL + (i / (days.length - 1)) * pw;
+    return padL + (i / (n - 1)) * pw;
   }
   function yt(t) {
     return padT + ph - ((t - minTemp + 1) / (tempRange + 2)) * ph;
+  }
+  function yw(w) {
+    return padT + ph - (w / maxWind) * ph;
+  }
+  function yh(h) {
+    return padT + ph - (h / 100) * ph;
+  }
+  function yfz(f) {
+    return padT + ph - ((f - minFreeze) / freezeRange) * ph;
   }
 
   const tempLabels = [];
@@ -122,12 +175,63 @@ function renderDailyChart(dailySummaries) {
     )
     .join('');
 
+  // Wind line
+  const wpts = days
+    .map((d, i) => `${xp(i)},${yw(d.avgWind)}`)
+    .join(' ');
+
+  // Max wind gust cross markers
+  const gustMarks = days
+    .map((d, i) => {
+      if (!d.maxWindGust) return '';
+      const x = xp(i);
+      const y = yw(d.maxWindGust);
+      return `<path d="M${x - 3},${y - 3} L${x + 3},${y + 3} M${x + 3},${y - 3} L${x - 3},${y + 3}" stroke="rgba(255,255,255,0.5)" stroke-width="0.8" opacity="0.6"/>`;
+    })
+    .join('');
+
+  // Wind dots on line
+  const windDots = days
+    .map((d, i) => {
+      return `<circle cx="${xp(i)}" cy="${yw(d.avgWind)}" r="1.5" fill="rgba(255,255,255,0.4)" stroke="none"/>`;
+    })
+    .join('');
+
+  // Humidity right-axis labels
+  const humidityLabels = [0, 50, 100]
+    .map((h) => {
+      const y = yh(h);
+      return `<text x="${cw - padR + 4}" y="${y + 1}" text-anchor="start" fill="rgba(168,231,249,0.15)" font-size="6" font-family="Inter, sans-serif">${h}%</text>`;
+    })
+    .join('');
+
+  // Humidity line
+  const hpts = days
+    .map((d, i) => `${xp(i)},${yh(d.avgHumidity)}`)
+    .join(' ');
+
+  // Freezing level bands per day
+  const freezeBands = days
+    .map((d, i) => {
+      const x = xp(i) - 6;
+      const yT = yfz(d.minFreezingLevel);
+      const yB = yfz(d.maxFreezingLevel);
+      const h = yB - yT;
+      return `<rect x="${x}" y="${yT}" width="12" height="${Math.max(h, 2)}" rx="1" fill="rgba(255,126,56,0.08)" stroke="rgba(255,126,56,0.12)" stroke-width="0.5"/>`;
+    })
+    .join('');
+
   return `<svg viewBox="0 0 ${cw} ${ch}" class="w-full h-auto" preserveAspectRatio="xMidYMid meet">
+      ${freezeBands}
       <line x1="${padL}" y1="${padT}" x2="${cw - padR}" y2="${padT}" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>
       <line x1="${padL}" y1="${padT + ph * 0.33}" x2="${cw - padR}" y2="${padT + ph * 0.33}" stroke="rgba(255,255,255,0.02)" stroke-width="1"/>
       <line x1="${padL}" y1="${padT + ph * 0.67}" x2="${cw - padR}" y2="${padT + ph * 0.67}" stroke="rgba(255,255,255,0.02)" stroke-width="1"/>
       <line x1="${padL}" y1="${padT + ph}" x2="${cw - padR}" y2="${padT + ph}" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
-      ${tl}
+      ${tl}${humidityLabels}
+      <polyline points="${hpts}" fill="none" stroke="rgba(168,231,249,0.15)" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+      <polyline points="${wpts}" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+      ${gustMarks}
+      ${windDots}
       ${days
         .map((d, i) => {
           const x = xp(i);
@@ -189,7 +293,7 @@ const firstKey = periodKeys[0];
     ))
   }
 
-  <div class="flex items-center gap-3 mt-1.5">
+  <div class="flex items-center gap-3 mt-1.5 flex-wrap">
     <div class="flex items-center gap-1">
       <span class="w-2.5 h-[1.5px] bg-hielo rounded-full"></span><span
         class="text-[7px] text-white/20">Temperatura &deg;C</span
@@ -199,6 +303,21 @@ const firstKey = periodKeys[0];
       <span
         class="w-2.5 h-0 rounded-full border-t border-dashed border-naranja/60"
       ></span><span class="text-[7px] text-white/20">Cota de nieve m</span>
+    </div>
+    <div class="flex items-center gap-1">
+      <span class="w-2.5 h-2.5 rounded-sm bg-hielo/20"></span><span
+        class="text-[7px] text-white/20">Precipitaci&oacute;n</span
+      >
+    </div>
+    <div class="flex items-center gap-1">
+      <svg width="8" height="6" viewBox="0 0 8 6" class="inline-block"><path d="M4,0 L7,4 L1,4 Z" fill="rgba(255,255,255,0.25)"/></svg><span
+        class="text-[7px] text-white/20">Viento</span
+      >
+    </div>
+    <div class="flex items-center gap-1">
+      <span class="w-1.5 h-1.5 rounded-full bg-white/40"></span><span
+        class="text-[7px] text-white/20">Nubosidad</span
+      >
     </div>
   </div>
   <p

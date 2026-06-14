@@ -112,6 +112,30 @@ The system MUST combine AIC yesterday data + Open-Meteo normalized forecast in `
 - THEN the pipeline SHALL proceed without `yesterday`
 - AND no error SHALL be thrown
 
+### Requirement: Zone-Hourly Data Pass-Through
+
+`buildZoneHourly()` in `src/pages/lab.astro` MUST return ALL enriched fields from `HourlyForecast`, not a subset. This requirement was added as part of the Lab Pro Dashboard change, originally dropping 7 fields: `windDir`, `cloudCover`, `windGusts`, `humidity`, `snowfall`, `snowDepth`, `weatherCode`.
+
+#### Scenario: Full field pass-through
+
+- GIVEN normalized hourly data has all enriched fields
+- WHEN `buildZoneHourly()` maps hourly data
+- THEN the returned object SHALL include: `hour`, `temp`, `feels_like`, `wind`, `windDir`, `cloudCover`, `windGusts`, `precip`, `snow_prob`, `freezing_level`, `humidity`, `snowfall`, `snowDepth`, `weatherCode`, `precipitationProbability`
+
+#### Scenario: Zone temperature correction preserved
+
+- GIVEN `buildZoneHourly()` now passes through more fields
+- WHEN computing per-zone temperature via lapse rate
+- THEN the zone temperature offset logic SHALL remain unchanged
+- AND all new fields SHALL use source values directly without zone correction
+
+#### Scenario: Zero and null field handling
+
+- GIVEN a source field is `0` or `null`
+- WHEN mapped to the return object
+- THEN `0` SHALL pass through as-is, `null` SHALL pass through as `null`
+- AND no field SHALL be dropped due to falsy value
+
 ### Requirement: Coordinate Alignment
 
 The system MUST update `CAVIAHUE_COORDS` to match the AIC station location: lat -37.86, lon -71.08.

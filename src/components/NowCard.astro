@@ -49,6 +49,19 @@ const displayFeelsLike = weatherApi?.feelsLike ?? null;
 const displayHumidity = weatherApi?.humidity ?? null;
 const displayCloudCover = weatherApi?.cloudCover ?? null;
 
+// Wind direction: compass text + SVG rotation
+const COMPASS_DIRS = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
+const displayWindDir: { degrees: number; compass: string } | null =
+  currentWeather?.winddirection != null
+    ? {
+        degrees: currentWeather.winddirection,
+        compass:
+          COMPASS_DIRS[
+            Math.round(currentWeather.winddirection / 45) % 8
+          ],
+      }
+    : null;
+
 // Source label
 const sourceLabel = currentWeather ? 'Open-Meteo' : 'WeatherAPI';
 
@@ -104,8 +117,27 @@ const updatedTime = currentWeather
     </div>
     <div class="flex items-center justify-between">
       <span class="text-white/25">Viento</span>
-      <span class="text-white/70 font-semibold tabular-nums"
-        >{displayWindKmh != null ? `${displayWindKmh} km/h` : '--'}</span
+      <span class="text-white/70 font-semibold tabular-nums flex items-center gap-1"
+        >{displayWindKmh != null ? `${displayWindKmh} km/h` : '--'}
+        {
+          displayWindDir && (
+            <>
+              <svg
+                width="10"
+                height="10"
+                viewBox="0 0 8 12"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="inline-block"
+                style={`transform: rotate(${displayWindDir.degrees}deg)`}
+              ><path d="M4,0 L2,4 L3,4 L3,8 L5,8 L5,4 L6,4 Z" fill="currentColor" stroke="none"/></svg>
+              <span class="text-[8px] text-white/40">{displayWindDir.compass}</span>
+            </>
+          )
+        }</span
       >
     </div>
     {
