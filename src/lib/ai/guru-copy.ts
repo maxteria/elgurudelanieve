@@ -94,7 +94,7 @@ const NO_SNOW_HIGH_ALTITUDE: Variant[] = [
   },
   {
     message:
-      'No hay señal de blanca, la cota está por las nubes. Paciencia, que Caviahue no te falla cuando llega la humedad.',
+      'No veo pinta de que nieve, la cota está por las nubes. Humedad hay, pero no alcanza. Paciencia.',
     tip: 'Es buen momento para revisar cantos y ceras.',
   },
   {
