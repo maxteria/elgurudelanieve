@@ -28,6 +28,14 @@ const VALID_MOODS: GuruMood[] = [
 const VALID_CERTAINTIES: GuruCertainty[] = ['alta', 'media', 'baja'];
 
 function getGeminiKey(): string | undefined {
+  // Local dev: Astro/Vite loads .env into import.meta.env
+  // Vercel/CI: env vars are in process.env
+  try {
+    const metaKey = import.meta.env?.[GEMINI_KEY_ENV];
+    if (metaKey) return metaKey;
+  } catch {
+    // import.meta.env not available (plain Node.js test runner, etc.)
+  }
   return process.env[GEMINI_KEY_ENV];
 }
 
