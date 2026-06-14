@@ -114,69 +114,76 @@ const defaultRest = defaultFiltered.slice(3);
 <!-- ─── Embedded full dataset for client-side filtering ────────────── -->
 <script id="historico-data" type="application/json" set:html={JSON.stringify(payload)} />
 
-<!-- ─── Section header + date filter quick-selects ───────────────── -->
-<div class="flex items-center justify-between gap-2 mb-4 flex-wrap">
-  <div class="flex items-center gap-2">
-    <div class="w-1.5 h-1.5 rounded-full bg-hielo/40"></div>
-    <span
-      id="hc-range-label"
-      class="text-[8px] text-white/25 tracking-[0.2em] uppercase font-medium"
-    >
-      Mostrando {defaultFiltered.length} días
-    </span>
-  </div>
-  <div id="hc-quick-selects" class="flex gap-1.5 flex-wrap">
-    {['7d', '14d', '30d', '90d'].map((label) => {
-      const days = parseInt(label);
-      const isDefault = days === defaultDays;
-      return (
-        <button
-          class={`text-[9px] px-2 py-1 rounded-full transition-colors ${
-            isDefault
-              ? 'bg-hielo/[0.1] text-hielo/70 font-semibold'
-              : 'text-white/30 hover:text-white/60 hover:bg-white/[0.04]'
-          }`}
-          data-days={days}
-        >
-          {label}
-        </button>
-      );
-    })}
-  </div>
-</div>
-
-<!-- ─── Top 3 cards ──────────────────────────────────────────────── -->
+<!-- ─── Data section (hidden when no records) ──────────────────── -->
 {
-  defaultTop3.length > 0 && (
-    <div id="hc-cards" class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
-      {defaultTop3.map((entry) => <HistoricoCard entry={entry} />)}
-    </div>
-  )
-}
-
-<!-- ─── Chart ────────────────────────────────────────────────────── -->
-<div id="hc-chart">
-  <HistoricoChart entries={defaultFiltered} />
-</div>
-
-<!-- ─── Rest as table ────────────────────────────────────────────── -->
-<div id="hc-table">
-  {
-    defaultRest.length > 0 ? (
-      <div>
-        <div class="flex items-center gap-2 mb-3">
-          <div class="w-1 h-1 rounded-full bg-white/20"></div>
-          <span class="text-[8px] text-white/15 tracking-[0.2em] uppercase font-medium">
-            Registro completo
+  totalDays > 0 && (
+    <>
+      <!-- Section header + date filter quick-selects -->
+      <div class="flex items-center justify-between gap-2 mb-4 flex-wrap">
+        <div class="flex items-center gap-2">
+          <div class="w-1.5 h-1.5 rounded-full bg-hielo/40"></div>
+          <span
+            id="hc-range-label"
+            class="text-[8px] text-white/25 tracking-[0.2em] uppercase font-medium"
+          >
+            Mostrando {defaultFiltered.length} días
           </span>
         </div>
-        <div class="bg-[rgba(9,16,22,0.6)] border border-white/[0.06] rounded-xl overflow-hidden">
-          <HistoricoTable entries={defaultRest} />
+        <div id="hc-quick-selects" class="flex gap-1.5 flex-wrap">
+          {['7d', '14d', '30d', '90d'].map((label) => {
+            const days = parseInt(label);
+            const isDefault = days === defaultDays;
+            return (
+              <button
+                class={`text-[9px] px-2 py-1 rounded-full transition-colors ${
+                  isDefault
+                    ? 'bg-hielo/[0.1] text-hielo/70 font-semibold'
+                    : 'text-white/30 hover:text-white/60 hover:bg-white/[0.04]'
+                }`}
+                data-days={days}
+              >
+                {label}
+              </button>
+            );
+          })}
         </div>
       </div>
-    ) : defaultFiltered.length > 0 ? null : null
-  }
-</div>
+
+      <!-- Top 3 cards -->
+      {
+        defaultTop3.length > 0 && (
+          <div id="hc-cards" class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
+            {defaultTop3.map((entry) => <HistoricoCard entry={entry} />)}
+          </div>
+        )
+      }
+
+      <!-- Chart -->
+      <div id="hc-chart">
+        <HistoricoChart entries={defaultFiltered} />
+      </div>
+
+      <!-- Rest as table -->
+      <div id="hc-table">
+        {
+          defaultRest.length > 0 ? (
+            <div>
+              <div class="flex items-center gap-2 mb-3">
+                <div class="w-1 h-1 rounded-full bg-white/20"></div>
+                <span class="text-[8px] text-white/15 tracking-[0.2em] uppercase font-medium">
+                  Registro completo
+                </span>
+              </div>
+              <div class="bg-[rgba(9,16,22,0.6)] border border-white/[0.06] rounded-xl overflow-hidden">
+                <HistoricoTable entries={defaultRest} />
+              </div>
+            </div>
+          ) : defaultFiltered.length > 0 ? null : null
+        }
+      </div>
+    </>
+  )
+}
 
 <!-- ─── Empty state (no data at all) ─────────────────────────────── -->
 {
@@ -330,23 +337,23 @@ const defaultRest = defaultFiltered.slice(3);
           : '<p class="text-[9px] text-white/20 italic">Sin mensaje del Gur\u00fa</p>';
         return (
           '<div class="bg-[rgba(9,16,22,0.6)] border border-white/[0.06] rounded-xl p-4 shadow-[0_4px_20px_rgba(0,0,0,0.35)] flex flex-col h-full">' +
-          '<div class="mb-2.5">' +
-          '<h3 class="text-[14px] font-bold text-white/80 capitalize leading-tight">' +
+          '<div class="mb-2">' +
+          '<h3 class="text-[11px] font-semibold text-white/70 capitalize leading-tight">' +
           fmtDateLong(e.date) +
           '</h3></div>' +
-          '<div class="grid grid-cols-2 gap-x-3 gap-y-1.5 text-[9px]">' +
-          '<div class="flex items-center justify-between"><span class="text-white/25">Temp</span><span class="text-white/70 font-semibold tabular-nums">' +
+          '<div class="space-y-1 mb-1.5">' +
+          '<div class="flex items-center justify-between text-[9px]"><span class="text-white/25">Temp</span><span class="text-white/70 font-semibold tabular-nums">' +
           (e.tempMin != null ? e.tempMin : '--') +
           '\u00b0 / ' +
           (e.tempMax != null ? e.tempMax : '--') +
           '\u00b0</span></div>' +
-          '<div class="flex items-center justify-between"><span class="text-white/25">Humedad</span><span class="text-white/70 font-semibold tabular-nums">' +
+          '<div class="flex items-center justify-between text-[9px]"><span class="text-white/25">Humedad</span><span class="text-white/70 font-semibold tabular-nums">' +
           (h || '--') +
           '</span></div>' +
-          '<div class="flex items-center justify-between"><span class="text-white/25">Viento</span><span class="text-white/70 font-semibold tabular-nums">' +
+          '<div class="flex items-center justify-between text-[9px]"><span class="text-white/25">Viento</span><span class="text-white/70 font-semibold tabular-nums">' +
           (w || '--') +
           '</span></div>' +
-          '<div class="flex items-center justify-between"><span class="text-white/25">SWE (nieve)</span><span class="text-white/70 font-semibold tabular-nums">' +
+          '<div class="flex items-center justify-between text-[9px]"><span class="text-white/25">SWE (nieve)</span><span class="text-white/70 font-semibold tabular-nums">' +
           (s || '--') +
           '</span></div>' +
           '</div>' +

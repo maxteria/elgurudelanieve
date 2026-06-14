@@ -30,33 +30,33 @@ const swe = entry.swe != null ? `${entry.swe} mm` : null;
   class="bg-[rgba(9,16,22,0.6)] border border-white/[0.06] rounded-xl p-4 shadow-[0_4px_20px_rgba(0,0,0,0.35)] flex flex-col h-full"
 >
   <!-- Date header -->
-  <div class="mb-2.5">
-    <h3 class="text-[14px] font-bold text-white/80 capitalize leading-tight">
+  <div class="mb-2">
+    <h3 class="text-[11px] font-semibold text-white/70 capitalize leading-tight">
       {formatDate(entry.date)}
     </h3>
   </div>
 
-  <!-- Metrics grid -->
-  <div class="grid grid-cols-2 gap-x-3 gap-y-1.5 text-[9px]">
-    <div class="flex items-center justify-between">
+  <!-- Metrics -->
+  <div class="space-y-1 mb-1.5">
+    <div class="flex items-center justify-between text-[9px]">
       <span class="text-white/25">Temp</span>
       <span class="text-white/70 font-semibold tabular-nums"
         >{entry.tempMin ?? '--'}° / {entry.tempMax ?? '--'}°</span
       >
     </div>
-    <div class="flex items-center justify-between">
+    <div class="flex items-center justify-between text-[9px]">
       <span class="text-white/25">Humedad</span>
       <span class="text-white/70 font-semibold tabular-nums"
         >{humidity ?? '--'}</span
       >
     </div>
-    <div class="flex items-center justify-between">
+    <div class="flex items-center justify-between text-[9px]">
       <span class="text-white/25">Viento</span>
       <span class="text-white/70 font-semibold tabular-nums"
         >{windKmh ?? '--'}</span
       >
     </div>
-    <div class="flex items-center justify-between">
+    <div class="flex items-center justify-between text-[9px]">
       <span class="text-white/25">SWE (nieve)</span>
       <span class="text-white/70 font-semibold tabular-nums"
         >{swe ?? '--'}</span
