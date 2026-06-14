@@ -10,6 +10,7 @@ export type NormalizedZoneForecast = {
   precipitation: number;
   snowChance: number;
   freezingLevel: number;
+  humidity: number;
 };
 
 export type NormalizedHourlyForecast = {

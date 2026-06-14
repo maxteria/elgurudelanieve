@@ -12,7 +12,6 @@ import {
   getTomorrowForecast,
   getSevenDayForecast,
 } from '../lib/forecast-periods';
-import { normalizedToLegacy } from '../lib/weather/convert-to-legacy';
 import { isValidScenario } from '../data/demo-scenarios';
 import MobileNav from '../components/MobileNav.astro';
 import NowCard from '../components/NowCard.astro';
@@ -35,12 +34,10 @@ const envMode: WeatherMode | undefined =
   process.env.PUBLIC_WEATHER_MODE === 'demo' ? 'demo' : undefined;
 const activeMode: WeatherMode = queryMode ?? envMode ?? 'real';
 
-const {
-  data: weather,
-  normalized,
-  weatherApi,
-  source,
-} = await getWeatherData({ mode: activeMode, scenario: activeScenario });
+const { normalized, weatherApi, source } = await getWeatherData({
+  mode: activeMode,
+  scenario: activeScenario,
+});
 const firstPeriod: PeriodKey = 'today';
 const periods = analyzeAllPeriods(normalized);
 const result = periods[firstPeriod];

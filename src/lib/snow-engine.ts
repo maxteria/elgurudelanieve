@@ -1,15 +1,18 @@
-import type { WeatherData, ZoneForecast, Alert } from './types';
+import type { Alert } from './types';
 import type { SnowInterpretation, ZoneInterpretation } from './types';
+import type {
+  NormalizedSnowForecast,
+  NormalizedHourlyForecast,
+  NormalizedZoneForecast,
+} from './weather/types';
 import { calculatePowderScore } from './scoring';
+import type { HourlyForecast } from './types';
+import { LAPSE_RATE } from './weather/constants';
 
-const ZONE_MAP: {
-  name: ZoneForecast['name'];
-  id: 'village' | 'mid' | 'top';
-  label: string;
-}[] = [
-  { name: 'Pueblo', id: 'village', label: 'Pueblo (base)' },
-  { name: 'Centro', id: 'mid', label: 'Centro (medio)' },
-  { name: 'Cumbre', id: 'top', label: 'Cumbre (alto)' },
+const ZONE_IDS: { id: 'village' | 'mid' | 'top'; label: string }[] = [
+  { id: 'village', label: 'Pueblo (base)' },
+  { id: 'mid', label: 'Centro (medio)' },
+  { id: 'top', label: 'Cumbre (alto)' },
 ];
 
 type SnowLabel =
@@ -39,8 +42,35 @@ function computeSnowLabel(
   return 'nevada débil';
 }
 
+/** Compute zone-specific hourly forecast from base hourly + zone altitude */
+function computeZoneHourly(
+  baseHourly: NormalizedHourlyForecast[],
+  zoneAlt: number,
+  baseAlt: number,
+): HourlyForecast[] {
+  return baseHourly.map((h) => {
+    const altDiff = zoneAlt - baseAlt;
+    const tempDrop = altDiff * LAPSE_RATE;
+    const zoneTemp = Math.round((h.temp - tempDrop) * 10) / 10;
+    const zoneWind =
+      Math.round(h.wind * (1 + 0.08 * (altDiff / 100)) * 10) / 10;
+
+    return {
+      hour: new Date(h.time).getHours(),
+      temp: zoneTemp,
+      feels_like: Math.round((h.feelsLike - tempDrop) * 10) / 10,
+      wind: zoneWind,
+      precip: h.precipitation,
+      snow_prob: 0,
+      freezing_level: h.freezingLevel,
+      humidity: h.humidity,
+      snowfall: h.snowfall,
+    };
+  });
+}
+
 function getZoneAnswer(
-  hourly: WeatherData['zones'][0]['hourly'],
+  hourly: HourlyForecast[],
   altitude: number,
 ): { status: 'yes' | 'possible' | 'no'; label: string } {
   const snowHours = hourly.filter(
@@ -86,35 +116,39 @@ function getMainAnswer(
   };
 }
 
-function generateZoneAlerts(zone: ZoneForecast): Alert[] {
+function generateZoneAlerts(
+  zoneHourly: HourlyForecast[],
+  zoneName: string,
+  zoneAltitude: number,
+): Alert[] {
   const alerts: Alert[] = [];
-  for (const h of zone.hourly) {
+  for (const h of zoneHourly) {
     if (h.wind > 40) {
       alerts.push({
         type: 'viento',
         level: 'danger',
-        message: `Viento fuerte en ${zone.name.toLowerCase()} (${h.wind} km/h)`,
-        zone: zone.name,
+        message: `Viento fuerte en ${zoneName.toLowerCase()} (${h.wind} km/h)`,
+        zone: zoneName as Alert['zone'],
       });
       break;
     }
   }
   if (alerts.length === 0) {
-    for (const h of zone.hourly.slice(0, 4)) {
+    for (const h of zoneHourly.slice(0, 4)) {
       if (h.wind > 30) {
         alerts.push({
           type: 'viento',
           level: 'warning',
-          message: `Viento moderado en ${zone.name.toLowerCase()}`,
-          zone: zone.name,
+          message: `Viento moderado en ${zoneName.toLowerCase()}`,
+          zone: zoneName as Alert['zone'],
         });
         break;
       }
     }
   }
   if (
-    zone.hourly.some(
-      (h) => h.freezing_level > zone.altitude + 250 && h.precip > 0,
+    zoneHourly.some(
+      (h) => h.freezing_level > zoneAltitude + 250 && h.precip > 0,
     )
   ) {
     alerts.push({
@@ -238,19 +272,32 @@ function generateSummary(interp: SnowInterpretation): string {
   return rules.join(' ');
 }
 
-export function analyzeWeather(data: WeatherData): SnowInterpretation {
-  const rawZones = ZONE_MAP.map(
-    (m) => data.zones.find((z) => z.name === m.name)!,
-  ).filter(Boolean);
+export function analyzeWeather(
+  normalized: NormalizedSnowForecast,
+): SnowInterpretation {
+  const baseAlt = normalized.zones.village.altitude;
+
+  // Pre-compute zone-specific hourly arrays using lapse rate
+  const zoneHourlies: Record<string, HourlyForecast[]> = {};
+  for (const zoneId of ZONE_IDS) {
+    const zone = normalized.zones[zoneId.id];
+    zoneHourlies[zoneId.id] = computeZoneHourly(
+      normalized.hourly,
+      zone.altitude,
+      baseAlt,
+    );
+  }
 
   const zoneInterpretations: [
     ZoneInterpretation,
     ZoneInterpretation,
     ZoneInterpretation,
-  ] = rawZones.map((z) => {
-    const answer = getZoneAnswer(z.hourly, z.altitude);
-    const alerts = generateZoneAlerts(z);
-    const current = z.hourly[0] ?? {
+  ] = ZONE_IDS.map((zoneId) => {
+    const zone = normalized.zones[zoneId.id];
+    const zh = zoneHourlies[zoneId.id];
+    const answer = getZoneAnswer(zh, zone.altitude);
+    const alerts = generateZoneAlerts(zh, zone.label, zone.altitude);
+    const current = zh[0] ?? {
       temp: -999,
       feels_like: -999,
       wind: 0,
@@ -262,9 +309,9 @@ export function analyzeWeather(data: WeatherData): SnowInterpretation {
     };
 
     return {
-      id: ZONE_MAP.find((m) => m.name === z.name)!.id,
-      label: ZONE_MAP.find((m) => m.name === z.name)!.label,
-      altitude: z.altitude,
+      id: zoneId.id,
+      label: zoneId.label,
+      altitude: zone.altitude,
       current: {
         temp: current.temp,
         feelsLike: current.feels_like,
@@ -281,23 +328,31 @@ export function analyzeWeather(data: WeatherData): SnowInterpretation {
 
   const allAlerts = deduplicateAlerts(zoneInterpretations.map((z) => z.alerts));
 
-  const bestZone = rawZones.reduce((a, b) => {
-    const aScore = a.hourly.some(
+  // Find best zone for powder score calculation
+  const bestZoneId = ZONE_IDS.reduce((a, b) => {
+    const aZh = zoneHourlies[a.id];
+    const aZone = normalized.zones[a.id];
+    const aScore = aZh.some(
       (h) =>
-        h.precip > 0 && h.temp <= 2 && h.freezing_level <= a.altitude + 150,
+        h.precip > 0 && h.temp <= 2 && h.freezing_level <= aZone.altitude + 150,
     )
       ? 1
       : 0;
-    const bScore = b.hourly.some(
+    const bZh = zoneHourlies[b.id];
+    const bZone = normalized.zones[b.id];
+    const bScore = bZh.some(
       (h) =>
-        h.precip > 0 && h.temp <= 2 && h.freezing_level <= b.altitude + 150,
+        h.precip > 0 && h.temp <= 2 && h.freezing_level <= bZone.altitude + 150,
     )
       ? 1
       : 0;
     return bScore > aScore ? b : a;
   });
 
-  const powder = calculatePowderScore(bestZone.hourly, bestZone.altitude);
+  const bestZone = normalized.zones[bestZoneId.id];
+  const bestZh = zoneHourlies[bestZoneId.id];
+
+  const powder = calculatePowderScore(bestZh, bestZone.altitude);
   const mainAnswer = getMainAnswer(zoneInterpretations);
 
   let bestWindow: SnowInterpretation['bestWindow'] = {
@@ -348,7 +403,7 @@ export function analyzeWeather(data: WeatherData): SnowInterpretation {
     bestWindow,
     alerts: allAlerts,
     guruSummary: '',
-    updated: data.updated,
+    updated: normalized.updatedAt,
   };
 
   interp.guruSummary = generateSummary(interp);

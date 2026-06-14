@@ -5,7 +5,6 @@ import type {
   SnowInterpretation,
 } from './types';
 import { getTodayForecast, getTomorrowForecast } from './forecast-periods';
-import { normalizedToLegacy } from './weather/convert-to-legacy';
 import { analyzeWeather } from './snow-engine';
 
 function filterByPeriod(
@@ -39,8 +38,7 @@ export function analyzeAllPeriods(
 
   for (const period of periods) {
     const periodNorm = filterByPeriod(normalized, period);
-    const weatherData = normalizedToLegacy(periodNorm);
-    result[period] = analyzeWeather(weatherData);
+    result[period] = analyzeWeather(periodNorm);
   }
 
   return result;

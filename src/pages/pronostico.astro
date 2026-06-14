@@ -21,12 +21,10 @@ const envMode: WeatherMode | undefined =
   process.env.PUBLIC_WEATHER_MODE === 'demo' ? 'demo' : undefined;
 const activeMode: WeatherMode = queryMode ?? envMode ?? 'real';
 
-const {
-  data: weather,
-  normalized,
-  weatherApi,
-  source,
-} = await getWeatherData({ mode: activeMode, scenario: activeScenario });
+const { normalized, weatherApi, source } = await getWeatherData({
+  mode: activeMode,
+  scenario: activeScenario,
+});
 const periods = analyzeAllPeriods(normalized);
 const isDemo = source === 'mock-demo';
 
