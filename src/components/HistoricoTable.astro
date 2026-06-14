@@ -1,0 +1,91 @@
+---
+import type { DailyHistoryEntry } from '../lib/supabase/types';
+
+type Props = {
+  entries: DailyHistoryEntry[];
+};
+
+const { entries } = Astro.props as Props;
+
+function formatDateShort(iso: string): string {
+  const d = new Date(iso + 'T12:00:00');
+  return d.toLocaleDateString('es-AR', {
+    day: 'numeric',
+    month: 'short',
+  });
+}
+
+const hasEntries = entries.length > 0;
+---
+
+{
+  hasEntries ? (
+    <div class="overflow-x-auto -mx-4 md:mx-0">
+      <table
+        class="w-full min-w-[520px] text-[9px] border-collapse"
+      >
+        <thead>
+          <tr class="text-white/20 font-medium tracking-[0.1em] uppercase border-b border-white/[0.04]">
+            <th class="text-left px-3 py-2 font-medium">Fecha</th>
+            <th class="text-right px-3 py-2 font-medium">Temp Mín/Máx</th>
+            <th class="text-right px-3 py-2 font-medium">Humedad</th>
+            <th class="text-right px-3 py-2 font-medium">Viento</th>
+            <th class="text-right px-3 py-2 font-medium">SWE</th>
+            <th class="text-left px-3 py-2 font-medium">Mensaje Gurú</th>
+          </tr>
+        </thead>
+        <tbody>
+          {
+            entries.map((entry) => {
+              const windKmh =
+                entry.aic?.wind_speed != null
+                  ? `${Math.round(entry.aic.wind_speed * 3.6)} km/h`
+                  : '--';
+              const humidity =
+                entry.aic?.humidity != null
+                  ? `${entry.aic.humidity}%`
+                  : '--';
+              const swe = entry.swe != null ? `${entry.swe} mm` : '--';
+              const guruSnippet = entry.guru?.message ?? null;
+              const guruText =
+                guruSnippet && guruSnippet.length > 60
+                  ? guruSnippet.slice(0, 60) + '…'
+                  : guruSnippet;
+
+              return (
+                <tr class="border-b border-white/[0.02] hover:bg-white/[0.02] transition-colors">
+                  <td class="px-3 py-2.5 text-white/70 font-semibold whitespace-nowrap">
+                    {formatDateShort(entry.date)}
+                  </td>
+                  <td class="px-3 py-2.5 text-right text-white/70 font-semibold tabular-nums whitespace-nowrap">
+                    {entry.tempMin ?? '--'}° / {entry.tempMax ?? '--'}°
+                  </td>
+                  <td class="px-3 py-2.5 text-right text-white/50 tabular-nums whitespace-nowrap">
+                    {humidity}
+                  </td>
+                  <td class="px-3 py-2.5 text-right text-white/50 tabular-nums whitespace-nowrap">
+                    {windKmh}
+                  </td>
+                  <td class="px-3 py-2.5 text-right text-white/50 tabular-nums whitespace-nowrap">
+                    {swe}
+                  </td>
+                  <td class="px-3 py-2.5 text-white/40 max-w-[160px] truncate">
+                    {guruText ?? (
+                      <span class="italic text-white/15">Sin mensaje</span>
+                    )}
+                  </td>
+                </tr>
+              );
+            })
+          }
+        </tbody>
+      </table>
+    </div>
+  ) : (
+    <div class="text-center py-8">
+      <p class="text-[11px] text-white/30 italic">
+        No hay datos históricos disponibles
+      </p>
+    </div>
+  )
+}

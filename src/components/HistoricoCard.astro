@@ -1,0 +1,81 @@
+---
+import type { DailyHistoryEntry } from '../lib/supabase/types';
+
+type Props = {
+  entry: DailyHistoryEntry;
+};
+
+const { entry } = Astro.props as Props;
+
+function formatDate(iso: string): string {
+  const d = new Date(iso + 'T12:00:00');
+  return d.toLocaleDateString('es-AR', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  });
+}
+
+const windKmh =
+  entry.aic?.wind_speed != null
+    ? `${Math.round(entry.aic.wind_speed * 3.6)} km/h`
+    : null;
+
+const humidity = entry.aic?.humidity != null ? `${entry.aic.humidity}%` : null;
+const swe = entry.swe != null ? `${entry.swe} mm` : null;
+---
+
+<div
+  class="bg-[rgba(9,16,22,0.6)] border border-white/[0.06] rounded-xl p-4 shadow-[0_4px_20px_rgba(0,0,0,0.35)] flex flex-col h-full"
+>
+  <!-- Date header -->
+  <div class="mb-2.5">
+    <h3 class="text-[14px] font-bold text-white/80 capitalize leading-tight">
+      {formatDate(entry.date)}
+    </h3>
+  </div>
+
+  <!-- Metrics grid -->
+  <div class="grid grid-cols-2 gap-x-3 gap-y-1.5 text-[9px]">
+    <div class="flex items-center justify-between">
+      <span class="text-white/25">Temp</span>
+      <span class="text-white/70 font-semibold tabular-nums"
+        >{entry.tempMin ?? '--'}° / {entry.tempMax ?? '--'}°</span
+      >
+    </div>
+    <div class="flex items-center justify-between">
+      <span class="text-white/25">Humedad</span>
+      <span class="text-white/70 font-semibold tabular-nums"
+        >{humidity ?? '--'}</span
+      >
+    </div>
+    <div class="flex items-center justify-between">
+      <span class="text-white/25">Viento</span>
+      <span class="text-white/70 font-semibold tabular-nums"
+        >{windKmh ?? '--'}</span
+      >
+    </div>
+    <div class="flex items-center justify-between">
+      <span class="text-white/25">SWE (nieve)</span>
+      <span class="text-white/70 font-semibold tabular-nums"
+        >{swe ?? '--'}</span
+      >
+    </div>
+  </div>
+
+  <!-- Guru message -->
+  <div class="mt-auto pt-2.5 border-t border-white/[0.03]">
+    {
+      entry.guru?.message ? (
+        <p class="text-[10px] text-white/50 leading-relaxed line-clamp-2">
+          {entry.guru.message}
+        </p>
+      ) : (
+        <p class="text-[9px] text-white/20 italic">
+          Sin mensaje del Gurú
+        </p>
+      )
+    }
+  </div>
+</div>

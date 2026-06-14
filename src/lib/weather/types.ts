@@ -109,6 +109,7 @@ export type NormalizedSnowForecast = {
   };
   hourly: NormalizedHourlyForecast[];
   yesterday?: AicStationData;
+  aicHistory?: AicStationData[];
   currentWeather?: OpenMeteoCurrentWeather;
   daily?: OpenMeteoDaily;
 };

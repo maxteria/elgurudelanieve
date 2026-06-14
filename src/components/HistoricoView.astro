@@ -1,0 +1,660 @@
+---
+import getSupabase from '../lib/supabase/client';
+import { getGuruMessagesInRange } from '../lib/supabase/client';
+import type { AicReading } from '../lib/supabase/client';
+import type { GuruMessageRecord } from '../lib/supabase/client';
+import type { DailyHistoryEntry, HistoricoPayload } from '../lib/supabase/types';
+import HistoricoCard from './HistoricoCard.astro';
+import HistoricoTable from './HistoricoTable.astro';
+import HistoricoChart from './HistoricoChart.astro';
+
+// ─── Date range: last 90 days ────────────────────────────────────────────
+const toDate = new Date();
+const fromDate = new Date();
+fromDate.setDate(fromDate.getDate() - 90);
+
+const from = fromDate.toISOString().split('T')[0];
+const to = toDate.toISOString().split('T')[0];
+
+// ─── Fetch data in parallel ──────────────────────────────────────────────
+const [aicReadings, guruMessages] = await Promise.all([
+  (async (): Promise<AicReading[]> => {
+    const sb = getSupabase();
+    if (!sb) return [];
+    const { data, error } = await sb
+      .from('aic_readings')
+      .select('*')
+      .gte('reading_date', from)
+      .lte('reading_date', to)
+      .order('reading_date', { ascending: false });
+    if (error) {
+      console.warn('[HistoricoView] AIC readings error:', error.message);
+      return [];
+    }
+    return (data ?? []) as AicReading[];
+  })(),
+  getGuruMessagesInRange(from, to),
+]);
+
+// ─── Full outer join by date ─────────────────────────────────────────────
+const dateMap = new Map<string, DailyHistoryEntry>();
+
+// Add AIC readings as base entries
+for (const aic of aicReadings) {
+  dateMap.set(aic.reading_date, {
+    date: aic.reading_date,
+    aic,
+    guru: null,
+    swe: aic.snow_water_eq,
+    tempMin: aic.temp_min,
+    tempMax: aic.temp_max,
+    precipitation: aic.precipitation,
+  });
+}
+
+// Merge Guru messages — match existing AIC dates or create Guru-only entries
+for (const g of guruMessages) {
+  const existing = dateMap.get(g.period_key);
+  if (existing) {
+    existing.guru = {
+      message: g.message,
+      mood: g.mood,
+      certainty: g.certainty,
+      period: g.period,
+      source: g.source,
+    };
+  } else {
+    dateMap.set(g.period_key, {
+      date: g.period_key,
+      aic: null,
+      guru: {
+        message: g.message,
+        mood: g.mood,
+        certainty: g.certainty,
+        period: g.period,
+        source: g.source,
+      },
+      swe: null,
+      tempMin: null,
+      tempMax: null,
+      precipitation: null,
+    });
+  }
+}
+
+// Convert to array and sort descending by date
+const allEntries = Array.from(dateMap.values());
+allEntries.sort((a, b) => b.date.localeCompare(a.date));
+
+// Split: top 3 as cards, rest as table rows
+const top3 = allEntries.slice(0, 3);
+const rest = allEntries.slice(3);
+
+// Full payload for client-side filtering (future use)
+const payload: HistoricoPayload = {
+  version: 1,
+  entries: allEntries,
+};
+
+const totalDays = allEntries.length;
+
+// ─── Default view: last 14 days for initial server render ──────────────
+const defaultDays = 14;
+const defaultFromDate = new Date();
+defaultFromDate.setDate(defaultFromDate.getDate() - defaultDays);
+const defaultFromStr = defaultFromDate.toISOString().split('T')[0];
+
+const defaultFiltered = allEntries.filter(
+  (e) => e.date >= defaultFromStr && e.date <= to,
+);
+const defaultTop3 = defaultFiltered.slice(0, 3);
+const defaultRest = defaultFiltered.slice(3);
+---
+
+<!-- ─── Embedded full dataset for client-side filtering ────────────── -->
+<script id="historico-data" type="application/json" set:html={JSON.stringify(payload)} />
+
+<!-- ─── Section header + date filter quick-selects ───────────────── -->
+<div class="flex items-center justify-between gap-2 mb-4 flex-wrap">
+  <div class="flex items-center gap-2">
+    <div class="w-1.5 h-1.5 rounded-full bg-hielo/40"></div>
+    <span
+      id="hc-range-label"
+      class="text-[8px] text-white/25 tracking-[0.2em] uppercase font-medium"
+    >
+      Mostrando {defaultFiltered.length} días
+    </span>
+  </div>
+  <div id="hc-quick-selects" class="flex gap-1.5 flex-wrap">
+    {['7d', '14d', '30d', '90d'].map((label) => {
+      const days = parseInt(label);
+      const isDefault = days === defaultDays;
+      return (
+        <button
+          class={`text-[9px] px-2 py-1 rounded-full transition-colors ${
+            isDefault
+              ? 'bg-hielo/[0.1] text-hielo/70 font-semibold'
+              : 'text-white/30 hover:text-white/60 hover:bg-white/[0.04]'
+          }`}
+          data-days={days}
+        >
+          {label}
+        </button>
+      );
+    })}
+  </div>
+</div>
+
+<!-- ─── Top 3 cards ──────────────────────────────────────────────── -->
+{
+  defaultTop3.length > 0 && (
+    <div id="hc-cards" class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
+      {defaultTop3.map((entry) => <HistoricoCard entry={entry} />)}
+    </div>
+  )
+}
+
+<!-- ─── Chart ────────────────────────────────────────────────────── -->
+<div id="hc-chart">
+  <HistoricoChart entries={defaultFiltered} />
+</div>
+
+<!-- ─── Rest as table ────────────────────────────────────────────── -->
+<div id="hc-table">
+  {
+    defaultRest.length > 0 ? (
+      <div>
+        <div class="flex items-center gap-2 mb-3">
+          <div class="w-1 h-1 rounded-full bg-white/20"></div>
+          <span class="text-[8px] text-white/15 tracking-[0.2em] uppercase font-medium">
+            Registro completo
+          </span>
+        </div>
+        <div class="bg-[rgba(9,16,22,0.6)] border border-white/[0.06] rounded-xl overflow-hidden">
+          <HistoricoTable entries={defaultRest} />
+        </div>
+      </div>
+    ) : defaultFiltered.length > 0 ? null : null
+  }
+</div>
+
+<!-- ─── Empty state (no data at all) ─────────────────────────────── -->
+{
+  totalDays === 0 && (
+    <div class="text-center py-12">
+      <div class="w-12 h-12 mx-auto mb-4 rounded-full bg-hielo/[0.08] flex items-center justify-center">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#a8e7f9" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <polyline points="12 6 12 12 16 14"></polyline>
+        </svg>
+      </div>
+      <p class="text-[13px] text-white/40 font-medium mb-1">No hay datos históricos</p>
+      <p class="text-[10px] text-white/20">Los datos aparecerán cuando el Gurú acumule lecturas.</p>
+    </div>
+  )
+}
+
+<!-- ─── Client-side filtering logic ──────────────────────────────── -->
+<script>
+(function () {
+  'use strict';
+
+  // ── Constants ──────────────────────────────────────────────────
+  var ALL_DATA;
+
+  try {
+    ALL_DATA = JSON.parse(
+      document.getElementById('historico-data').textContent,
+    );
+  } catch (_) {
+    return;
+  }
+  if (!ALL_DATA || !ALL_DATA.entries || !ALL_DATA.entries.length) return;
+
+  var ENTRIES = ALL_DATA.entries; // sorted descending by date
+  var DEFAULT_DAYS = 14;
+
+  // ── DOM refs ───────────────────────────────────────────────────
+  var cardsEl = document.getElementById('hc-cards');
+  var chartEl = document.getElementById('hc-chart');
+  var tableEl = document.getElementById('hc-table');
+  var rangeLabel = document.getElementById('hc-range-label');
+
+  // ── Pure helpers ───────────────────────────────────────────────
+  function fmtDateLong(iso) {
+    var d = new Date(iso + 'T12:00:00');
+    return d.toLocaleDateString('es-AR', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    });
+  }
+
+  function fmtDateShort(iso) {
+    var d = new Date(iso + 'T12:00:00');
+    return d.toLocaleDateString('es-AR', { day: 'numeric', month: 'short' });
+  }
+
+  function fmtWind(aic) {
+    return aic && aic.wind_speed != null
+      ? Math.round(aic.wind_speed * 3.6) + ' km/h'
+      : null;
+  }
+
+  function fmtHumidity(aic) {
+    return aic && aic.humidity != null ? aic.humidity + '%' : null;
+  }
+
+  function fmtSwe(swe) {
+    return swe != null ? swe + ' mm' : null;
+  }
+
+  function fmtGuruSnippet(guru) {
+    if (!guru || !guru.message) return null;
+    return guru.message.length > 60
+      ? guru.message.slice(0, 60) + String.fromCharCode(8230)
+      : guru.message;
+  }
+
+  function isoToday() {
+    var d = new Date();
+    return (
+      d.getFullYear() +
+      '-' +
+      String(d.getMonth() + 1).padStart(2, '0') +
+      '-' +
+      String(d.getDate()).padStart(2, '0')
+    );
+  }
+
+  function isoDaysAgo(days) {
+    var d = new Date();
+    d.setDate(d.getDate() - days);
+    return (
+      d.getFullYear() +
+      '-' +
+      String(d.getMonth() + 1).padStart(2, '0') +
+      '-' +
+      String(d.getDate()).padStart(2, '0')
+    );
+  }
+
+  // ── URL params ─────────────────────────────────────────────────
+  function readURLParams() {
+    var params = new URLSearchParams(window.location.search);
+    var from = params.get('from');
+    var to = params.get('to');
+
+    // Validate dates — fallback to default 14d
+    var today = isoToday();
+    var defaultFrom = isoDaysAgo(DEFAULT_DAYS);
+
+    if (!to || isNaN(Date.parse(to))) to = today;
+    if (!from || isNaN(Date.parse(from))) from = defaultFrom;
+
+    // Clamp: to can't be after today
+    if (to > today) to = today;
+    // Ensure from <= to
+    if (from > to) from = isoDaysAgo(DEFAULT_DAYS);
+
+    return { from: from, to: to };
+  }
+
+  function pushURL(from, to) {
+    var url = new URL(window.location);
+    url.searchParams.set('from', from);
+    url.searchParams.set('to', to);
+    window.history.pushState({ from: from, to: to }, '', url);
+  }
+
+  // ── Filter ─────────────────────────────────────────────────────
+  function filterEntries(from, to) {
+    return ENTRIES.filter(function (e) {
+      return e.date >= from && e.date <= to;
+    });
+  }
+
+  // ── Card HTML ──────────────────────────────────────────────────
+  function renderCards(entries) {
+    if (!entries || entries.length === 0) return '';
+    return entries
+      .map(function (e) {
+        var w = fmtWind(e.aic);
+        var h = fmtHumidity(e.aic);
+        var s = fmtSwe(e.swe);
+        var guruMsg = e.guru && e.guru.message
+          ? '<p class="text-[10px] text-white/50 leading-relaxed line-clamp-2">' +
+            escapeHtml(e.guru.message) +
+            '</p>'
+          : '<p class="text-[9px] text-white/20 italic">Sin mensaje del Gur\u00fa</p>';
+        return (
+          '<div class="bg-[rgba(9,16,22,0.6)] border border-white/[0.06] rounded-xl p-4 shadow-[0_4px_20px_rgba(0,0,0,0.35)] flex flex-col h-full">' +
+          '<div class="mb-2.5">' +
+          '<h3 class="text-[14px] font-bold text-white/80 capitalize leading-tight">' +
+          fmtDateLong(e.date) +
+          '</h3></div>' +
+          '<div class="grid grid-cols-2 gap-x-3 gap-y-1.5 text-[9px]">' +
+          '<div class="flex items-center justify-between"><span class="text-white/25">Temp</span><span class="text-white/70 font-semibold tabular-nums">' +
+          (e.tempMin != null ? e.tempMin : '--') +
+          '\u00b0 / ' +
+          (e.tempMax != null ? e.tempMax : '--') +
+          '\u00b0</span></div>' +
+          '<div class="flex items-center justify-between"><span class="text-white/25">Humedad</span><span class="text-white/70 font-semibold tabular-nums">' +
+          (h || '--') +
+          '</span></div>' +
+          '<div class="flex items-center justify-between"><span class="text-white/25">Viento</span><span class="text-white/70 font-semibold tabular-nums">' +
+          (w || '--') +
+          '</span></div>' +
+          '<div class="flex items-center justify-between"><span class="text-white/25">SWE (nieve)</span><span class="text-white/70 font-semibold tabular-nums">' +
+          (s || '--') +
+          '</span></div>' +
+          '</div>' +
+          '<div class="mt-auto pt-2.5 border-t border-white/[0.03]">' +
+          guruMsg +
+          '</div></div>'
+        );
+      })
+      .join('');
+  }
+
+  // ── Table HTML ─────────────────────────────────────────────────
+  function renderTable(entries) {
+    if (!entries || entries.length === 0) return '';
+    var rows = entries
+      .map(function (e) {
+        var w = fmtWind(e.aic);
+        var h = fmtHumidity(e.aic);
+        var s = fmtSwe(e.swe);
+        var guruText = fmtGuruSnippet(e.guru);
+        return (
+          '<tr class="border-b border-white/[0.02] hover:bg-white/[0.02] transition-colors">' +
+          '<td class="px-3 py-2.5 text-white/70 font-semibold whitespace-nowrap">' +
+          fmtDateShort(e.date) +
+          '</td>' +
+          '<td class="px-3 py-2.5 text-right text-white/70 font-semibold tabular-nums whitespace-nowrap">' +
+          (e.tempMin != null ? e.tempMin : '--') +
+          '\u00b0 / ' +
+          (e.tempMax != null ? e.tempMax : '--') +
+          '\u00b0</td>' +
+          '<td class="px-3 py-2.5 text-right text-white/50 tabular-nums whitespace-nowrap">' +
+          (h || '--') +
+          '</td>' +
+          '<td class="px-3 py-2.5 text-right text-white/50 tabular-nums whitespace-nowrap">' +
+          (w || '--') +
+          '</td>' +
+          '<td class="px-3 py-2.5 text-right text-white/50 tabular-nums whitespace-nowrap">' +
+          (s || '--') +
+          '</td>' +
+          '<td class="px-3 py-2.5 text-white/40 max-w-[160px] truncate">' +
+          (guruText
+            ? escapeHtml(guruText)
+            : '<span class="italic text-white/15">Sin mensaje</span>') +
+          '</td>' +
+          '</tr>'
+        );
+      })
+      .join('');
+
+    return (
+      '<div>' +
+      '<div class="flex items-center gap-2 mb-3">' +
+      '<div class="w-1 h-1 rounded-full bg-white/20"></div>' +
+      '<span class="text-[8px] text-white/15 tracking-[0.2em] uppercase font-medium">Registro completo</span>' +
+      '</div>' +
+      '<div class="overflow-x-auto -mx-4 md:mx-0">' +
+      '<table class="w-full min-w-[520px] text-[9px] border-collapse">' +
+      '<thead>' +
+      '<tr class="text-white/20 font-medium tracking-[0.1em] uppercase border-b border-white/[0.04]">' +
+      '<th class="text-left px-3 py-2 font-medium">Fecha</th>' +
+      '<th class="text-right px-3 py-2 font-medium">Temp M\u00edn/M\u00e1x</th>' +
+      '<th class="text-right px-3 py-2 font-medium">Humedad</th>' +
+      '<th class="text-right px-3 py-2 font-medium">Viento</th>' +
+      '<th class="text-right px-3 py-2 font-medium">SWE</th>' +
+      '<th class="text-left px-3 py-2 font-medium">Mensaje Gur\u00fa</th>' +
+      '</tr>' +
+      '</thead>' +
+      '<tbody>' +
+      rows +
+      '</tbody>' +
+      '</table>' +
+      '</div>' +
+      '</div>'
+    );
+  }
+
+  // ── Chart SVG ──────────────────────────────────────────────────
+  function renderChartSVG(entries) {
+    var withSwe = entries.filter(function (e) { return e.swe != null; });
+    if (withSwe.length === 0) return '';
+
+    // Ascending order for the chart
+    var chartData = withSwe.slice().reverse();
+
+    var cw = 600, ch = 200, padL = 36, padR = 12, padT = 16, padB = 28;
+    var pw = cw - padL - padR;
+    var ph = ch - padT - padB;
+
+    var values = chartData.map(function (e) { return e.swe; });
+    var maxVal = Math.max.apply(null, values);
+    var minVal = Math.min.apply(null, values);
+    var valRange = Math.max(maxVal - minVal, 1);
+
+    function xp(i) {
+      if (chartData.length <= 1) return padL + pw / 2;
+      return padL + (i / (chartData.length - 1)) * pw;
+    }
+    function yp(v) {
+      return padT + ph - ((v - minVal) / valRange) * ph;
+    }
+
+    // SWE polyline
+    var swePoints = chartData
+      .map(function (e, i) {
+        return xp(i).toFixed(1) + ',' + yp(e.swe).toFixed(1);
+      })
+      .join(' ');
+
+    // Grid lines
+    var gridParts = [];
+    for (var gi = 0; gi <= 4; gi++) {
+      var gy = padT + (gi / 4) * ph;
+      gridParts.push(
+        '<line x1="' +
+          padL +
+          '" y1="' +
+          gy.toFixed(1) +
+          '" x2="' +
+          (cw - padR) +
+          '" y2="' +
+          gy.toFixed(1) +
+          '" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>',
+      );
+    }
+
+    // Y labels
+    for (var yi = 0; yi < 5; yi++) {
+      var yv = minVal + (yi / 4) * valRange;
+      var yy = padT + ph - (yi / 4) * ph;
+      gridParts.push(
+        '<text x="' +
+          (padL - 5) +
+          '" y="' +
+          (yy + 1).toFixed(1) +
+          '" text-anchor="end" fill="rgba(255,255,255,0.12)" font-size="7" font-family="Inter, sans-serif">' +
+          yv.toFixed(0) +
+          '</text>',
+      );
+    }
+
+    // X labels
+    var labelStep = Math.max(1, Math.floor(chartData.length / 7));
+    for (var xi = 0; xi < chartData.length; xi += labelStep) {
+      var xd = new Date(chartData[xi].date + 'T12:00:00');
+      gridParts.push(
+        '<text x="' +
+          xp(xi).toFixed(1) +
+          '" y="' +
+          (ch - 8) +
+          '" text-anchor="middle" fill="rgba(255,255,255,0.12)" font-size="7" font-family="Inter, sans-serif">' +
+          xd.toLocaleDateString('es-AR', { day: 'numeric', month: 'short' }) +
+          '</text>',
+      );
+    }
+    // Ensure last label
+    var lastIdxC = chartData.length - 1;
+    if (lastIdxC % labelStep !== 0) {
+      var xdl = new Date(chartData[lastIdxC].date + 'T12:00:00');
+      gridParts.push(
+        '<text x="' +
+          xp(lastIdxC).toFixed(1) +
+          '" y="' +
+          (ch - 8) +
+          '" text-anchor="middle" fill="rgba(255,255,255,0.12)" font-size="7" font-family="Inter, sans-serif">' +
+          xdl.toLocaleDateString('es-AR', { day: 'numeric', month: 'short' }) +
+          '</text>',
+      );
+    }
+
+    // Precipitation bars
+    var hasPrecip = chartData.some(function (e) {
+      return e.precipitation != null && e.precipitation > 0;
+    });
+    if (hasPrecip) {
+      for (var pi = 0; pi < chartData.length; pi++) {
+        var pv = chartData[pi].precipitation || 0;
+        if (pv <= 0) continue;
+        var barMaxH = ph * 0.35;
+        var barH = Math.min(pv * 2, barMaxH);
+        var barW = Math.max(2, (pw / chartData.length) * 0.4);
+        gridParts.push(
+          '<rect x="' +
+            (xp(pi) - barW / 2).toFixed(1) +
+            '" y="' +
+            (padT + ph - barH).toFixed(1) +
+            '" width="' +
+            barW.toFixed(1) +
+            '" height="' +
+            barH.toFixed(1) +
+            '" rx="1" fill="rgba(168,231,249,0.12)"/>',
+        );
+      }
+    }
+
+    // Data circles
+    var circleParts = chartData
+      .map(function (e, i) {
+        return (
+          '<circle cx="' +
+          xp(i).toFixed(1) +
+          '" cy="' +
+          yp(e.swe).toFixed(1) +
+          '" r="2.5" fill="#a8e7f9" stroke="#0b0d10" stroke-width="1.2"/>'
+        );
+      })
+      .join('');
+
+    return (
+      '<div class="bg-[rgba(9,16,22,0.6)] border border-white/[0.06] rounded-xl p-3 shadow-[0_4px_20px_rgba(0,0,0,0.35)] mb-6">' +
+      '<div class="flex items-center gap-2 mb-2">' +
+      '<div class="w-1.5 h-1.5 rounded-full bg-hielo/40"></div>' +
+      '<span class="text-[8px] text-white/25 tracking-[0.2em] uppercase font-medium">Nieve acumulada (SWE)</span>' +
+      '</div>' +
+      '<svg viewBox="0 0 ' +
+      cw +
+      ' ' +
+      ch +
+      '" class="w-full h-auto" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Gr\u00e1fico de nieve acumulada (SWE)">' +
+      gridParts.join('') +
+      '<polyline points="' +
+      swePoints +
+      '" fill="none" stroke="#a8e7f9" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>' +
+      circleParts +
+      '</svg></div>'
+    );
+  }
+
+  // ── Minimal HTML escape ────────────────────────────────────────
+  function escapeHtml(str) {
+    var el = document.createElement('div');
+    el.appendChild(document.createTextNode(str));
+    return el.innerHTML;
+  }
+
+  // ── Main render ────────────────────────────────────────────────
+  function render(from, to) {
+    var filtered = filterEntries(from, to);
+    var count = filtered.length;
+    var top = filtered.slice(0, 3);
+    var rest = filtered.slice(3);
+
+    // Label
+    if (rangeLabel) {
+      rangeLabel.textContent = 'Mostrando ' + count + ' d\u00edas';
+    }
+
+    // Cards
+    if (cardsEl) {
+      cardsEl.innerHTML =
+        top.length > 0
+          ? '<div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">' +
+            renderCards(top) +
+            '</div>'
+          : '';
+    }
+
+    // Chart
+    if (chartEl) {
+      chartEl.innerHTML = renderChartSVG(filtered);
+    }
+
+    // Table
+    if (tableEl) {
+      tableEl.innerHTML =
+        rest.length > 0
+          ? renderTable(rest)
+          : count > 0
+            ? ''
+            : '';
+    }
+  }
+
+  // ── Apply preset ───────────────────────────────────────────────
+  function applyPreset(days) {
+    var from = isoDaysAgo(days);
+    var to = isoToday();
+    pushURL(from, to);
+    render(from, to);
+  }
+
+  // ── Init ───────────────────────────────────────────────────────
+  function init() {
+    var params = readURLParams();
+    render(params.from, params.to);
+
+    // Wire quick-select buttons
+    var selects = document.getElementById('hc-quick-selects');
+    if (selects) {
+      selects.addEventListener('click', function (e) {
+        var btn = e.target.closest('[data-days]');
+        if (!btn) return;
+        var days = parseInt(btn.getAttribute('data-days'), 10);
+        if (isNaN(days)) return;
+        applyPreset(days);
+      });
+    }
+
+    // Handle browser back/forward
+    window.addEventListener('popstate', function () {
+      var params = readURLParams();
+      render(params.from, params.to);
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
+</script>

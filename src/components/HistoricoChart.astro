@@ -1,0 +1,152 @@
+---
+import type { DailyHistoryEntry } from '../lib/supabase/types';
+
+type Props = {
+  entries: DailyHistoryEntry[];
+};
+
+const { entries } = Astro.props as Props;
+
+/**
+ * Build an inline SVG line chart for SWE (snow water equivalent).
+ * Pattern mirrors ForecastChart.astro — pure SVG string via set:html.
+ */
+function renderSweChart(data: DailyHistoryEntry[]): string {
+  const withSwe = data.filter((e) => e.swe != null);
+  if (withSwe.length === 0) return '';
+
+  // Chart renders left-to-right: reverse server-side descending order
+  const chartData = [...withSwe].reverse();
+
+  const cw = 600;
+  const ch = 200;
+  const padL = 36;
+  const padR = 12;
+  const padT = 16;
+  const padB = 28;
+  const pw = cw - padL - padR;
+  const ph = ch - padT - padB;
+
+  const values = chartData.map((e) => e.swe!);
+  const maxVal = Math.max(...values);
+  const minVal = Math.min(...values);
+  const valRange = Math.max(maxVal - minVal, 1);
+
+  const xp = (i: number): number => {
+    if (chartData.length <= 1) return padL + pw / 2;
+    return padL + (i / (chartData.length - 1)) * pw;
+  };
+  const yp = (v: number): number => padT + ph - ((v - minVal) / valRange) * ph;
+
+  // ── SWE polyline ──────────────────────────────────────────────
+  const swePoints = chartData
+    .map((e, i) => `${xp(i).toFixed(1)},${yp(e.swe!).toFixed(1)}`)
+    .join(' ');
+
+  // ── Grid lines (4 horizontal) ─────────────────────────────────
+  const gridLines: string[] = [];
+  for (let i = 0; i <= 4; i++) {
+    const y = padT + (i / 4) * ph;
+    gridLines.push(
+      `<line x1="${padL}" y1="${y.toFixed(1)}" x2="${cw - padR}" y2="${y.toFixed(1)}" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>`,
+    );
+  }
+
+  // ── Y-axis labels ─────────────────────────────────────────────
+  const yLabels: string[] = [];
+  for (let i = 0; i < 5; i++) {
+    const value = minVal + (i / 4) * valRange;
+    const y = padT + ph - (i / 4) * ph;
+    yLabels.push(
+      `<text x="${padL - 5}" y="${(y + 1).toFixed(1)}" text-anchor="end" fill="rgba(255,255,255,0.12)" font-size="7" font-family="Inter, sans-serif">${value.toFixed(0)}</text>`,
+    );
+  }
+
+  // ── X-axis labels (month/day) ─────────────────────────────────
+  const xLabels: string[] = [];
+  const labelStep = Math.max(1, Math.floor(chartData.length / 7));
+  for (let i = 0; i < chartData.length; i += labelStep) {
+    const d = new Date(chartData[i].date + 'T12:00:00');
+    const label = d.toLocaleDateString('es-AR', {
+      day: 'numeric',
+      month: 'short',
+    });
+    xLabels.push(
+      `<text x="${xp(i).toFixed(1)}" y="${ch - 8}" text-anchor="middle" fill="rgba(255,255,255,0.12)" font-size="7" font-family="Inter, sans-serif">${label}</text>`,
+    );
+  }
+  // Ensure last label is always shown
+  const lastIdx = chartData.length - 1;
+  if (lastIdx % labelStep !== 0) {
+    const d = new Date(chartData[lastIdx].date + 'T12:00:00');
+    xLabels.push(
+      `<text x="${xp(lastIdx).toFixed(1)}" y="${ch - 8}" text-anchor="middle" fill="rgba(255,255,255,0.12)" font-size="7" font-family="Inter, sans-serif">${d.toLocaleDateString('es-AR', { day: 'numeric', month: 'short' })}</text>`,
+    );
+  }
+
+  // ── Precipitation bars (optional overlay) ─────────────────────
+  const hasPrecip = chartData.some(
+    (e) => e.precipitation != null && e.precipitation > 0,
+  );
+  const precipBars = hasPrecip
+    ? chartData
+        .map((e, i) => {
+          const p = e.precipitation ?? 0;
+          if (p <= 0) return '';
+          const barMaxH = ph * 0.35;
+          const barH = Math.min(p * 2, barMaxH);
+          const barW = Math.max(2, (pw / chartData.length) * 0.4);
+          const bx = xp(i) - barW / 2;
+          const by = padT + ph - barH;
+          return `<rect x="${bx.toFixed(1)}" y="${by.toFixed(1)}" width="${barW.toFixed(1)}" height="${barH.toFixed(1)}" rx="1" fill="rgba(168,231,249,0.12)"/>`;
+        })
+        .join('')
+    : '';
+
+  return `<svg viewBox="0 0 ${cw} ${ch}" class="w-full h-auto" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Gráfico de nieve acumulada (SWE)">
+    ${gridLines.join('')}
+    ${yLabels.join('')}
+    ${precipBars}
+    <polyline points="${swePoints}" fill="none" stroke="#a8e7f9" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    ${chartData
+      .map(
+        (e, i) =>
+          `<circle cx="${xp(i).toFixed(1)}" cy="${yp(e.swe!).toFixed(1)}" r="2.5" fill="#a8e7f9" stroke="#0b0d10" stroke-width="1.2"/>`,
+      )
+      .join('')}
+    ${xLabels.join('')}
+  </svg>`;
+}
+
+const chartSvg = renderSweChart(entries);
+const hasAnySwe = entries.some((e) => e.swe != null);
+const hasEntries = entries.length > 0;
+---
+
+{
+  hasEntries ? (
+    <div
+      class="bg-[rgba(9,16,22,0.6)] border border-white/[0.06] rounded-xl p-3 shadow-[0_4px_20px_rgba(0,0,0,0.35)] mb-6"
+    >
+      <div class="flex items-center gap-2 mb-2">
+        <div class="w-1.5 h-1.5 rounded-full bg-hielo/40"></div>
+        <span
+          class="text-[8px] text-white/25 tracking-[0.2em] uppercase font-medium"
+        >
+          Nieve acumulada (SWE)
+        </span>
+      </div>
+      {
+        hasAnySwe ? (
+          <div set:html={chartSvg} />
+        ) : (
+          <div class="text-center py-8">
+            <p class="text-[11px] text-white/40">
+              Sin datos de nieve acumulada
+            </p>
+          </div>
+        )
+      }
+    </div>
+  ) : null
+}

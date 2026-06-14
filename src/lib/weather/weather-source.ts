@@ -17,6 +17,10 @@ import { fetchSMNCurrent } from './smn';
 import { compareSources, logComparison } from './smn';
 import { getDemoScenarioData } from '../../data/demo-scenarios';
 import { fetchAicStationData } from './sources/aic-scraper';
+import {
+  storeAicReading,
+  getRecentAicReadings,
+} from '../supabase/client';
 
 export type WeatherMode = 'real' | 'demo';
 export type DataSource = 'open-meteo' | 'mock-demo' | 'mock-fallback';
@@ -107,6 +111,45 @@ export async function getWeatherData(options?: {
       console.info(
         `[WeatherSource] AIC yesterday: ${aicData.tempMin}°C / ${aicData.tempMax}°C`,
       );
+
+      // Persist to Supabase (fire-and-forget style)
+      storeAicReading({
+        reading_date: aicData.date,
+        station_name: aicData.stationName,
+        humidity: aicData.humidity,
+        precipitation: aicData.precipitation,
+        pressure: aicData.pressure,
+        temp_min: aicData.tempMin,
+        temp_max: aicData.tempMax,
+        wind_dir: aicData.windDir,
+        wind_speed: aicData.windSpeed,
+        wind_max: aicData.windMax,
+        snow_water_eq: aicData.snowWaterEq,
+      }).catch((err: unknown) =>
+        console.warn('[WeatherSource] storeAicReading failed:', err),
+      );
+
+      // Load recent history for AI context
+      const history = await getRecentAicReadings(7);
+      if (history.length > 0) {
+        normalized.aicHistory = history.map((r) => ({
+          stationName: r.station_name,
+          date: r.reading_date,
+          humidity: r.humidity,
+          precipitation: r.precipitation,
+          pressure: r.pressure,
+          tempMin: r.temp_min,
+          tempMax: r.temp_max,
+          windDir: r.wind_dir,
+          windSpeed: r.wind_speed,
+          windMax: r.wind_max,
+          snowWaterEq: r.snow_water_eq,
+          updatedAt: r.created_at ?? '',
+        }));
+        console.info(
+          `[WeatherSource] Loaded ${history.length} AIC history records`,
+        );
+      }
     }
     if (weatherApi) logTemperatureDiff(weatherApi, normalized);
     if (smn && normalized) {

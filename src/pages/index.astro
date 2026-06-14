@@ -49,6 +49,7 @@ const touristResults = await Promise.all(
       zones: p.zones,
       now: weatherApi ?? undefined,
       nextDays: dailySummaries,
+      aicHistory: normalized.aicHistory,
     };
     return generateTouristCopy(input);
   }),

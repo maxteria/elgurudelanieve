@@ -1,5 +1,5 @@
 import type { SnowInterpretation, PeriodKey } from '../types';
-import type { DailySummary } from '../weather/types';
+import type { DailySummary, AicStationData } from '../weather/types';
 import type { GuruNpcOutput, GuruMood, GuruCertainty } from './types';
 
 export type GuruCopyInput = {
@@ -15,6 +15,7 @@ export type GuruCopyInput = {
   };
   now?: SnowInterpretation['weatherApi'];
   nextDays?: DailySummary[];
+  aicHistory?: AicStationData[];
 };
 
 const LLM_KEY_ENV = 'OPENROUTER_API_KEY';
@@ -407,6 +408,9 @@ function buildUserPrompt(data: GuruCopyInput): string {
       : null,
     data.nextDays && data.nextDays.length > 0
       ? `Próximos días: ${data.nextDays.map((d) => `${d.weekday}: ${d.totalSnow > 0 ? `${d.totalSnow}cm nieve` : 'sin nieve'} (${d.tempMin}°C/${d.tempMax}°C, ${d.avgWind}km/h viento)`).join(' | ')}`
+      : null,
+    data.aicHistory && data.aicHistory.length > 0
+      ? `Historial AIC (últimos días): ${data.aicHistory.map((r) => `${r.date}: ${r.tempMin}°C/${r.tempMax}°C, humedad ${r.humidity}%, ${r.snowWaterEq !== null && r.snowWaterEq > 0 ? `SWE ${r.snowWaterEq}mm` : 'sin nieve'}`).join(' | ')}`
       : null,
   ]
     .filter(Boolean)

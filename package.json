@@ -21,6 +21,7 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
+    "@supabase/supabase-js": "^2.108.1",
     "@tailwindcss/postcss": "^4.3.0",
     "astro": "^6.3.6",
     "autoprefixer": "^10.5.0",
