@@ -1,4 +1,5 @@
 import type { SnowInterpretation, PeriodKey } from '../types';
+import type { GuruNpcOutput, GuruMood, GuruCertainty } from './types';
 
 export type GuruCopyInput = {
   period: PeriodKey;
@@ -14,18 +15,66 @@ export type GuruCopyInput = {
   now?: SnowInterpretation['weatherApi'];
 };
 
-export type GuruCopyOutput = {
-  touristCopy: string;
-  source: 'ai' | 'fallback';
-};
-
 const GEMINI_KEY_ENV = 'GEMINI_API_KEY';
+
+const VALID_MOODS: GuruMood[] = [
+  'excited',
+  'confident',
+  'cautious',
+  'warning',
+  'neutral',
+];
+
+const VALID_CERTAINTIES: GuruCertainty[] = ['alta', 'media', 'baja'];
 
 function getGeminiKey(): string | undefined {
   return process.env[GEMINI_KEY_ENV];
 }
 
-export function generateFallbackTouristCopy(data: GuruCopyInput): string {
+// ─── JSON Parser ────────────────────────────────────────────────────────────
+
+export function extractJsonGuruResponse(text: string): GuruNpcOutput | null {
+  // Extract the first JSON block { ... } from markdown-wrapped or raw responses
+  const jsonMatch = text.match(/\{[\s\S]*\}/);
+  if (!jsonMatch) return null;
+
+  try {
+    const parsed = JSON.parse(jsonMatch[0]);
+
+    if (
+      typeof parsed.mood !== 'string' ||
+      typeof parsed.certainty !== 'string' ||
+      typeof parsed.message !== 'string'
+    ) {
+      return null;
+    }
+
+    const mood: GuruMood = VALID_MOODS.includes(parsed.mood)
+      ? parsed.mood
+      : 'neutral';
+    const certainty: GuruCertainty = VALID_CERTAINTIES.includes(
+      parsed.certainty,
+    )
+      ? parsed.certainty
+      : 'baja';
+
+    return {
+      mood,
+      certainty,
+      message: parsed.message.trim(),
+      tip: typeof parsed.tip === 'string' ? parsed.tip.trim() : null,
+      source: 'ai',
+    };
+  } catch {
+    return null;
+  }
+}
+
+// ─── Fallback ───────────────────────────────────────────────────────────────
+
+export function generateFallbackNpcMessage(
+  data: GuruCopyInput,
+): GuruNpcOutput {
   const v = data.zones.village.current;
   const m = data.zones.mid.current;
   const t = data.zones.top.current;
@@ -37,115 +86,200 @@ export function generateFallbackTouristCopy(data: GuruCopyInput): string {
 
   // 1. Lluvia abajo / nieve arriba
   if (mixed) {
-    return 'Abajo puede venir más húmedo que blanco, pero arriba la historia mejora. Centro y cumbre tienen mejor pinta para ver nieve.';
+    return {
+      mood: 'cautious',
+      certainty: 'media',
+      message:
+        'Abajo puede venir más húmedo que blanco, pero arriba la historia mejora. Centro y cumbre tienen mejor pinta para ver nieve.',
+      tip: 'Si subís, llevá capa impermeable. Arriba puede estar firme.',
+      source: 'fallback',
+    };
   }
 
   // 2. Viento fuerte
   if (hasWindAlert && mainStatus !== 'no') {
-    return 'Veo viento importante. Puede haber nevada débil, pero el viento complica la experiencia en altura.';
+    return {
+      mood: 'warning',
+      certainty: 'alta',
+      message:
+        'Veo viento importante. Puede haber nevada débil, pero el viento complica la experiencia en altura.',
+      tip: 'Evitá las cotas más expuestas si querés tablar tranquilo.',
+      source: 'fallback',
+    };
   }
 
   // 3. Sin nieve a la vista / cota alta
   if (mainStatus === 'no' && cotaAlta) {
-    return 'Hoy no veo nieve, rider. La montaña está fría pero seca. No te hagas ilusiones todavía: andá encerando la tabla.';
+    return {
+      mood: 'neutral',
+      certainty: 'alta',
+      message:
+        'Hoy no veo nieve, rider. La montaña está fría pero seca. No te hagas ilusiones todavía: andá encerando la tabla.',
+      tip: 'Aprovechá para hacer mantenimiento y estar listo cuando llegue.',
+      source: 'fallback',
+    };
   }
 
   // 4. Frío seco
   if (mainStatus === 'no' && v.precipitation <= 0.2 && v.temp <= 2) {
-    return 'Hace frío y seco, pero sin nieve. Buen día para andar ligero y mirar el cerro desde abajo.';
+    return {
+      mood: 'neutral',
+      certainty: 'alta',
+      message:
+        'Hace frío y seco, pero sin nieve. Buen día para andar ligero y mirar el cerro desde abajo.',
+      tip: 'Si querés recorrer, las vistas están despejadas.',
+      source: 'fallback',
+    };
   }
 
   // 5. Sin nieve a la vista genérico
   if (mainStatus === 'no') {
-    return 'Hoy no veo nevada, la montaña está tranquila. Esperá que llegue moisture o no hay nada que hacer.';
+    return {
+      mood: 'neutral',
+      certainty: 'baja',
+      message:
+        'Hoy no veo nevada, la montaña está tranquila. Esperá que llegue moisture o no hay nada que hacer.',
+      tip: 'Seguí mirando las actualizaciones, Caviahue cambia rápido.',
+      source: 'fallback',
+    };
   }
 
   // 6. Nieve probable (yes)
   if (mainStatus === 'yes' && hasWindow) {
-    return `¡Buena señal! Si estás en Caviahue, mirá la ventana de ${data.bestWindow.from} a ${data.bestWindow.to}: ahí se arma.`;
+    return {
+      mood: 'confident',
+      certainty: 'alta',
+      message: `¡Buena señal! Si estás en Caviahue, mirá la ventana de ${data.bestWindow.from} a ${data.bestWindow.to}: ahí se arma.`,
+      tip: 'Prepará el equipo y estate atento a esa ventana.',
+      source: 'fallback',
+    };
   }
 
   if (mainStatus === 'yes') {
-    return 'Veo nieve posible. Las condiciones se están dando para los que buscan blanco arriba.';
+    return {
+      mood: 'confident',
+      certainty: 'media',
+      message:
+        'Veo nieve posible. Las condiciones se están dando para los que buscan blanco arriba.',
+      tip: 'Monitoreá la ventana de acumulación para afinar el timing.',
+      source: 'fallback',
+    };
   }
 
   // 7. Ventana clara (possible con ventana)
   if (mainStatus === 'possible' && hasWindow) {
-    return `Hay una ventana interesante entre ${data.bestWindow.from} y ${data.bestWindow.to}. Puede pasar algo, pero no guarantees.`;
+    return {
+      mood: 'cautious',
+      certainty: 'media',
+      message: `Hay una ventana interesante entre ${data.bestWindow.from} y ${data.bestWindow.to}. Puede pasar algo, pero no guarantees.`,
+      tip: 'No te confíes, pero estate listo por si se define.',
+      source: 'fallback',
+    };
   }
 
   // 8. Posible nieve sin ventana
   if (mainStatus === 'possible') {
-    return 'Veo señales pero no hay ventana clara. Quedate atento, puede cambiar rápido.';
+    return {
+      mood: 'cautious',
+      certainty: 'baja',
+      message:
+        'Veo señales pero no hay ventana clara. Quedate atento, puede cambiar rápido.',
+      tip: 'Actualizá la página más tarde para ver si se forma ventana.',
+      source: 'fallback',
+    };
   }
 
-  return data.mainAnswer.description;
+  return {
+    mood: 'neutral',
+    certainty: 'baja',
+    message: data.mainAnswer.description,
+    tip: null,
+    source: 'fallback',
+  };
 }
 
+// ─── Gemini Prompt ──────────────────────────────────────────────────────────
+
 function buildSystemPrompt(): string {
-  return `Sos el Gurú de la Nieve de Caviahue, un asistente de montaña que habla claro y con personalidad de rider.
+  return `Sos El Gurú de la Nieve. Un guía de montaña que hace 30 inviernos que mira Caviahue. Conocés cada ladera, cada viento, cada cambio de temperatura.
 
-Tu trabajo es generar un texto turístico corto (máximo 2 frases) basado en el diagnóstico meteorológico que te paso.
+Generá un objeto JSON con esta estructura exacta, sin markdown ni explicaciones adicionales:
+{
+  "mood": "excited" | "confident" | "cautious" | "warning" | "neutral",
+  "certainty": "alta" | "media" | "baja",
+  "message": "2 o 3 oraciones sobre las condiciones de nieve",
+  "tip": "consejo corto y accionable, o null si no aplica"
+}
 
-El texto tiene que responder mentalmente estas preguntas del rider:
-- ¿Vale esperar nieve hoy?
-- ¿Conviene subir?
-- ¿Es día de paseo o de tabla?
-- ¿Dónde tiene más sentido parar: pueblo, centro o cumbre?
+Voz: directa, cálida, con autoridad. Nunca arrogante. Si estás seguro, decilo. Si no, decilo también.
+Hablá siempre en primera persona ("Yo veo...", "No veo...", "Veo...").
+No digas "el Gurú ve..." ni "el Gurú dice...".
+No inventes datos. No contradigas el diagnóstico técnico.
+No prometas nieve si no hay señal clara.
+No uses "garantizado", "imposible", "seguro".
+No uses tecnicismos: freezing level, mm, hPa.
+No inventes horarios fuera de la ventana marcada.
+No inventes acumulación.
 
-Reglas duras:
-- Hablá siempre en primera persona ("Yo veo...", "No veo...", "Veo...")
-- No digas "el Gurú ve..." ni "el Gurú dice..."
-- Usá tono de rider argentino: cercano, directo, un toque de joda
-- No inventes datos.
-- No contradigas el diagnóstico técnico.
-- No prometas nieve si no hay señal clara.
-- No uses "garantizado", "imposible", "seguro"
-- No uses tecnicismos: freezing level, mm, hPa
-- No inventes horarios fuera de la ventana marcada
-- No inventes acumulación
+Códigos WMO de referencia:
+- 0: Cielo despejado
+- 1–3: Mayormente despejado a parcialmente nublado
+- 45–48: Niebla
+- 51–57: Llovizna
+- 61–67: Lluvia
+- 71–77: Nevada
+- 80–82: Chubascos
+- 85–86: Chubascos de nieve
+- 95–99: Tormenta
 
-Estilo:
-- Rider argentino, cercano, con personalidad
-- Español de Argentina
-- Breve, concreto, sin relleno
+Reglas de modulación de mood:
+- powderScore >= 70 y estado de nieve = yes → excited o confident
+- powderScore 35-69 y estado de nieve = possible → cautious
+- powderScore < 35 y estado de nieve = no → neutral
+- Si hay alerta de peligro (viento, etc.) → warning
 
-Ejemplos de los textos que generás:
-- "Hoy no veo nevada, rider. La montaña está fría pero seca. Andá encerando la tabla tranqui."
-- "¡Buena señal! Mirá la ventana de 06:00 a 12:00: ahí se arma."
-- "Abajo puede venir más húmedo que blanco, pero arriba la historia mejora. Centro y cumbre tienen mejor pinta."
-- "Hace frío y seco, pero sin nieve. Buen día para andar ligero y mirar el cerro desde abajo."`;
+Respondé SOLO con el JSON, sin markdown, sin texto adicional.`;
 }
 
 function buildUserPrompt(data: GuruCopyInput): string {
+  const toCm = (m: number | undefined): string => {
+    if (m === undefined || m === null) return 'N/A';
+    return `${Math.round(m * 100)}`;
+  };
   const zoneLines = [
-    `- Pueblo: ${data.zones.village.answer.label} (${data.zones.village.current.temp}°C, ${data.zones.village.current.precipitation}mm precip)`,
-    `- Centro: ${data.zones.mid.answer.label} (${data.zones.mid.current.temp}°C, ${data.zones.mid.current.precipitation}mm precip)`,
-    `- Cumbre: ${data.zones.top.answer.label} (${data.zones.top.current.temp}°C, ${data.zones.top.current.precipitation}mm precip)`,
+    `- Pueblo: ${data.zones.village.answer.label} (${data.zones.village.current.temp}°C, ${data.zones.village.current.precipitation}mm precip, nieve en pista: ${toCm(data.zones.village.current.snowDepth)}cm)`,
+    `- Centro: ${data.zones.mid.answer.label} (${data.zones.mid.current.temp}°C, ${data.zones.mid.current.precipitation}mm precip, nieve en pista: ${toCm(data.zones.mid.current.snowDepth)}cm)`,
+    `- Cumbre: ${data.zones.top.answer.label} (${data.zones.top.current.temp}°C, ${data.zones.top.current.precipitation}mm precip, nieve en pista: ${toCm(data.zones.top.current.snowDepth)}cm)`,
   ].join('\n');
 
   const diagnostics = [
     `Período: ${data.period}`,
     `Estado principal: ${data.mainAnswer.label}`,
     `Score de polvo: ${data.powderScore.value}/100`,
+    `Estado de nieve: ${data.mainAnswer.status}`,
     `Ventana de acumulación: ${data.bestWindow.hasWindow ? `${data.bestWindow.from} a ${data.bestWindow.to}` : 'Sin ventana clara'}`,
-    `Alertas: ${data.alerts.length > 0 ? data.alerts.map((a) => a.message).join('; ') : 'Sin alertas'}`,
+    `Alertas: ${data.alerts.length > 0 ? data.alerts.map((a) => `${a.type}: ${a.message}`).join('; ') : 'Sin alertas'}`,
     data.now
       ? `Ahora en Caviahue: ${data.now.condition}, ${data.now.temp}°C`
+      : null,
+    data.zones.village.current.weatherCode !== undefined
+      ? `Código WMO: ${data.zones.village.current.weatherCode}`
       : null,
   ]
     .filter(Boolean)
     .join('\n');
 
-  return `Generá el texto turístico para el dashboard basado en este diagnóstico:
+  return `Generá el JSON con el mensaje del Gurú basado en este diagnóstico:
 
 ${diagnostics}
 
 Zonas:
 ${zoneLines}
 
-Respondé solo con el texto turístico, sin explicaciones adicionales.`;
+Recordá: SOLO JSON, sin markdown, sin texto alrededor.`;
 }
+
+// ─── Gemini API Call ────────────────────────────────────────────────────────
 
 async function callGemini(
   systemPrompt: string,
@@ -154,7 +288,7 @@ async function callGemini(
 ): Promise<string | null> {
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
 
     const res = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
@@ -165,8 +299,9 @@ async function callGemini(
           system_instruction: { parts: [{ text: systemPrompt }] },
           contents: [{ role: 'user', parts: [{ text: userPrompt }] }],
           generation_config: {
-            maxOutputTokens: 200,
+            maxOutputTokens: 400,
             temperature: 0.7,
+            response_mime_type: 'application/json',
           },
         }),
         signal: controller.signal,
@@ -205,9 +340,11 @@ async function callGemini(
   }
 }
 
-export async function generateTouristCopy(
+// ─── Main Entry Point ───────────────────────────────────────────────────────
+
+export async function generateGuruNpcMessage(
   data: GuruCopyInput,
-): Promise<GuruCopyOutput> {
+): Promise<GuruNpcOutput> {
   const apiKey = getGeminiKey();
 
   if (apiKey) {
@@ -215,12 +352,18 @@ export async function generateTouristCopy(
     const userPrompt = buildUserPrompt(data);
     const result = await callGemini(systemPrompt, userPrompt, apiKey);
     if (result) {
-      return { touristCopy: result, source: 'ai' };
+      const parsed = extractJsonGuruResponse(result);
+      if (parsed) return parsed;
     }
   }
 
-  return { touristCopy: generateFallbackTouristCopy(data), source: 'fallback' };
+  return generateFallbackNpcMessage(data);
 }
+
+// ─── Backward-Compatible Re-export ──────────────────────────────────────────
+
+/** @deprecated Use `generateGuruNpcMessage` instead. */
+export const generateTouristCopy = generateGuruNpcMessage;
 
 export function hasGeminiKey(): boolean {
   return !!getGeminiKey();
