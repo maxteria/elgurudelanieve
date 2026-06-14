@@ -510,6 +510,6 @@ export async function generateGuruNpcMessage(
 /** @deprecated Use `generateGuruNpcMessage` instead. */
 export const generateTouristCopy = generateGuruNpcMessage;
 
-export function hasGeminiKey(): boolean {
+export function hasLlmKey(): boolean {
   return !!getLlmKey();
 }
