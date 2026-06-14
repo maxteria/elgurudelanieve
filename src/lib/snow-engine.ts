@@ -60,11 +60,17 @@ function computeZoneHourly(
       temp: zoneTemp,
       feels_like: Math.round((h.feelsLike - tempDrop) * 10) / 10,
       wind: zoneWind,
+      windDir: h.windDir,
+      cloudCover: h.cloudCover,
+      windGusts: h.windGusts,
       precip: h.precipitation,
-      snow_prob: 0,
+      snow_prob: h.precipitationProbability ?? 0,
       freezing_level: h.freezingLevel,
       humidity: h.humidity,
       snowfall: h.snowfall,
+      snowDepth: h.snowDepth,
+      weatherCode: h.weatherCode,
+      precipitationProbability: h.precipitationProbability,
     };
   });
 }
@@ -301,11 +307,17 @@ export function analyzeWeather(
       temp: -999,
       feels_like: -999,
       wind: 0,
+      windDir: 0,
+      cloudCover: 0,
+      windGusts: 0,
       precip: 0,
       snow_prob: 0,
       freezing_level: 9999,
       humidity: 0,
       snowfall: 0,
+      snowDepth: 0,
+      weatherCode: 0,
+      precipitationProbability: 0,
     };
 
     return {
@@ -320,6 +332,9 @@ export function analyzeWeather(
         snowChance: current.snow_prob,
         freezingLevel: current.freezing_level,
         humidity: current.humidity,
+        snowDepth: current.snowDepth,
+        precipitationProbability: current.precipitationProbability,
+        weatherCode: current.weatherCode,
       },
       answer,
       alerts,

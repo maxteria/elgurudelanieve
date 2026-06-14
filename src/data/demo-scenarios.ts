@@ -41,6 +41,9 @@ function makeBaseHourly(
       windGusts: Math.round(wind * 1.4 * 10) / 10,
       humidity: Math.round(humidity),
       cloudCover: precip > 0 ? 80 : 40,
+      snowDepth: precip > 0 ? 0.35 : 0.05,
+      weatherCode: precip > 0 ? 71 : 0,
+      precipitationProbability: precip > 0 ? snowProb : 0,
     });
   }
   return hourly;
@@ -74,6 +77,9 @@ function makeForecast(
       snowChance: precip > 0 && freezingLevel <= altitude + 150 ? 80 : 0,
       freezingLevel,
       humidity: first.humidity,
+      snowDepth: first.snowDepth,
+      weatherCode: first.weatherCode,
+      precipitationProbability: first.precipitationProbability,
     };
   }
 

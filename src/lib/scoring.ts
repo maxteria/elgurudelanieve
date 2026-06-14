@@ -1,4 +1,4 @@
-import { HourlyForecast, PowderScoreResult } from './types';
+import type { HourlyForecast, PowderScoreResult } from './types';
 
 export function calculatePowderScore(
   forecast: HourlyForecast[],
@@ -31,6 +31,12 @@ export function calculatePowderScore(
     else if (h.wind > 30 && h.wind <= 40) score += 4;
     // Wind penalty: too strong
     if (h.wind > 45) score -= 10;
+    // Wind direction bonus: SW through W (180°–315°) → +15
+    if (h.windDir >= 180 && h.windDir <= 315) score += 15;
+    // Cloud cover bonus: >60% → +10
+    if (h.cloudCover > 60) score += 10;
+    // Wind gusts penalty: >50 km/h → −8
+    if (h.windGusts > 50) score -= 8;
     // Warm penalty
     if (h.temp >= 3) score -= 5;
     if (score < 0) score = 0;
