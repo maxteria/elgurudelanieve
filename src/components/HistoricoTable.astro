@@ -25,7 +25,7 @@ const hasEntries = entries.length > 0;
         class="w-full min-w-[520px] text-[9px] border-collapse"
       >
         <thead>
-          <tr class="text-muted font-medium tracking-[0.1em] uppercase border-b border-subtle">
+          <tr class="text-text-muted font-medium tracking-[0.1em] uppercase border-b border-border-subtle">
             <th class="text-left px-3 py-2 font-medium">Fecha</th>
             <th class="text-right px-3 py-2 font-medium">Temp Mín/Máx</th>
             <th class="text-right px-3 py-2 font-medium">Humedad</th>
@@ -53,25 +53,25 @@ const hasEntries = entries.length > 0;
                   : guruSnippet;
 
               return (
-                <tr class="border-b border-subtle hover:bg-surface-subtle transition-colors">
-                  <td class="px-3 py-2.5 text-primary font-semibold whitespace-nowrap">
+                <tr class="border-b border-border-subtle hover:bg-surface-subtle transition-colors">
+                  <td class="px-3 py-2.5 text-text-primary font-semibold whitespace-nowrap">
                     {formatDateShort(entry.date)}
                   </td>
-                  <td class="px-3 py-2.5 text-right text-primary font-semibold tabular-nums whitespace-nowrap">
+                  <td class="px-3 py-2.5 text-right text-text-primary font-semibold tabular-nums whitespace-nowrap">
                     {entry.tempMin ?? '--'}° / {entry.tempMax ?? '--'}°
                   </td>
-                  <td class="px-3 py-2.5 text-right text-secondary tabular-nums whitespace-nowrap">
+                  <td class="px-3 py-2.5 text-right text-text-secondary tabular-nums whitespace-nowrap">
                     {humidity}
                   </td>
-                  <td class="px-3 py-2.5 text-right text-secondary tabular-nums whitespace-nowrap">
+                  <td class="px-3 py-2.5 text-right text-text-secondary tabular-nums whitespace-nowrap">
                     {windKmh}
                   </td>
-                  <td class="px-3 py-2.5 text-right text-secondary tabular-nums whitespace-nowrap">
+                  <td class="px-3 py-2.5 text-right text-text-secondary tabular-nums whitespace-nowrap">
                     {swe}
                   </td>
-                  <td class="px-3 py-2.5 text-muted max-w-[160px] truncate">
+                  <td class="px-3 py-2.5 text-text-muted max-w-[160px] truncate">
                     {guruText ?? (
-                      <span class="italic text-faint">Sin mensaje</span>
+                      <span class="italic text-text-faint">Sin mensaje</span>
                     )}
                   </td>
                 </tr>
@@ -83,10 +83,9 @@ const hasEntries = entries.length > 0;
     </div>
   ) : (
     <div class="text-center py-8">
-      <p class="text-[11px] text-muted italic">
+      <p class="text-[11px] text-text-muted italic">
         No hay datos históricos disponibles
       </p>
     </div>
   )
 }
-

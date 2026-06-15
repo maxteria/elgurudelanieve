@@ -50,11 +50,11 @@ function isActive(key: string) {
 ---
 
 <aside
-  class="hidden md:flex flex-col w-[180px] min-h-screen bg-surface-elevated border-r border-subtle text-hielo shrink-0"
+  class="hidden md:flex flex-col w-[180px] min-h-screen bg-surface-elevated border-r border-border-subtle text-hielo shrink-0"
 >
   <div class="flex flex-col items-start px-4 pt-6 pb-4">
     <h2
-      class="text-[8px] font-bold tracking-[0.28em] uppercase text-muted mb-4"
+      class="text-[8px] font-bold tracking-[0.28em] uppercase text-text-muted mb-4"
     >
       Estación 2026
     </h2>
@@ -66,7 +66,7 @@ function isActive(key: string) {
       />
       <div class="leading-tight">
         <div
-          class="text-primary text-sm font-extrabold tracking-[0.1em] leading-none"
+          class="text-text-primary text-sm font-extrabold tracking-[0.1em] leading-none"
         >
           EL GURÚ
         </div>
@@ -75,7 +75,7 @@ function isActive(key: string) {
         >
           DE LA NIEVE
         </div>
-        <div class="text-muted text-[8px] tracking-[0.2em] mt-2">
+        <div class="text-text-muted text-[8px] tracking-[0.2em] mt-2">
           CAVIAHUE
         </div>
       </div>
@@ -91,7 +91,7 @@ function isActive(key: string) {
           class={`block px-2 py-1.5 rounded-lg transition-colors ${
             isActive(item.key)
               ? 'text-hielo/80 font-semibold bg-hielo/[0.06]'
-              : 'text-muted hover:text-secondary'
+              : 'text-text-muted hover:text-text-secondary'
           }`}
         >
           {item.label}
@@ -104,13 +104,13 @@ function isActive(key: string) {
       <span class={`text-[7px] tracking-[0.2em] uppercase font-medium ${sl[2]}`}
         >{sl[0]}</span
       >
-      <span class="text-[6px] text-faint">·</span>
-      <span class="text-[7px] text-muted">{sl[1]}</span>
+      <span class="text-[6px] text-text-faint">·</span>
+      <span class="text-[7px] text-text-muted">{sl[1]}</span>
     </div>
     {
       updated && (
-        <div class="text-[10px] text-faint leading-relaxed">
-          <div class="text-muted">Actualizado</div>
+        <div class="text-[10px] text-text-faint leading-relaxed">
+          <div class="text-text-muted">Actualizado</div>
           <div class="text-hielo/30 font-mono tracking-tight">
             {updatedLabel}
           </div>
@@ -120,7 +120,7 @@ function isActive(key: string) {
     {
       weatherApi && (
         <div
-          class="text-[6px] text-faint leading-relaxed tracking-[0.1em] pt-1"
+          class="text-[6px] text-text-faint leading-relaxed tracking-[0.1em] pt-1"
           title="Fuentes de datos"
         >
           Ahora: WeatherAPI · Pronóstico: Open-Meteo
@@ -129,4 +129,3 @@ function isActive(key: string) {
     }
   </div>
 </aside>
-

@@ -125,7 +125,7 @@ const defaultRest = defaultFiltered.slice(3);
           <div class="w-1.5 h-1.5 rounded-full bg-hielo/40"></div>
           <span
             id="hc-range-label"
-            class="text-[8px] text-muted tracking-[0.2em] uppercase font-medium"
+            class="text-[8px] text-text-muted tracking-[0.2em] uppercase font-medium"
           >
             Mostrando {defaultFiltered.length} días
           </span>
@@ -139,7 +139,7 @@ const defaultRest = defaultFiltered.slice(3);
                 class={`text-[9px] px-2 py-1 rounded-full transition-colors ${
                   isDefault
                     ? 'bg-hielo/[0.1] text-hielo/70 font-semibold'
-                    : 'text-muted hover:text-secondary hover:bg-surface-subtle'
+                    : 'text-text-muted hover:text-text-secondary hover:bg-surface-subtle'
                 }`}
                 data-days={days}
               >
@@ -171,11 +171,11 @@ const defaultRest = defaultFiltered.slice(3);
             <div>
               <div class="flex items-center gap-2 mb-3">
                 <div class="w-1 h-1 rounded-full text-faint" style="background:var(--text-faint)"></div>
-                <span class="text-[8px] text-faint tracking-[0.2em] uppercase font-medium">
+                <span class="text-[8px] text-text-faint tracking-[0.2em] uppercase font-medium">
                   Registro completo
                 </span>
               </div>
-              <div class="bg-surface border border-subtle rounded-xl overflow-hidden">
+              <div class="bg-surface border border-border-subtle rounded-xl overflow-hidden">
                 <HistoricoTable entries={defaultRest} />
               </div>
             </div>
@@ -196,8 +196,8 @@ const defaultRest = defaultFiltered.slice(3);
           <polyline points="12 6 12 12 16 14"></polyline>
         </svg>
       </div>
-      <p class="text-[13px] text-muted font-medium mb-1">No hay datos históricos</p>
-      <p class="text-[10px] text-faint">Los datos aparecerán cuando el Gurú acumule lecturas.</p>
+      <p class="text-[13px] text-text-muted font-medium mb-1">No hay datos históricos</p>
+      <p class="text-[10px] text-text-faint">Los datos aparecerán cuando el Gurú acumule lecturas.</p>
     </div>
   )
 }
@@ -333,29 +333,29 @@ const defaultRest = defaultFiltered.slice(3);
         var h = fmtHumidity(e.aic);
         var s = fmtSwe(e.swe);
         var guruMsg = e.guru && e.guru.message
-          ? '<p class="text-[10px] text-secondary leading-relaxed line-clamp-2">' +
+          ? '<p class="text-[10px] text-text-secondary leading-relaxed line-clamp-2">' +
             escapeHtml(e.guru.message) +
             '</p>'
-          : '<p class="text-[9px] text-faint italic">Sin mensaje del Gur\u00fa</p>';
+          : '<p class="text-[9px] text-text-faint italic">Sin mensaje del Gur\u00fa</p>';
         return (
-          '<div class="bg-surface border border-subtle rounded-xl p-4 shadow-[0_4px_20px_rgba(0,0,0,0.35)] flex flex-col h-full">' +
+          '<div class="bg-surface border border-border-subtle rounded-xl p-4 shadow-[0_4px_20px_rgba(0,0,0,0.35)] flex flex-col h-full">' +
           '<div class="mb-2">' +
-          '<h3 class="text-[11px] font-semibold text-primary capitalize leading-tight">' +
+          '<h3 class="text-[11px] font-semibold text-text-primary capitalize leading-tight">' +
           fmtDateLong(e.date) +
           '</h3></div>' +
           '<div class="space-y-1 mb-1.5">' +
-          '<div class="flex items-center justify-between text-[9px]"><span class="text-muted">Temp</span><span class="text-primary font-semibold tabular-nums">' +
+          '<div class="flex items-center justify-between text-[9px]"><span class="text-text-muted">Temp</span><span class="text-text-primary font-semibold tabular-nums">' +
           (e.tempMin != null ? e.tempMin : '--') +
           '\u00b0 / ' +
           (e.tempMax != null ? e.tempMax : '--') +
           '\u00b0</span></div>' +
-          '<div class="flex items-center justify-between text-[9px]"><span class="text-muted">Humedad</span><span class="text-primary font-semibold tabular-nums">' +
+          '<div class="flex items-center justify-between text-[9px]"><span class="text-text-muted">Humedad</span><span class="text-text-primary font-semibold tabular-nums">' +
           (h || '--') +
           '</span></div>' +
-          '<div class="flex items-center justify-between text-[9px]"><span class="text-muted">Viento</span><span class="text-primary font-semibold tabular-nums">' +
+          '<div class="flex items-center justify-between text-[9px]"><span class="text-text-muted">Viento</span><span class="text-text-primary font-semibold tabular-nums">' +
           (w || '--') +
           '</span></div>' +
-          '<div class="flex items-center justify-between text-[9px]"><span class="text-muted">SWE (nieve)</span><span class="text-primary font-semibold tabular-nums">' +
+          '<div class="flex items-center justify-between text-[9px]"><span class="text-text-muted">SWE (nieve)</span><span class="text-text-primary font-semibold tabular-nums">' +
           (s || '--') +
           '</span></div>' +
           '</div>' +
@@ -378,27 +378,27 @@ const defaultRest = defaultFiltered.slice(3);
         var guruText = fmtGuruSnippet(e.guru);
         return (
           '<tr class="border-b border-faint hover:bg-surface-subtle transition-colors">' +
-          '<td class="px-3 py-2.5 text-primary font-semibold whitespace-nowrap">' +
+          '<td class="px-3 py-2.5 text-text-primary font-semibold whitespace-nowrap">' +
           fmtDateShort(e.date) +
           '</td>' +
-          '<td class="px-3 py-2.5 text-right text-primary font-semibold tabular-nums whitespace-nowrap">' +
+          '<td class="px-3 py-2.5 text-right text-text-primary font-semibold tabular-nums whitespace-nowrap">' +
           (e.tempMin != null ? e.tempMin : '--') +
           '\u00b0 / ' +
           (e.tempMax != null ? e.tempMax : '--') +
           '\u00b0</td>' +
-          '<td class="px-3 py-2.5 text-right text-secondary tabular-nums whitespace-nowrap">' +
+          '<td class="px-3 py-2.5 text-right text-text-secondary tabular-nums whitespace-nowrap">' +
           (h || '--') +
           '</td>' +
-          '<td class="px-3 py-2.5 text-right text-secondary tabular-nums whitespace-nowrap">' +
+          '<td class="px-3 py-2.5 text-right text-text-secondary tabular-nums whitespace-nowrap">' +
           (w || '--') +
           '</td>' +
-          '<td class="px-3 py-2.5 text-right text-secondary tabular-nums whitespace-nowrap">' +
+          '<td class="px-3 py-2.5 text-right text-text-secondary tabular-nums whitespace-nowrap">' +
           (s || '--') +
           '</td>' +
-          '<td class="px-3 py-2.5 text-muted max-w-[160px] truncate">' +
+          '<td class="px-3 py-2.5 text-text-muted max-w-[160px] truncate">' +
           (guruText
             ? escapeHtml(guruText)
-            : '<span class="italic text-faint">Sin mensaje</span>') +
+            : '<span class="italic text-text-faint">Sin mensaje</span>') +
           '</td>' +
           '</tr>'
         );
@@ -409,12 +409,12 @@ const defaultRest = defaultFiltered.slice(3);
       '<div>' +
       '<div class="flex items-center gap-2 mb-3">' +
       '<div class="w-1 h-1 rounded-full" style="background:var(--text-faint)"></div>' +
-      '<span class="text-[8px] text-faint tracking-[0.2em] uppercase font-medium">Registro completo</span>' +
+      '<span class="text-[8px] text-text-faint tracking-[0.2em] uppercase font-medium">Registro completo</span>' +
       '</div>' +
       '<div class="overflow-x-auto -mx-4 md:mx-0">' +
       '<table class="w-full min-w-[520px] text-[9px] border-collapse">' +
       '<thead>' +
-      '<tr class="text-muted font-medium tracking-[0.1em] uppercase border-b border-subtle">' +
+      '<tr class="text-text-muted font-medium tracking-[0.1em] uppercase border-b border-border-subtle">' +
       '<th class="text-left px-3 py-2 font-medium">Fecha</th>' +
       '<th class="text-right px-3 py-2 font-medium">Temp M\u00edn/M\u00e1x</th>' +
       '<th class="text-right px-3 py-2 font-medium">Humedad</th>' +
@@ -564,10 +564,10 @@ const defaultRest = defaultFiltered.slice(3);
       .join('');
 
     return (
-      '<div class="bg-surface border border-subtle rounded-xl p-3 shadow-[0_4px_20px_rgba(0,0,0,0.35)] mb-6">' +
+      '<div class="bg-surface border border-border-subtle rounded-xl p-3 shadow-[0_4px_20px_rgba(0,0,0,0.35)] mb-6">' +
       '<div class="flex items-center gap-2 mb-2">' +
       '<div class="w-1.5 h-1.5 rounded-full bg-hielo/40"></div>' +
-      '<span class="text-[8px] text-muted tracking-[0.2em] uppercase font-medium">Nieve acumulada (SWE)</span>' +
+      '<span class="text-[8px] text-text-muted tracking-[0.2em] uppercase font-medium">Nieve acumulada (SWE)</span>' +
       '</div>' +
       '<svg viewBox="0 0 ' +
       cw +
@@ -665,4 +665,3 @@ const defaultRest = defaultFiltered.slice(3);
   }
 })();
 </script>
-

@@ -19,7 +19,7 @@ function isActive(key: string) {
 ---
 
 <header
-  class="fixed top-0 left-0 right-0 z-50 bg-surface-elevated border-b border-subtle backdrop-blur-md"
+  class="fixed top-0 left-0 right-0 z-50 bg-surface-elevated border-b border-border-subtle backdrop-blur-md"
 >
   <div class="flex items-center justify-between h-12 px-4">
     <div class="flex items-center gap-2.5">
@@ -28,11 +28,11 @@ function isActive(key: string) {
         alt="El Gurú de la Nieve"
         class="w-6 h-6 shrink-0"
       />
-      <span class="text-[10px] font-extrabold tracking-[0.18em] text-secondary"
+      <span class="text-[10px] font-extrabold tracking-[0.18em] text-text-secondary"
         >EL GURÚ</span
       >
       <span
-        class="hidden md:inline text-[7px] text-faint tracking-[0.2em] ml-0.5"
+        class="hidden md:inline text-[7px] text-text-faint tracking-[0.2em] ml-0.5"
         >DE LA NIEVE</span
       >
     </div>
@@ -49,7 +49,7 @@ function isActive(key: string) {
             class={`text-[9px] uppercase tracking-[0.15em] font-semibold px-2.5 py-1 rounded-md transition-colors ${
               isActive(item.key)
                 ? 'text-hielo/90 bg-hielo/[0.08]'
-                : 'text-muted hover:text-secondary'
+                : 'text-text-muted hover:text-text-secondary'
             }`}
           >
             {item.label}
@@ -59,12 +59,12 @@ function isActive(key: string) {
     </nav>
 
     <div class="flex items-center gap-3">
-      <span class="hidden md:block text-[7px] text-faint tracking-[0.2em]"
+      <span class="hidden md:block text-[7px] text-text-faint tracking-[0.2em]"
         >Estación 2026</span
       >
       <button
         id="theme-toggle"
-        class="w-8 h-8 flex items-center justify-center rounded-lg text-secondary hover:text-primary transition-colors"
+        class="w-8 h-8 flex items-center justify-center rounded-lg text-text-secondary hover:text-text-primary transition-colors"
         aria-label="Cambiar tema"
       >
         <svg id="icon-sun" class="hidden w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
@@ -84,7 +84,7 @@ function isActive(key: string) {
       </button>
       <button
         id="mobile-menu-btn"
-        class="md:hidden w-9 h-9 flex items-center justify-center rounded-lg text-secondary hover:text-primary transition-colors"
+        class="md:hidden w-9 h-9 flex items-center justify-center rounded-lg text-text-secondary hover:text-text-primary transition-colors"
         aria-label="Abrir menú"
         aria-expanded="false"
         aria-controls="mobile-drawer"
@@ -136,7 +136,7 @@ function isActive(key: string) {
           class={`block px-3 py-3 rounded-lg text-[11px] uppercase tracking-[0.15em] font-semibold transition-colors ${
             isActive(item.key)
               ? 'text-hielo bg-hielo/[0.08]'
-              : 'text-muted hover:text-secondary'
+              : 'text-text-muted hover:text-text-secondary'
           }`}
         >
           {item.label}
@@ -144,11 +144,11 @@ function isActive(key: string) {
       ))
     }
   </nav>
-  <div class="px-6 pt-4 pb-8 space-y-2 border-t border-subtle">
-    <div class="text-[7px] text-faint tracking-[0.25em] uppercase">
+  <div class="px-6 pt-4 pb-8 space-y-2 border-t border-border-subtle">
+    <div class="text-[7px] text-text-faint tracking-[0.25em] uppercase">
       Estación 2026
     </div>
-    <div class="text-[8px] text-muted tracking-wide">
+    <div class="text-[8px] text-text-muted tracking-wide">
       Open-Meteo · WeatherAPI
     </div>
   </div>
@@ -245,4 +245,3 @@ function isActive(key: string) {
   initMobileNav();
   initThemeToggle();
 </script>
-

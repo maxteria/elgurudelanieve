@@ -170,7 +170,7 @@ const zoneHourlyTomorrow = buildZoneHourly('tomorrow');
     </script>
   </head>
   <body
-    class="text-primary min-h-screen antialiased font-premium overflow-x-hidden transition-colors duration-300"
+    class="text-text-primary min-h-screen antialiased font-premium overflow-x-hidden transition-colors duration-300"
   >
     <MobileNav activeSection="lab" />
     <main class="min-h-screen pt-12 px-4 md:px-8 pb-8">
@@ -185,7 +185,7 @@ const zoneHourlyTomorrow = buildZoneHourly('tomorrow');
 
       <a
         href="/"
-        class="inline-flex items-center gap-1.5 text-[9px] text-muted hover:text-hielo/50 transition-colors tracking-[0.15em] uppercase font-medium mb-6 group"
+        class="inline-flex items-center gap-1.5 text-[9px] text-text-muted hover:text-hielo/50 transition-colors tracking-[0.15em] uppercase font-medium mb-6 group"
       >
         <svg
           width="12"
@@ -206,18 +206,18 @@ const zoneHourlyTomorrow = buildZoneHourly('tomorrow');
           >EL GURÚ LAB</span
         >
         <h1
-          class="text-2xl md:text-3xl font-extrabold text-primary tracking-[-0.02em] mt-1"
+          class="text-2xl md:text-3xl font-extrabold text-text-primary tracking-[-0.02em] mt-1"
         >
           Los instrumentos con los que miro la montaña.
         </h1>
-        <p class="text-[11px] text-muted mt-1.5 leading-relaxed max-w-xl">
+        <p class="text-[11px] text-text-muted mt-1.5 leading-relaxed max-w-xl">
           Temperatura, cota, viento, humedad y señales de nieve para entender
           por qué el Gurú dice lo que dice.
         </p>
       </div>
       <div class="flex items-center gap-4 mb-5 overflow-x-auto scrollbar-none">
         <span
-          class="text-[8px] text-faint tracking-[0.3em] uppercase font-medium shrink-0"
+          class="text-[8px] text-text-faint tracking-[0.3em] uppercase font-medium shrink-0"
           >Período</span
         >
         <div class="flex gap-1.5 text-[8px]">
@@ -226,7 +226,7 @@ const zoneHourlyTomorrow = buildZoneHourly('tomorrow');
               const labels = ['Hoy', 'Mañana', '7 días'];
               return (
                 <span
-                  class={`period-tab ${i === 0 ? 'text-hielo/70 font-semibold bg-hielo/[0.06] px-2.5 py-1 rounded-full'                   : 'text-muted px-2 py-1'}`}
+                  class={`period-tab ${i === 0 ? 'text-hielo/70 font-semibold bg-hielo/[0.06] px-2.5 py-1 rounded-full'                   : 'text-text-muted px-2 py-1'}`}
                   data-period={key}
                 >
                   {labels[i]}
@@ -267,7 +267,7 @@ const zoneHourlyTomorrow = buildZoneHourly('tomorrow');
             >
             </div>
             <span
-              class="text-[8px] text-faint tracking-[0.22em] uppercase font-medium"
+              class="text-[8px] text-text-faint tracking-[0.22em] uppercase font-medium"
               >LECTURA POR ALTURA</span
             >
             <div class="flex-1 h-[1px]" style="background:var(--border-faint)"></div>
@@ -285,10 +285,10 @@ const zoneHourlyTomorrow = buildZoneHourly('tomorrow');
         />
 
         <div
-          class="bg-surface border border-subtle rounded-lg px-3 py-2"
+          class="bg-surface border border-border-subtle rounded-lg px-3 py-2"
         >
           <span
-            class="text-[6px] text-faint tracking-[0.25em] uppercase font-medium"
+            class="text-[6px] text-text-faint tracking-[0.25em] uppercase font-medium"
             >Interpretación automática</span
           >
           <GuruSummary summary={result.guruSummary} />
@@ -297,19 +297,19 @@ const zoneHourlyTomorrow = buildZoneHourly('tomorrow');
         {
           normalized.aicHistory && normalized.aicHistory.length > 0 ? (
             <div
-              class="bg-surface border border-subtle rounded-lg px-3 py-2"
+              class="bg-surface border border-border-subtle rounded-lg px-3 py-2"
             >
               <div class="flex items-center gap-2 mb-2">
                 <div class="w-1 h-3 bg-gradient-to-b from-white/10 to-white/5 rounded-full"></div>
                 <span
-                  class="text-[6px] text-faint tracking-[0.25em] uppercase font-medium"
+                  class="text-[6px] text-text-faint tracking-[0.25em] uppercase font-medium"
                   >Historial AIC</span
                 >
               </div>
               <div class="max-h-64 overflow-y-auto">
                 <table class="w-full text-[9px]">
                   <thead>
-                    <tr class="text-muted border-b border-subtle">
+                    <tr class="text-text-muted border-b border-border-subtle">
                       <th class="text-left py-1 pr-2 font-medium">Fecha</th>
                       <th class="text-right px-1 font-medium">Precip.</th>
                       <th class="text-right px-1 font-medium">Humedad</th>
@@ -336,37 +336,37 @@ const zoneHourlyTomorrow = buildZoneHourly('tomorrow');
                               ]
                             : null;
                         return (
-                          <tr class="border-b border-subtle hover:bg-surface-subtle">
-                            <td class="py-1 pr-2 text-primary">{dateStr}</td>
-                            <td class="text-right px-1 text-secondary tabular-nums">
+                          <tr class="border-b border-border-subtle hover:bg-surface-subtle">
+                            <td class="py-1 pr-2 text-text-primary">{dateStr}</td>
+                            <td class="text-right px-1 text-text-secondary tabular-nums">
                               {entry.precipitation != null
                                 ? `${entry.precipitation} mm`
                                 : '--'}
                             </td>
-                            <td class="text-right px-1 text-secondary tabular-nums">
+                            <td class="text-right px-1 text-text-secondary tabular-nums">
                               {entry.humidity != null
                                 ? `${entry.humidity}%`
                                 : '--'}
                             </td>
-                            <td class="text-right px-1 text-secondary tabular-nums">
+                            <td class="text-right px-1 text-text-secondary tabular-nums">
                               {entry.tempMin != null
                                 ? `${entry.tempMin}\u00b0C`
                                 : '--'}
                             </td>
-                            <td class="text-right px-1 text-secondary tabular-nums">
+                            <td class="text-right px-1 text-text-secondary tabular-nums">
                               {entry.tempMax != null
                                 ? `${entry.tempMax}\u00b0C`
                                 : '--'}
                             </td>
-                            <td class="text-right px-1 text-secondary tabular-nums">
+                            <td class="text-right px-1 text-text-secondary tabular-nums">
                               {entry.windSpeed != null
                                 ? `${entry.windSpeed} km/h`
                                 : '--'}
                             </td>
-                            <td class="text-right pl-1 text-muted tabular-nums">
+                            <td class="text-right pl-1 text-text-muted tabular-nums">
                               {compassDir ?? '--'}
                             </td>
-                            <td class="text-right pl-1 text-secondary tabular-nums">
+                            <td class="text-right pl-1 text-text-secondary tabular-nums">
                               {entry.snowWaterEq != null
                                 ? `${entry.snowWaterEq} mm`
                                 : '--'}
@@ -381,16 +381,16 @@ const zoneHourlyTomorrow = buildZoneHourly('tomorrow');
             </div>
           ) : (
             <div
-              class="bg-surface border border-subtle rounded-lg px-3 py-2"
+              class="bg-surface border border-border-subtle rounded-lg px-3 py-2"
             >
               <div class="flex items-center gap-2 mb-2">
                 <div class="w-1 h-3 bg-gradient-to-b from-white/10 to-white/5 rounded-full"></div>
                 <span
-                  class="text-[6px] text-faint tracking-[0.25em] uppercase font-medium"
+                  class="text-[6px] text-text-faint tracking-[0.25em] uppercase font-medium"
                   >Historial AIC</span
                 >
               </div>
-              <p class="text-muted text-[10px]">Sin datos hist&oacute;ricos</p>
+              <p class="text-text-muted text-[10px]">Sin datos hist&oacute;ricos</p>
             </div>
           )
         }
@@ -571,7 +571,7 @@ const zoneHourlyTomorrow = buildZoneHourly('tomorrow');
         var isActive = t.dataset.period === periodKey;
         t.className = isActive
           ? 'period-tab text-hielo/70 font-semibold bg-hielo/[0.06] px-2 py-0.5 rounded-full'
-          : 'period-tab text-muted px-1.5 py-0.5';
+          : 'period-tab text-text-muted px-1.5 py-0.5';
       });
       var charts = document.querySelectorAll('.period-chart');
       charts.forEach(function (c) {
@@ -634,4 +634,3 @@ const zoneHourlyTomorrow = buildZoneHourly('tomorrow');
     });
   })();
 </script>
-
