@@ -6,7 +6,6 @@ import type {
 } from './types';
 import type { SMNCurrent } from './smn';
 import type { DemoScenario } from '../../data/demo-scenarios';
-import type { Resort } from '../../data/resorts';
 import { fetchOpenMeteo, CAVIAHUE_COORDS } from './open-meteo-api';
 import { normalizeOpenMeteoResponse } from './normalize-weather';
 import {
@@ -39,14 +38,15 @@ function resolveMode(mode?: WeatherMode): WeatherMode {
   return 'real';
 }
 
-async function fetchWeatherAPICurrent(
-  lat: number = CAVIAHUE_COORDS.lat,
-  lon: number = CAVIAHUE_COORDS.lon,
-): Promise<WeatherAPICurrent | null> {
+async function fetchWeatherAPICurrent(): Promise<WeatherAPICurrent | null> {
   const apiKey = getWeatherAPIKey();
   if (!apiKey) return null;
   try {
-    const raw = await fetchWeatherAPI(lat, lon, apiKey);
+    const raw = await fetchWeatherAPI(
+      CAVIAHUE_COORDS.lat,
+      CAVIAHUE_COORDS.lon,
+      apiKey,
+    );
     const current = normalizeWeatherAPI(raw);
     console.info(
       `[WeatherSource] WeatherAPI: ${current.temp}°C, ${current.condition}`,
@@ -74,15 +74,8 @@ function logTemperatureDiff(
 export async function getWeatherData(options?: {
   mode?: WeatherMode;
   scenario?: DemoScenario;
-  resort?: Resort;
 }): Promise<WeatherResult> {
   const activeMode = resolveMode(options?.mode);
-  
-  // Use resort coords if provided, otherwise default to Caviahue
-  const coords = options?.resort?.coords ?? CAVIAHUE_COORDS;
-  const resortName = options?.resort?.name ?? 'Caviahue';
-  
-  console.info(`[WeatherSource] Fetching weather for ${resortName}`);
 
   // SMN data fetched but not currently used - kept for future reference
   // const smn = await fetchSMNCurrent();
@@ -96,7 +89,7 @@ export async function getWeatherData(options?: {
     console.info(
       `[WeatherSource] Demo mode active — scenario: ${scenarioLabel}`,
     );
-    const weatherApi = await fetchWeatherAPICurrent(coords.lat, coords.lon);
+    const weatherApi = await fetchWeatherAPICurrent();
     if (weatherApi) logTemperatureDiff(weatherApi, normalized);
     if (smn && normalized) {
       const cmp = compareSources(smn, weatherApi, normalized);
@@ -107,7 +100,7 @@ export async function getWeatherData(options?: {
 
   try {
     const [raw, weatherApi, aicData] = await Promise.all([
-      fetchOpenMeteo(coords.lat, coords.lon, {
+      fetchOpenMeteo(CAVIAHUE_COORDS.lat, CAVIAHUE_COORDS.lon, {
         forecastDays: 16,
       }),
       fetchWeatherAPICurrent(),
@@ -172,7 +165,7 @@ export async function getWeatherData(options?: {
       err,
     );
     const normalized = getDemoScenarioData('seco');
-    const weatherApi = await fetchWeatherAPICurrent(coords.lat, coords.lon);
+    const weatherApi = await fetchWeatherAPICurrent();
     if (weatherApi) logTemperatureDiff(weatherApi, normalized);
     if (smn && normalized) {
       const cmp = compareSources(smn, weatherApi, normalized);

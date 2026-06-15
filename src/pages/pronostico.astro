@@ -8,11 +8,11 @@ import {
 import { analyzeAllPeriods } from '../lib/period-engine';
 import { getSevenDayForecast } from '../lib/forecast-periods';
 import { isValidScenario } from '../data/demo-scenarios';
-import { getResortFromParams, RESORTS } from '../data/resorts';
 import MobileNav from '../components/MobileNav.astro';
 
 // Import utilities from lib
 import {
+  ZONE_CONFIG,
   buildDaysData,
   getGuruCopy,
   ROWS,
@@ -32,9 +32,6 @@ import {
 } from '../lib/pronostico';
 
 const params = Astro.url.searchParams;
-const currentResort = getResortFromParams(params);
-const resortList = Object.values(RESORTS);
-
 const demoParam = params.get('demo');
 const activeScenario: DemoScenario | undefined = isValidScenario(demoParam)
   ? demoParam
@@ -48,41 +45,32 @@ const activeMode: WeatherMode = queryMode ?? envMode ?? 'real';
 const { normalized, weatherApi, source } = await getWeatherData({
   mode: activeMode,
   scenario: activeScenario,
-  resort: currentResort,
 });
-
-// Use resort-specific zone config
-const zoneConfig = {
-  village: { altitude: currentResort.zones.base, label: 'Base' },
-  mid: { altitude: currentResort.zones.mid, label: 'Medio' },
-  top: { altitude: currentResort.zones.top, label: 'Cumbre' },
-};
-
 const periods = analyzeAllPeriods(normalized);
 const isDemo = source === 'mock-demo';
 
 const dailySummaries = getSevenDayForecast(normalized.hourly);
 
-// Build data for each zone using resort altitudes
+// Build data for each zone
 const villageDays = buildDaysData(
   dailySummaries,
   normalized.hourly,
-  zoneConfig.village.altitude,
+  ZONE_CONFIG.village.altitude,
 );
 const midDays = buildDaysData(
   dailySummaries,
   normalized.hourly,
-  zoneConfig.mid.altitude,
+  ZONE_CONFIG.mid.altitude,
 );
 const topDays = buildDaysData(
   dailySummaries,
   normalized.hourly,
-  zoneConfig.top.altitude,
+  ZONE_CONFIG.top.altitude,
 );
 
-const villageGuru = getGuruCopy(villageDays, zoneConfig.village.label);
-const midGuru = getGuruCopy(midDays, zoneConfig.mid.label);
-const topGuru = getGuruCopy(topDays, zoneConfig.top.label);
+const villageGuru = getGuruCopy(villageDays, 'Pueblo');
+const midGuru = getGuruCopy(midDays, 'Centro');
+const topGuru = getGuruCopy(topDays, 'Cumbre');
 ---
 
 <html lang="es">
@@ -108,7 +96,7 @@ const topGuru = getGuruCopy(topDays, zoneConfig.top.label);
   <body
     class="text-white min-h-screen antialiased font-premium overflow-x-hidden"
   >
-    <MobileNav activeSection="pronostico" currentResort={currentResort} resortList={resortList} />
+    <MobileNav activeSection="pronostico" />
     <main class="min-h-screen pt-12 px-4 md:px-8 pb-8">
       {
         isDemo && (
