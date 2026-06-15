@@ -13,6 +13,7 @@ import {
   getSevenDayForecast,
 } from '../lib/forecast-periods';
 import { isValidScenario } from '../data/demo-scenarios';
+import { getResortFromParams, RESORTS } from '../data/resorts';
 import MobileNav from '../components/MobileNav.astro';
 import NowCard from '../components/NowCard.astro';
 import PowderScore from '../components/PowderScore.astro';
@@ -25,6 +26,9 @@ import { generateGuruNpcMessage, type GuruCopyInput } from '../lib/ai/guru-copy'
 import type { GuruNpcOutput } from '../lib/ai/types';
 
 const params = Astro.url.searchParams;
+const currentResort = getResortFromParams(params);
+const resortList = Object.values(RESORTS);
+
 const demoParam = params.get('demo');
 const activeScenario: DemoScenario | undefined = isValidScenario(demoParam)
   ? demoParam
@@ -38,6 +42,7 @@ const activeMode: WeatherMode = queryMode ?? envMode ?? 'real';
 const { normalized, weatherApi, source } = await getWeatherData({
   mode: activeMode,
   scenario: activeScenario,
+  resort: currentResort,
 });
 const firstPeriod: PeriodKey = 'today';
 const periods = analyzeAllPeriods(normalized);
@@ -166,7 +171,7 @@ const zoneHourlyTomorrow = buildZoneHourly('tomorrow');
   <body
     class="text-white min-h-screen antialiased font-premium overflow-x-hidden"
   >
-    <MobileNav activeSection="lab" />
+    <MobileNav activeSection="lab" currentResort={currentResort} resortList={resortList} />
     <main class="min-h-screen pt-12 px-4 md:px-8 pb-8">
       {
         isDemo && (

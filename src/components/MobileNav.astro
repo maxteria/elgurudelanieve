@@ -1,8 +1,10 @@
 ---
-const { activeSection } = Astro.props as {
+const { activeSection, currentResort, resortList } = Astro.props as {
   activeSection?: 'home' | 'lab' | 'historico' | 'pronostico';
   updated?: string;
   source?: string;
+  currentResort?: { id: string; name: string; location: string };
+  resortList?: Array<{ id: string; name: string; location: string }>;
 };
 
 const currentYear = new Date().getFullYear();
@@ -18,6 +20,14 @@ function isActive(key: string) {
   if (!activeSection) return key === 'home';
   return activeSection === key;
 }
+
+// Build resort query param for switching
+function getResortHref(resortId: string) {
+  const url = new URL(Astro.url.pathname, Astro.url.origin);
+  url.searchParams.set('resort', resortId);
+  return url.toString();
+}
+---
 ---
 
 <header
@@ -37,6 +47,24 @@ function isActive(key: string) {
         class="hidden md:inline text-[7px] text-white/25 tracking-[0.2em] ml-0.5"
         >DE LA NIEVE</span
       >
+      <!-- Resort Selector -->
+      {
+        resortList && resortList.length > 1 && (
+          <select
+            class="ml-3 text-[8px] bg-white/5 border border-white/10 rounded px-2 py-1 text-white/70 tracking-wide cursor-pointer hover:bg-white/8 transition-colors"
+            onchange={`(function() { window.location.search = '?resort=' + this.value; })()`}
+          >
+            {resortList.map((resort) => (
+              <option
+                value={resort.id}
+                selected={currentResort?.id === resort.id}
+              >
+                {resort.name} ({resort.location})
+              </option>
+            ))}
+          </select>
+        )
+      }
     </div>
 
     <nav
