@@ -48,7 +48,7 @@ function renderHourlyChart(hours) {
       const h = Math.min((hr.precip / 10) * barMaxH, barMaxH);
       const x = xp(i) - barW / 2;
       const y = padT + ph - h;
-      return `<rect x="${x}" y="${y}" width="${barW}" height="${h}" rx="1" fill="rgba(168,231,249,0.2)"/>`;
+      return `<rect x="${x}" y="${y}" width="${barW}" height="${h}" rx="1" fill="var(--chart-precip)"/>`;
     })
     .join('');
 
@@ -57,7 +57,7 @@ function renderHourlyChart(hours) {
     .map((hr, i) => {
       if (hr.cloudCover === undefined || hr.cloudCover === null) return '';
       const opacity = Math.max(0, Math.min(1, hr.cloudCover / 100));
-      return `<circle cx="${xp(i)}" cy="${ch - padB - 15}" r="2" fill="rgba(255,255,255,0.4)" opacity="${opacity}"/>`;
+      return `<circle cx="${xp(i)}" cy="${ch - padB - 15}" r="2" fill="var(--chart-cloud)" opacity="${opacity}"/>`;
     })
     .join('');
 
@@ -67,7 +67,7 @@ function renderHourlyChart(hours) {
       if (hr.windDir === undefined || hr.windDir === null) return '';
       const cx = xp(i);
       const cy = ch - padB - 6;
-      return `<g transform="translate(${cx},${cy}) rotate(${hr.windDir})"><path d="M0,-4 L3,0 L-3,0 Z" fill="rgba(255,255,255,0.25)" stroke="none"/></g>`;
+      return `<g transform="translate(${cx},${cy}) rotate(${hr.windDir})"><path d="M0,-4 L3,0 L-3,0 Z" fill="var(--chart-wind)" stroke="none"/></g>`;
     })
     .join('');
 
@@ -91,34 +91,34 @@ function renderHourlyChart(hours) {
   const tl = tempLabels
     .map(
       (t) =>
-        `<text x="${padL - 4}" y="${yt(t) + 1}" text-anchor="end" fill="rgba(255,255,255,0.12)" font-size="7" font-family="Inter, sans-serif">${t > 0 ? `+${t}\u00b0` : `${t}\u00b0`}</text>`,
+        `<text x="${padL - 4}" y="${yt(t) + 1}" text-anchor="end" fill="var(--chart-label)" font-size="7" font-family="Inter, sans-serif">${t > 0 ? `+${t}\u00b0` : `${t}\u00b0`}</text>`,
     )
     .join('');
   const fl = freezeLabels
     .map(
       (f) =>
-        `<text x="${cw - padR + 4}" y="${yf(f) + 1}" text-anchor="start" fill="rgba(255,255,255,0.08)" font-size="6" font-family="Inter, sans-serif">${f}m</text>`,
+        `<text x="${cw - padR + 4}" y="${yf(f) + 1}" text-anchor="start" fill="var(--chart-label)" font-size="6" font-family="Inter, sans-serif">${f}m</text>`,
     )
     .join('');
 
   return `<svg viewBox="0 0 ${cw} ${ch}" class="w-full h-auto" preserveAspectRatio="xMidYMid meet">
       ${precipBars}
-      <line x1="${padL}" y1="${padT}" x2="${cw - padR}" y2="${padT}" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>
-      <line x1="${padL}" y1="${padT + ph * 0.33}" x2="${cw - padR}" y2="${padT + ph * 0.33}" stroke="rgba(255,255,255,0.02)" stroke-width="1"/>
-      <line x1="${padL}" y1="${padT + ph * 0.67}" x2="${cw - padR}" y2="${padT + ph * 0.67}" stroke="rgba(255,255,255,0.02)" stroke-width="1"/>
-      <line x1="${padL}" y1="${padT + ph}" x2="${cw - padR}" y2="${padT + ph}" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+      <line x1="${padL}" y1="${padT}" x2="${cw - padR}" y2="${padT}" stroke="var(--chart-grid)" stroke-width="1"/>
+      <line x1="${padL}" y1="${padT + ph * 0.33}" x2="${cw - padR}" y2="${padT + ph * 0.33}" stroke="var(--chart-grid)" stroke-width="1"/>
+      <line x1="${padL}" y1="${padT + ph * 0.67}" x2="${cw - padR}" y2="${padT + ph * 0.67}" stroke="var(--chart-grid)" stroke-width="1"/>
+      <line x1="${padL}" y1="${padT + ph}" x2="${cw - padR}" y2="${padT + ph}" stroke="var(--chart-grid)" stroke-width="1"/>
       ${tl}${fl}
-      <polyline points="${tpts}" fill="none" stroke="#a8e7f9" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-      ${displayHours.map((hr, i) => `<circle cx="${xp(i)}" cy="${yt(hr.temp)}" r="2.5" fill="#a8e7f9" stroke="#0b0d10" stroke-width="1.2"/>`).join('')}
-      <polyline points="${fpts}" fill="none" stroke="#ff7e38" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="4,3" opacity="0.7"/>
-      ${displayHours.map((hr, i) => `<circle cx="${xp(i)}" cy="${yf(hr.freezing_level)}" r="1.8" fill="#ff7e38" stroke="#0b0d10" stroke-width="1" opacity="0.7"/>`).join('')}
-      <rect x="${xp(tipIdx) - 28}" y="${yf(tooltip.freezing_level) - 28}" width="56" height="18" rx="3" fill="rgba(9,16,22,0.92)" stroke="rgba(255,126,56,0.2)" stroke-width="0.5"/>
-      <text x="${xp(tipIdx)}" y="${yf(tooltip.freezing_level) - 21}" text-anchor="middle" fill="rgba(168,231,249,0.5)" font-size="7" font-family="Inter, sans-serif">${String(tooltip.hour).padStart(2, '0')}:00</text>
-      <text x="${xp(tipIdx)}" y="${yf(tooltip.freezing_level) - 14}" text-anchor="middle" fill="rgba(255,126,56,0.5)" font-size="7" font-family="Inter, sans-serif">Cota: ${tooltip.freezing_level}m</text>
+      <polyline points="${tpts}" fill="none" stroke="var(--chart-line)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+      ${displayHours.map((hr, i) => `<circle cx="${xp(i)}" cy="${yt(hr.temp)}" r="2.5" fill="var(--chart-line)" stroke="#0b0d10" stroke-width="1.2"/>`).join('')}
+      <polyline points="${fpts}" fill="none" stroke="var(--chart-freeze)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="4,3" opacity="0.7"/>
+      ${displayHours.map((hr, i) => `<circle cx="${xp(i)}" cy="${yf(hr.freezing_level)}" r="1.8" fill="var(--chart-freeze)" stroke="#0b0d10" stroke-width="1" opacity="0.7"/>`).join('')}
+      <rect x="${xp(tipIdx) - 28}" y="${yf(tooltip.freezing_level) - 28}" width="56" height="18" rx="3" fill="var(--bg-surface-elevated)" stroke="var(--accent-secondary)" stroke-width="0.5"/>
+      <text x="${xp(tipIdx)}" y="${yf(tooltip.freezing_level) - 21}" text-anchor="middle" fill="var(--accent-primary)" opacity="0.5" font-size="7" font-family="Inter, sans-serif">${String(tooltip.hour).padStart(2, '0')}:00</text>
+      <text x="${xp(tipIdx)}" y="${yf(tooltip.freezing_level) - 14}" text-anchor="middle" fill="var(--accent-secondary)" opacity="0.5" font-size="7" font-family="Inter, sans-serif">Cota: ${tooltip.freezing_level}m</text>
       ${cloudDots}
       ${windArrows}
-      ${displayHours.map((hr, i) => `<text x="${xp(i)}" y="${xLabelY}" text-anchor="middle" fill="rgba(255,255,255,0.12)" font-size="7" font-family="Inter, sans-serif">${String(hr.hour).padStart(2, '0')}</text>`).join('')}
-      <text x="${xp(n - 1) + (xp(1) - xp(0))}" y="${xLabelY}" text-anchor="middle" fill="rgba(255,255,255,0.12)" font-size="7" font-family="Inter, sans-serif">00</text>
+      ${displayHours.map((hr, i) => `<text x="${xp(i)}" y="${xLabelY}" text-anchor="middle" fill="var(--chart-label)" font-size="7" font-family="Inter, sans-serif">${String(hr.hour).padStart(2, '0')}</text>`).join('')}
+      <text x="${xp(n - 1) + (xp(1) - xp(0))}" y="${xLabelY}" text-anchor="middle" fill="var(--chart-label)" font-size="7" font-family="Inter, sans-serif">00</text>
     </svg>`;
 }
 
@@ -171,7 +171,7 @@ function renderDailyChart(dailySummaries) {
   const tl = tempLabels
     .map(
       (t) =>
-        `<text x="${padL - 4}" y="${yt(t) + 1}" text-anchor="end" fill="rgba(255,255,255,0.12)" font-size="7" font-family="Inter, sans-serif">${t > 0 ? `+${t}\u00b0` : `${t}\u00b0`}</text>`,
+        `<text x="${padL - 4}" y="${yt(t) + 1}" text-anchor="end" fill="var(--chart-label)" font-size="7" font-family="Inter, sans-serif">${t > 0 ? `+${t}\u00b0` : `${t}\u00b0`}</text>`,
     )
     .join('');
 
@@ -186,14 +186,14 @@ function renderDailyChart(dailySummaries) {
       if (!d.maxWindGust) return '';
       const x = xp(i);
       const y = yw(d.maxWindGust);
-      return `<path d="M${x - 3},${y - 3} L${x + 3},${y + 3} M${x + 3},${y - 3} L${x - 3},${y + 3}" stroke="rgba(255,255,255,0.5)" stroke-width="0.8" opacity="0.6"/>`;
+      return `<path d="M${x - 3},${y - 3} L${x + 3},${y + 3} M${x + 3},${y - 3} L${x - 3},${y + 3}" stroke="var(--chart-wind)" stroke-width="0.8" opacity="0.6"/>`;
     })
     .join('');
 
   // Wind dots on line
   const windDots = days
     .map((d, i) => {
-      return `<circle cx="${xp(i)}" cy="${yw(d.avgWind)}" r="1.5" fill="rgba(255,255,255,0.4)" stroke="none"/>`;
+      return `<circle cx="${xp(i)}" cy="${yw(d.avgWind)}" r="1.5" fill="var(--chart-wind)" stroke="none"/>`;
     })
     .join('');
 
@@ -201,7 +201,7 @@ function renderDailyChart(dailySummaries) {
   const humidityLabels = [0, 50, 100]
     .map((h) => {
       const y = yh(h);
-      return `<text x="${cw - padR + 4}" y="${y + 1}" text-anchor="start" fill="rgba(168,231,249,0.15)" font-size="6" font-family="Inter, sans-serif">${h}%</text>`;
+      return `<text x="${cw - padR + 4}" y="${y + 1}" text-anchor="start" fill="var(--chart-line)" opacity="0.15" font-size="6" font-family="Inter, sans-serif">${h}%</text>`;
     })
     .join('');
 
@@ -217,19 +217,19 @@ function renderDailyChart(dailySummaries) {
       const yT = yfz(d.minFreezingLevel);
       const yB = yfz(d.maxFreezingLevel);
       const h = yB - yT;
-      return `<rect x="${x}" y="${yT}" width="12" height="${Math.max(h, 2)}" rx="1" fill="rgba(255,126,56,0.08)" stroke="rgba(255,126,56,0.12)" stroke-width="0.5"/>`;
+      return `<rect x="${x}" y="${yT}" width="12" height="${Math.max(h, 2)}" rx="1" fill="var(--chart-freeze)" opacity="0.08" stroke="var(--chart-freeze)" stroke-opacity="0.12" stroke-width="0.5"/>`;
     })
     .join('');
 
   return `<svg viewBox="0 0 ${cw} ${ch}" class="w-full h-auto" preserveAspectRatio="xMidYMid meet">
       ${freezeBands}
-      <line x1="${padL}" y1="${padT}" x2="${cw - padR}" y2="${padT}" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>
-      <line x1="${padL}" y1="${padT + ph * 0.33}" x2="${cw - padR}" y2="${padT + ph * 0.33}" stroke="rgba(255,255,255,0.02)" stroke-width="1"/>
-      <line x1="${padL}" y1="${padT + ph * 0.67}" x2="${cw - padR}" y2="${padT + ph * 0.67}" stroke="rgba(255,255,255,0.02)" stroke-width="1"/>
-      <line x1="${padL}" y1="${padT + ph}" x2="${cw - padR}" y2="${padT + ph}" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+      <line x1="${padL}" y1="${padT}" x2="${cw - padR}" y2="${padT}" stroke="var(--chart-grid)" stroke-width="1"/>
+      <line x1="${padL}" y1="${padT + ph * 0.33}" x2="${cw - padR}" y2="${padT + ph * 0.33}" stroke="var(--chart-grid)" stroke-width="1"/>
+      <line x1="${padL}" y1="${padT + ph * 0.67}" x2="${cw - padR}" y2="${padT + ph * 0.67}" stroke="var(--chart-grid)" stroke-width="1"/>
+      <line x1="${padL}" y1="${padT + ph}" x2="${cw - padR}" y2="${padT + ph}" stroke="var(--chart-grid)" stroke-width="1"/>
       ${tl}${humidityLabels}
-      <polyline points="${hpts}" fill="none" stroke="rgba(168,231,249,0.15)" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
-      <polyline points="${wpts}" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+      <polyline points="${hpts}" fill="none" stroke="var(--chart-line)" opacity="0.15" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+      <polyline points="${wpts}" fill="none" stroke="var(--chart-wind)" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
       ${gustMarks}
       ${windDots}
       ${days
@@ -237,19 +237,19 @@ function renderDailyChart(dailySummaries) {
           const x = xp(i);
           const yMin = yt(d.tempMin);
           const yMax = yt(d.tempMax);
-          return `<line x1="${x}" y1="${yMax}" x2="${x}" y2="${yMin}" stroke="#a8e7f9" stroke-width="6" stroke-linecap="round" opacity="0.5"/>
-          <circle cx="${x}" cy="${yMax}" r="2.5" fill="#a8e7f9" stroke="#0b0d10" stroke-width="1.2"/>
-          <circle cx="${x}" cy="${yMin}" r="2.5" fill="#ff7e38" stroke="#0b0d10" stroke-width="1.2"/>`;
+          return `<line x1="${x}" y1="${yMax}" x2="${x}" y2="${yMin}" stroke="var(--chart-line)" stroke-width="6" stroke-linecap="round" opacity="0.5"/>
+          <circle cx="${x}" cy="${yMax}" r="2.5" fill="var(--chart-line)" stroke="#0b0d10" stroke-width="1.2"/>
+          <circle cx="${x}" cy="${yMin}" r="2.5" fill="var(--chart-freeze)" stroke="#0b0d10" stroke-width="1.2"/>`;
         })
         .join('')}
       ${days
         .map((d, i) => {
           return d.totalSnow > 0
-            ? `<rect x="${xp(i) - 8}" y="${padT}" width="16" height="${Math.min(d.totalSnow * 3, 20)}" rx="2" fill="rgba(168,231,249,0.25)" stroke="rgba(168,231,249,0.15)" stroke-width="0.5"/>`
+            ? `<rect x="${xp(i) - 8}" y="${padT}" width="16" height="${Math.min(d.totalSnow * 3, 20)}" rx="2" fill="var(--chart-precip)" stroke="var(--chart-line)" stroke-opacity="0.15" stroke-width="0.5"/>`
             : '';
         })
         .join('')}
-      ${days.map((d, i) => `<text x="${xp(i)}" y="${xLabelY}" text-anchor="middle" fill="rgba(255,255,255,0.12)" font-size="7" font-family="Inter, sans-serif">${d.weekday.slice(0, 3)}</text>`).join('')}
+      ${days.map((d, i) => `<text x="${xp(i)}" y="${xLabelY}" text-anchor="middle" fill="var(--chart-label)" font-size="7" font-family="Inter, sans-serif">${d.weekday.slice(0, 3)}</text>`).join('')}
     </svg>`;
 }
 
@@ -261,11 +261,11 @@ const firstKey = periodKeys[0];
 ---
 
 <div
-  class="bg-[rgba(9,16,22,0.85)] border border-white/[0.06] rounded-xl px-4 py-3 shadow-[0_4px_20px_rgba(0,0,0,0.35)]"
+  class="bg-surface border border-border-subtle rounded-xl px-4 py-3 shadow-[0_4px_20px_rgba(0,0,0,0.35)]"
 >
   <div class="mb-1.5">
     <span
-      class="text-[7px] text-white/25 tracking-[0.3em] uppercase font-medium"
+      class="text-[7px] text-text-muted tracking-[0.3em] uppercase font-medium"
       >Temperatura y Cota</span
     >
   </div>
@@ -283,33 +283,34 @@ const firstKey = periodKeys[0];
 
   <div class="flex items-center gap-3 mt-1.5 flex-wrap">
     <div class="flex items-center gap-1">
-      <span class="w-2.5 h-[1.5px] bg-hielo rounded-full"></span><span
-        class="text-[7px] text-white/20">Temperatura &deg;C</span
+      <span class="w-2.5 h-[1.5px] bg-hielo rounded-full" style="background:var(--chart-line)"></span><span
+        class="text-[7px] text-text-muted">Temperatura &deg;C</span
       >
     </div>
     <div class="flex items-center gap-1">
       <span
-        class="w-2.5 h-0 rounded-full border-t border-dashed border-naranja/60"
-      ></span><span class="text-[7px] text-white/20">Cota de nieve m</span>
+        class="w-2.5 h-0 rounded-full border-t border-dashed"
+        style="border-color:var(--chart-freeze)"
+      ></span><span class="text-[7px] text-text-muted">Cota de nieve m</span>
     </div>
     <div class="flex items-center gap-1">
-      <span class="w-2.5 h-2.5 rounded-sm bg-hielo/20"></span><span
-        class="text-[7px] text-white/20">Precipitaci&oacute;n</span
+      <span class="w-2.5 h-2.5 rounded-sm" style="background:var(--chart-precip)"></span><span
+        class="text-[7px] text-text-muted">Precipitaci&oacute;n</span
       >
     </div>
     <div class="flex items-center gap-1">
-      <svg width="8" height="6" viewBox="0 0 8 6" class="inline-block"><path d="M4,0 L7,4 L1,4 Z" fill="rgba(255,255,255,0.25)"/></svg><span
-        class="text-[7px] text-white/20">Viento</span
+      <svg width="8" height="6" viewBox="0 0 8 6" class="inline-block"><path d="M4,0 L7,4 L1,4 Z" fill="var(--chart-wind)"/></svg><span
+        class="text-[7px] text-text-muted">Viento</span
       >
     </div>
     <div class="flex items-center gap-1">
-      <span class="w-1.5 h-1.5 rounded-full bg-white/40"></span><span
-        class="text-[7px] text-white/20">Nubosidad</span
+      <span class="w-1.5 h-1.5 rounded-full" style="background:var(--chart-cloud)"></span><span
+        class="text-[7px] text-text-muted">Nubosidad</span
       >
     </div>
   </div>
   <p
-    class="text-[8px] text-white/20 mt-1.5 leading-relaxed period-desc"
+    class="text-[8px] text-text-muted mt-1.5 leading-relaxed period-desc"
     data-period={firstKey}
   >
     {

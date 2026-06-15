@@ -3,7 +3,7 @@ const { summary } = Astro.props;
 ---
 
 <section
-  class="bg-[rgba(9,16,22,0.85)] border border-white/[0.06] rounded-xl px-4 py-3 shadow-[0_4px_20px_rgba(0,0,0,0.35)] relative overflow-hidden flex items-center min-h-[52px]"
+  class="bg-surface border border-border-subtle rounded-xl px-4 py-3 shadow-[0_4px_20px_rgba(0,0,0,0.35)] relative overflow-hidden flex items-center min-h-[52px]"
   data-period-guru
 >
   <svg
@@ -13,7 +13,7 @@ const { summary } = Astro.props;
   >
     <path
       d="M0,40 L15,20 L40,35 L65,10 L95,30 L120,8 L145,25 L160,18 L160,80 L0,80 Z"
-      fill="white"></path>
+      fill="var(--text-faint)"></path>
   </svg>
   <div class="flex items-center gap-3 relative z-10 w-full">
     <div
@@ -35,7 +35,7 @@ const { summary } = Astro.props;
     </div>
     <div class="flex-1 min-w-0">
       <span
-        class="text-[7px] text-white/25 tracking-[0.3em] uppercase font-medium"
+        class="text-[7px] text-text-muted tracking-[0.3em] uppercase font-medium"
         >Interpretación Técnica</span
       >
       <p

@@ -19,7 +19,7 @@ function isActive(key: string) {
 ---
 
 <header
-  class="fixed top-0 left-0 right-0 z-50 bg-[rgba(9,16,22,0.97)] border-b border-white/[0.06] backdrop-blur-md"
+  class="fixed top-0 left-0 right-0 z-50 bg-surface-elevated border-b border-border-subtle backdrop-blur-md"
 >
   <div class="flex items-center justify-between h-12 px-4">
     <div class="flex items-center gap-2.5">
@@ -28,11 +28,11 @@ function isActive(key: string) {
         alt="El Gurú de la Nieve"
         class="w-6 h-6 shrink-0"
       />
-      <span class="text-[10px] font-extrabold tracking-[0.18em] text-white/70"
+      <span class="text-[10px] font-extrabold tracking-[0.18em] text-text-secondary"
         >EL GURÚ</span
       >
       <span
-        class="hidden md:inline text-[7px] text-white/25 tracking-[0.2em] ml-0.5"
+        class="hidden md:inline text-[7px] text-text-faint tracking-[0.2em] ml-0.5"
         >DE LA NIEVE</span
       >
     </div>
@@ -49,7 +49,7 @@ function isActive(key: string) {
             class={`text-[9px] uppercase tracking-[0.15em] font-semibold px-2.5 py-1 rounded-md transition-colors ${
               isActive(item.key)
                 ? 'text-hielo/90 bg-hielo/[0.08]'
-                : 'text-white/35 hover:text-white/60'
+                : 'text-text-muted hover:text-text-secondary'
             }`}
           >
             {item.label}
@@ -59,12 +59,32 @@ function isActive(key: string) {
     </nav>
 
     <div class="flex items-center gap-3">
-      <span class="hidden md:block text-[7px] text-white/20 tracking-[0.2em]"
+      <span class="hidden md:block text-[7px] text-text-faint tracking-[0.2em]"
         >Estación 2026</span
       >
       <button
+        id="theme-toggle"
+        class="w-8 h-8 flex items-center justify-center rounded-lg text-text-secondary hover:text-text-primary transition-colors"
+        aria-label="Cambiar tema"
+      >
+        <svg id="icon-sun" class="hidden w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="5"></circle>
+          <line x1="12" y1="1" x2="12" y2="3"></line>
+          <line x1="12" y1="21" x2="12" y2="23"></line>
+          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+          <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+          <line x1="1" y1="12" x2="3" y2="12"></line>
+          <line x1="21" y1="12" x2="23" y2="12"></line>
+          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+          <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+        </svg>
+        <svg id="icon-moon" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+        </svg>
+      </button>
+      <button
         id="mobile-menu-btn"
-        class="md:hidden w-9 h-9 flex items-center justify-center rounded-lg text-white/50 hover:text-white/80 transition-colors"
+        class="md:hidden w-9 h-9 flex items-center justify-center rounded-lg text-text-secondary hover:text-text-primary transition-colors"
         aria-label="Abrir menú"
         aria-expanded="false"
         aria-controls="mobile-drawer"
@@ -103,7 +123,7 @@ function isActive(key: string) {
 
 <div
   id="mobile-drawer"
-  class="hidden fixed inset-0 top-12 bg-[rgba(9,16,22,0.99)] z-40 overflow-y-auto"
+  class="hidden fixed inset-0 top-12 bg-surface-elevated z-40 overflow-y-auto"
   role="dialog"
   aria-modal="true"
   aria-label="Menú de navegación"
@@ -116,7 +136,7 @@ function isActive(key: string) {
           class={`block px-3 py-3 rounded-lg text-[11px] uppercase tracking-[0.15em] font-semibold transition-colors ${
             isActive(item.key)
               ? 'text-hielo bg-hielo/[0.08]'
-              : 'text-white/35 hover:text-white/60'
+              : 'text-text-muted hover:text-text-secondary'
           }`}
         >
           {item.label}
@@ -124,11 +144,11 @@ function isActive(key: string) {
       ))
     }
   </nav>
-  <div class="px-6 pt-4 pb-8 space-y-2 border-t border-white/[0.06]">
-    <div class="text-[7px] text-white/20 tracking-[0.25em] uppercase">
+  <div class="px-6 pt-4 pb-8 space-y-2 border-t border-border-subtle">
+    <div class="text-[7px] text-text-faint tracking-[0.25em] uppercase">
       Estación 2026
     </div>
-    <div class="text-[8px] text-white/25 tracking-wide">
+    <div class="text-[8px] text-text-muted tracking-wide">
       Open-Meteo · WeatherAPI
     </div>
   </div>
@@ -190,5 +210,38 @@ function isActive(key: string) {
     }
   }
 
+  function initThemeToggle() {
+    var toggle = document.getElementById('theme-toggle');
+    var sunIcon = document.getElementById('icon-sun');
+    var moonIcon = document.getElementById('icon-moon');
+    if (!toggle || !sunIcon || !moonIcon) return;
+
+    function updateIcon() {
+      var isLight = document.documentElement.getAttribute('data-theme') === 'light';
+      if (isLight) {
+        sunIcon.classList.remove('hidden');
+        moonIcon.classList.add('hidden');
+      } else {
+        sunIcon.classList.add('hidden');
+        moonIcon.classList.remove('hidden');
+      }
+    }
+
+    updateIcon();
+
+    toggle.addEventListener('click', function () {
+      var isLight = document.documentElement.getAttribute('data-theme') === 'light';
+      if (isLight) {
+        document.documentElement.removeAttribute('data-theme');
+        localStorage.setItem('theme', 'dark');
+      } else {
+        document.documentElement.setAttribute('data-theme', 'light');
+        localStorage.setItem('theme', 'light');
+      }
+      updateIcon();
+    });
+  }
+
   initMobileNav();
+  initThemeToggle();
 </script>

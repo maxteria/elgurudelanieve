@@ -78,7 +78,7 @@ const updatedTime = currentWeather
 ---
 
 <div
-  class="bg-[rgba(9,16,22,0.9)] border border-hielo/15 rounded-xl px-4 py-4 shadow-[0_8px_32px_rgba(0,0,0,0.5)] relative overflow-visible"
+  class="bg-surface border border-hielo/15 rounded-xl px-4 py-4 shadow-[0_8px_32px_rgba(0,0,0,0.5)] relative overflow-visible"
 >
   <div
     class="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-hielo/40 via-hielo/20 to-transparent"
@@ -110,14 +110,14 @@ const updatedTime = currentWeather
   </div>
   <div class="grid grid-cols-2 gap-x-3 gap-y-1 mt-2.5 text-[9px]">
     <div class="flex items-center justify-between">
-      <span class="text-white/25">Sensación</span>
-      <span class="text-white/70 font-semibold tabular-nums"
+      <span class="text-text-muted">Sensación</span>
+      <span class="text-text-primary font-semibold tabular-nums"
         >{displayFeelsLike != null ? `${displayFeelsLike}°C` : '--'}</span
       >
     </div>
     <div class="flex items-center justify-between">
-      <span class="text-white/25">Viento</span>
-      <span class="text-white/70 font-semibold tabular-nums flex items-center gap-1"
+      <span class="text-text-muted">Viento</span>
+      <span class="text-text-primary font-semibold tabular-nums flex items-center gap-1"
         >{displayWindKmh != null ? `${displayWindKmh} km/h` : '--'}
         {
           displayWindDir && (
@@ -134,7 +134,7 @@ const updatedTime = currentWeather
                 class="inline-block"
                 style={`transform: rotate(${displayWindDir.degrees}deg)`}
               ><path d="M4,0 L2,4 L3,4 L3,8 L5,8 L5,4 L6,4 Z" fill="currentColor" stroke="none"/></svg>
-              <span class="text-[8px] text-white/40">{displayWindDir.compass}</span>
+              <span class="text-[8px] text-text-muted">{displayWindDir.compass}</span>
             </>
           )
         }</span
@@ -142,9 +142,9 @@ const updatedTime = currentWeather
     </div>
     {
       displayHumidity != null && (
-        <div class="flex items-center justify-between pt-1 border-t border-white/[0.02]">
-          <span class="text-white/25">Humedad</span>
-          <span class="text-white/70 font-semibold tabular-nums">
+        <div class="flex items-center justify-between pt-1 border-t border-border-subtle">
+          <span class="text-text-muted">Humedad</span>
+          <span class="text-text-primary font-semibold tabular-nums">
             {displayHumidity}%
           </span>
         </div>
@@ -152,16 +152,16 @@ const updatedTime = currentWeather
     }
     {
       displayCloudCover != null && (
-        <div class="flex items-center justify-between pt-1 border-t border-white/[0.02]">
-          <span class="text-white/25">Nubosidad</span>
-          <span class="text-white/70 font-semibold tabular-nums">
+        <div class="flex items-center justify-between pt-1 border-t border-border-subtle">
+          <span class="text-text-muted">Nubosidad</span>
+          <span class="text-text-primary font-semibold tabular-nums">
             {displayCloudCover}%
           </span>
         </div>
       )
     }
   </div>
-  <div class="mt-2 text-[7px] text-white/15 tracking-[0.1em]">
+  <div class="mt-2 text-[7px] text-text-faint tracking-[0.1em]">
     {sourceLabel} · actualizado {updatedTime || '--'}
   </div>
 </div>

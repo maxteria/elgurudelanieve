@@ -124,9 +124,15 @@ const cotaLabel =
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
       rel="stylesheet"
     />
+    <script is:inline>
+      (function() {
+        var t = localStorage.getItem('theme');
+        if (t === 'light') document.documentElement.setAttribute('data-theme', 'light');
+      })();
+    </script>
   </head>
   <body
-    class="text-white min-h-screen antialiased font-premium overflow-x-hidden"
+    class="text-text-primary min-h-screen antialiased font-premium overflow-x-hidden transition-colors duration-300"
   >
     <MobileNav activeSection="home" />
     <main class="min-h-screen pt-12 px-4 md:px-8 pb-8">
@@ -151,14 +157,14 @@ const cotaLabel =
 
         {
           (normalized.currentWeather || result.weatherApi) && (
-            <div class="flex items-center gap-x-3 gap-y-1.5 text-[10px] text-white/40 px-4 py-2.5 bg-hielo/[0.03] border border-hielo/8 rounded-xl font-medium tracking-wide">
+            <div class="flex items-center gap-x-3 gap-y-1.5 text-[10px] text-text-muted px-4 py-2.5 bg-hielo/[0.03] border border-hielo/8 rounded-xl font-medium tracking-wide">
               <span class="text-[8px] text-hielo/30 font-semibold tracking-[0.25em] uppercase shrink-0">
                 NOW
               </span>
               <span class="text-hielo/20">·</span>
               <span>
                 Temp{' '}
-                <span class="text-white/60 tabular-nums">
+                <span class="text-text-secondary tabular-nums">
                   {normalized.currentWeather?.temperature ??
                     result.weatherApi?.temp}
                 </span>
@@ -169,7 +175,7 @@ const cotaLabel =
                   <span class="text-hielo/20">·</span>
                   <span>
                     Sens.{' '}
-                    <span class="text-white/60 tabular-nums">
+                    <span class="text-text-secondary tabular-nums">
                       {result.weatherApi.feelsLike}
                     </span>
                     °
@@ -186,7 +192,7 @@ const cotaLabel =
                     <span class="text-hielo/20">·</span>
                     <span>
                       Viento{' '}
-                      <span class="text-white/60 tabular-nums">{windKmh}</span>{' '}
+                      <span class="text-text-secondary tabular-nums">{windKmh}</span>{' '}
                       km/h
                     </span>
                   </>
@@ -197,7 +203,7 @@ const cotaLabel =
                   <span class="text-hielo/20">·</span>
                   <span>
                     Humedad{' '}
-                    <span class="text-white/60 tabular-nums">
+                    <span class="text-text-secondary tabular-nums">
                       {result.weatherApi.humidity}
                     </span>
                     %
@@ -209,7 +215,7 @@ const cotaLabel =
                   <span class="text-hielo/20">·</span>
                   <span>
                     Nubosidad{' '}
-                    <span class="text-white/60 tabular-nums">
+                    <span class="text-text-secondary tabular-nums">
                       {result.weatherApi.cloudCover}
                     </span>
                     %
@@ -226,20 +232,20 @@ const cotaLabel =
           <div class="flex items-center gap-2">
             <div class="w-1.5 h-1.5 rounded-full bg-hielo/40"></div>
             <span
-              class="text-[8px] text-white/25 tracking-[0.2em] uppercase font-medium"
+              class="text-[8px] text-text-muted tracking-[0.2em] uppercase font-medium"
               >Lectura del Gurú</span
             >
           </div>
 
           <div
-            class="bg-[rgba(9,16,22,0.7)] border border-white/[0.04] rounded-xl px-4 py-3 space-y-2.5"
+            class="bg-surface border border-border-subtle rounded-xl px-4 py-3 space-y-2.5"
           >
             <div class="flex items-start gap-3">
               <span
                 class="text-[9px] text-hielo/50 font-semibold w-16 shrink-0 tracking-[0.1em]"
                 >HOY</span
               >
-              <p class="text-[11px] text-white/55 leading-relaxed">
+              <p class="text-[11px] text-text-secondary leading-relaxed">
                 {mainCopy}
               </p>
             </div>
@@ -248,7 +254,7 @@ const cotaLabel =
                 class="text-[9px] text-hielo/50 font-semibold w-16 shrink-0 tracking-[0.1em]"
                 >MAÑANA</span
               >
-              <p class="text-[11px] text-white/55 leading-relaxed">
+              <p class="text-[11px] text-text-secondary leading-relaxed">
                 {tomorrowCopy}
               </p>
             </div>
@@ -257,7 +263,7 @@ const cotaLabel =
                 class="text-[9px] text-hielo/50 font-semibold w-16 shrink-0 tracking-[0.1em]"
                 >ESTA SEMANA</span
               >
-              <p class="text-[11px] text-white/55 leading-relaxed">
+              <p class="text-[11px] text-text-secondary leading-relaxed">
                 {weekCopy}
               </p>
             </div>
@@ -266,7 +272,7 @@ const cotaLabel =
                 class="text-[9px] text-hielo/50 font-semibold w-16 shrink-0 tracking-[0.1em]"
                 >PRÓXIMOS DÍAS</span
               >
-              <p class="text-[11px] text-white/55 leading-relaxed">
+              <p class="text-[11px] text-text-secondary leading-relaxed">
                 Si se alinean frío y humedad, puede aparecer una ventana. Quedá
                 atento.
               </p>
