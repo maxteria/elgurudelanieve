@@ -6,7 +6,9 @@ function makeHour(
   index: number,
   overrides: Partial<HourlyForecast> = {},
 ): HourlyForecast {
+  const hour = String(index).padStart(2, '0');
   return {
+    time: `2026-06-13T${hour}:00:00`,
     hour: index,
     temp: -2,
     feels_like: -5,
@@ -49,7 +51,10 @@ describe('calculatePowderScore', () => {
     const result = calculatePowderScore(forecast, 1647);
     // Base 60 + temp bonus (<= 0 = 12) + windDir bonus (180 = +15) = 87
     expect(result.value).toBe(87);
-    expect(result.snowWindow).toEqual([10, 14]);
+    expect(result.snowWindow).toEqual({
+      fromTime: '2026-06-13T10:00:00',
+      toTime: '2026-06-13T14:00:00',
+    });
   });
 
   it('increases score when snowfall cm is present', () => {
@@ -98,8 +103,8 @@ describe('calculatePowderScore', () => {
     expect(result.value).toBeGreaterThanOrEqual(55);
     expect(result.snowWindow).not.toBeNull();
     if (result.snowWindow) {
-      expect(result.snowWindow[0]).toBeGreaterThanOrEqual(0);
-      expect(result.snowWindow[1]).toBeGreaterThan(result.snowWindow[0]);
+      expect(result.snowWindow.fromTime).toBeTruthy();
+      expect(result.snowWindow.toTime).toBeTruthy();
     }
   });
 

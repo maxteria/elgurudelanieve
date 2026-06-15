@@ -1,5 +1,6 @@
 // Tipos centrales para forecast y motores
 export interface HourlyForecast {
+  time: string;
   hour: number;
   temp: number;
   feels_like: number;
@@ -31,7 +32,7 @@ export interface WeatherData {
 export interface PowderScoreResult {
   value: number;
   reason: string;
-  snowWindow: [number, number] | null;
+  snowWindow: { fromTime: string; toTime: string } | null;
 }
 
 export interface Alert {

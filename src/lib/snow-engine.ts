@@ -9,6 +9,15 @@ import { calculatePowderScore } from './scoring';
 import type { HourlyForecast } from './types';
 import { LAPSE_RATE } from './weather/constants';
 
+const WEEKDAY_SHORT = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'];
+
+function formatWindowTime(isoTime: string): string {
+  const d = new Date(isoTime);
+  const day = WEEKDAY_SHORT[d.getDay()];
+  const hour = String(d.getHours()).padStart(2, '0');
+  return `${day} ${hour}:00`;
+}
+
 const ZONE_IDS: { id: 'village' | 'mid' | 'top'; label: string }[] = [
   { id: 'village', label: 'Pueblo (base)' },
   { id: 'mid', label: 'Centro (medio)' },
@@ -56,6 +65,7 @@ function computeZoneHourly(
       Math.round(h.wind * (1 + 0.08 * (altDiff / 100)) * 10) / 10;
 
     return {
+      time: h.time,
       hour: new Date(h.time).getHours(),
       temp: zoneTemp,
       feels_like: Math.round((h.feelsLike - tempDrop) * 10) / 10,
@@ -377,12 +387,14 @@ export function analyzeWeather(
   };
 
   if (powder.snowWindow) {
-    const [from, to] = powder.snowWindow;
+    const { fromTime, toTime } = powder.snowWindow;
+    const fromLabel = formatWindowTime(fromTime);
+    const toLabel = formatWindowTime(toTime);
     bestWindow = {
       hasWindow: true,
-      from: `${String(from).padStart(2, '0')}:00`,
-      to: `${String(to).padStart(2, '0')}:00`,
-      label: `${String(from).padStart(2, '0')}:00 a ${String(to).padStart(2, '0')}:00`,
+      from: fromLabel,
+      to: toLabel,
+      label: `${fromLabel} a ${toLabel}`,
       description: 'Mejor acumulación prevista en ese período.',
     };
   }

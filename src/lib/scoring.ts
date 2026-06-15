@@ -5,8 +5,7 @@ export function calculatePowderScore(
   altitude: number,
 ): PowderScoreResult {
   let maxScore = 0;
-  let bestWindow: [number, number] | null = null;
-  let curStart: number | null = null;
+  let curStartIdx: number | null = null;
 
   for (let i = 0; i < forecast.length; i++) {
     const h = forecast[i];
@@ -42,7 +41,7 @@ export function calculatePowderScore(
     if (score < 0) score = 0;
     if (score > maxScore) {
       maxScore = score;
-      curStart = h.hour;
+      curStartIdx = i;
     }
   }
   if (maxScore > 100) maxScore = 100;
@@ -53,10 +52,13 @@ export function calculatePowderScore(
   else if (maxScore >= 35) reason = 'Condiciones regulares, nieve húmeda';
   else reason = 'Score bajo — sin condiciones para nieve polvo';
 
-  if (maxScore >= 55 && curStart !== null) {
-    let end = Math.min(curStart + 4, 23);
-    if (curStart <= 3 && end >= 23) end = 23;
-    bestWindow = [curStart, end];
+  let snowWindow: PowderScoreResult['snowWindow'] = null;
+  if (maxScore >= 55 && curStartIdx !== null) {
+    const endIdx = Math.min(curStartIdx + 4, forecast.length - 1);
+    snowWindow = {
+      fromTime: forecast[curStartIdx].time,
+      toTime: forecast[endIdx].time,
+    };
   }
-  return { value: maxScore, reason, snowWindow: bestWindow };
+  return { value: maxScore, reason, snowWindow };
 }

@@ -120,6 +120,7 @@ function buildZoneHourly(period: PeriodKey) {
       (midZone.altitude - normalized.zones.village.altitude) * 0.0065;
     const zoneTemp = Math.round((h.temp - zoneOffset) * 10) / 10;
     return {
+      time: h.time,
       hour: new Date(h.time).getHours(),
       temp: zoneTemp,
       feels_like: h.feelsLike,
