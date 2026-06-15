@@ -520,11 +520,6 @@ export async function generateGuruNpcMessage(
   return generateFallbackNpcMessage(data);
 }
 
-// ─── Backward-Compatible Re-export ──────────────────────────────────────────
-
-/** @deprecated Use `generateGuruNpcMessage` instead. */
-export const generateTouristCopy = generateGuruNpcMessage;
-
 export function hasLlmKey(): boolean {
   return !!getLlmKey();
 }

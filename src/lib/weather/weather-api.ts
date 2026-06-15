@@ -1,13 +1,4 @@
-export type WeatherAPICurrent = {
-  temp: number;
-  feelsLike: number;
-  condition: string;
-  icon: string;
-  humidity: number;
-  wind: number;
-  cloudCover: number;
-  updatedAt: string;
-};
+import type { WeatherAPICurrent } from './types';
 
 export type WeatherAPIResponse = {
   location: {

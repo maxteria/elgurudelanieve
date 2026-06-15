@@ -4,7 +4,7 @@ import type {
   NormalizedZoneForecast,
 } from '../lib/weather/types';
 
-export type DemoSenario = 'seco' | 'nieve' | 'mixto';
+export type DemoScenario = 'seco' | 'nieve' | 'mixto';
 
 const HOURS = 48;
 
@@ -114,7 +114,7 @@ function createMixto(): NormalizedSnowForecast {
 }
 
 export function getDemoScenarioData(
-  scenario: DemoSenario,
+  scenario: DemoScenario,
 ): NormalizedSnowForecast {
   switch (scenario) {
     case 'seco':
@@ -126,6 +126,6 @@ export function getDemoScenarioData(
   }
 }
 
-export function isValidScenario(s: string | null): s is DemoSenario {
+export function isValidScenario(s: string | null): s is DemoScenario {
   return s === 'seco' || s === 'nieve' || s === 'mixto';
 }

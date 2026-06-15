@@ -1,6 +1,6 @@
 ---
 import '../styles/tailwind.css';
-import type { DemoSenario } from '../data/demo-scenarios';
+import type { DemoScenario } from '../data/demo-scenarios';
 import {
   getWeatherData,
   type WeatherMode,
@@ -12,7 +12,7 @@ import MobileNav from '../components/MobileNav.astro';
 
 const params = Astro.url.searchParams;
 const demoParam = params.get('demo');
-const activeScenario: DemoSenario | undefined = isValidScenario(demoParam)
+const activeScenario: DemoScenario | undefined = isValidScenario(demoParam)
   ? demoParam
   : undefined;
 const queryMode: WeatherMode | undefined =

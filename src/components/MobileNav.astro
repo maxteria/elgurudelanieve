@@ -5,6 +5,8 @@ const { activeSection } = Astro.props as {
   source?: string;
 };
 
+const currentYear = new Date().getFullYear();
+
 const navItems = [
   { key: 'home', label: 'El Gurú', href: '/' },
   { key: 'pronostico', label: 'Pronóstico', href: '/pronostico' },
@@ -60,7 +62,7 @@ function isActive(key: string) {
 
     <div class="flex items-center gap-3">
       <span class="hidden md:block text-[7px] text-white/20 tracking-[0.2em]"
-        >Estación 2026</span
+        >Estación {currentYear}</span
       >
       <button
         id="mobile-menu-btn"
@@ -126,7 +128,7 @@ function isActive(key: string) {
   </nav>
   <div class="px-6 pt-4 pb-8 space-y-2 border-t border-white/[0.06]">
     <div class="text-[7px] text-white/20 tracking-[0.25em] uppercase">
-      Estación 2026
+      Estación {currentYear}
     </div>
     <div class="text-[8px] text-white/25 tracking-wide">
       Open-Meteo · WeatherAPI

@@ -494,9 +494,10 @@ describe('generateFallbackNpcMessage', () => {
 
   it('branch: multi-period — snow soon (1-3 days, higher urgency)', () => {
     // mainStatus === 'no' + nextDays with snow in 1-3 days
+    // Today is 2026-06-15, so use 2026-06-16 (tomorrow = 1 day) or 2026-06-17 (2 days)
     const tomorrow: DailySummary = {
-      date: '2026-06-15',
-      weekday: 'Mon',
+      date: '2026-06-16',
+      weekday: 'Tue',
       tempMin: -2,
       tempMax: 4,
       feelsLikeMin: -5,
@@ -524,9 +525,10 @@ describe('generateFallbackNpcMessage', () => {
 
   it('branch: multi-period — snow later (4-7 days, lower urgency)', () => {
     // mainStatus === 'no' + nextDays with snow in 4+ days
+    // Today is 2026-06-15, so use 2026-06-19 (4 days) or later
     const day4: DailySummary = {
-      date: '2026-06-18',
-      weekday: 'Thu',
+      date: '2026-06-19',
+      weekday: 'Fri',
       tempMin: -1,
       tempMax: 5,
       feelsLikeMin: -4,

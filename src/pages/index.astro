@@ -1,7 +1,7 @@
 ---
 import '../styles/tailwind.css';
 import type { PeriodKey, PeriodInterpretations } from '../lib/types';
-import type { DemoSenario } from '../data/demo-scenarios';
+import type { DemoScenario } from '../data/demo-scenarios';
 import {
   getWeatherData,
   type WeatherMode,
@@ -10,13 +10,13 @@ import { analyzeAllPeriods } from '../lib/period-engine';
 import { isValidScenario } from '../data/demo-scenarios';
 import MobileNav from '../components/MobileNav.astro';
 import GuruNpcCard from '../components/guru/GuruNpcCard.astro';
-import { generateTouristCopy, type GuruCopyInput } from '../lib/ai/guru-copy';
+import { generateGuruNpcMessage, type GuruCopyInput } from '../lib/ai/guru-copy';
 import type { GuruNpcOutput } from '../lib/ai/types';
 import { getSevenDayForecast } from '../lib/forecast-periods';
 
 const params = Astro.url.searchParams;
 const demoParam = params.get('demo');
-const activeScenario: DemoSenario | undefined = isValidScenario(demoParam)
+const activeScenario: DemoScenario | undefined = isValidScenario(demoParam)
   ? demoParam
   : undefined;
 const queryMode: WeatherMode | undefined =
@@ -51,7 +51,7 @@ const touristResults = await Promise.all(
       nextDays: dailySummaries,
       aicHistory: normalized.aicHistory,
     };
-    return generateTouristCopy(input);
+    return generateGuruNpcMessage(input);
   }),
 );
 const touristData: Record<PeriodKey, GuruNpcOutput> = {} as Record<

@@ -1,4 +1,8 @@
 import type { SMNApiStation } from './smn-types';
+import { CAVIAHUE_COORDS } from '../open-meteo-api';
+
+// Re-export for convenience
+export { CAVIAHUE_COORDS };
 
 export function haversineKm(
   lat1: number,
@@ -43,5 +47,3 @@ export function findClosestStation(
   if (!closest) return null;
   return { station: closest, distanceKm: Math.round(minDist * 10) / 10 };
 }
-
-export const CAVIAHUE_COORDS = { lat: -37.87, lon: -71.05 };

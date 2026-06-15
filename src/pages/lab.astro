@@ -1,7 +1,7 @@
 ---
 import '../styles/tailwind.css';
 import type { PeriodKey, PeriodInterpretations } from '../lib/types';
-import type { DemoSenario } from '../data/demo-scenarios';
+import type { DemoScenario } from '../data/demo-scenarios';
 import {
   getWeatherData,
   type WeatherMode,
@@ -21,12 +21,12 @@ import ForecastChart from '../components/ForecastChart.astro';
 import SnowWindow from '../components/SnowWindow.astro';
 import AlertsPanel from '../components/AlertsPanel.astro';
 import GuruSummary from '../components/GuruSummary.astro';
-import { generateTouristCopy, type GuruCopyInput } from '../lib/ai/guru-copy';
+import { generateGuruNpcMessage, type GuruCopyInput } from '../lib/ai/guru-copy';
 import type { GuruNpcOutput } from '../lib/ai/types';
 
 const params = Astro.url.searchParams;
 const demoParam = params.get('demo');
-const activeScenario: DemoSenario | undefined = isValidScenario(demoParam)
+const activeScenario: DemoScenario | undefined = isValidScenario(demoParam)
   ? demoParam
   : undefined;
 const queryMode: WeatherMode | undefined =
@@ -62,7 +62,7 @@ const touristResults = await Promise.all(
       nextDays: dailySummaries,
       aicHistory: normalized.aicHistory,
     };
-    return generateTouristCopy(input);
+    return generateGuruNpcMessage(input);
   }),
 );
 const touristData: Record<PeriodKey, GuruNpcOutput> = {} as Record<
@@ -390,9 +390,9 @@ const zoneHourlyTomorrow = buildZoneHourly('tomorrow');
         }
       </div>
     </main>
+    <div id="period-json" hidden>{periodDataJson}</div>
   </body>
 </html>
-<div id="period-json" hidden>{periodDataJson}</div>
 <script is:inline>
   (function () {
     var data = JSON.parse(document.getElementById('period-json').textContent);

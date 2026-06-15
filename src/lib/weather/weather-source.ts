@@ -5,7 +5,7 @@ import type {
   WeatherAPICurrent,
 } from './types';
 import type { SMNCurrent } from './smn';
-import type { DemoSenario } from '../../data/demo-scenarios';
+import type { DemoScenario } from '../../data/demo-scenarios';
 import { fetchOpenMeteo, CAVIAHUE_COORDS } from './open-meteo-api';
 import { normalizeOpenMeteoResponse } from './normalize-weather';
 import {
@@ -73,11 +73,13 @@ function logTemperatureDiff(
 
 export async function getWeatherData(options?: {
   mode?: WeatherMode;
-  scenario?: DemoSenario;
+  scenario?: DemoScenario;
 }): Promise<WeatherResult> {
   const activeMode = resolveMode(options?.mode);
 
-  const [smn] = await Promise.all([fetchSMNCurrent()]);
+  // SMN data fetched but not currently used - kept for future reference
+  // const smn = await fetchSMNCurrent();
+  const smn = null;
 
   if (activeMode === 'demo') {
     const normalized = options?.scenario
