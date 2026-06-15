@@ -126,12 +126,12 @@ const hasEntries = entries.length > 0;
 {
   hasEntries ? (
     <div
-      class="bg-surface border border-border-subtle rounded-xl p-3 shadow-[0_4px_20px_rgba(0,0,0,0.35)] mb-6"
+      class="bg-surface border border-subtle rounded-xl p-3 shadow-[0_4px_20px_rgba(0,0,0,0.35)] mb-6"
     >
       <div class="flex items-center gap-2 mb-2">
         <div class="w-1.5 h-1.5 rounded-full bg-hielo/40"></div>
         <span
-          class="text-[8px] text-text-muted tracking-[0.2em] uppercase font-medium"
+          class="text-[8px] text-muted tracking-[0.2em] uppercase font-medium"
         >
           Nieve acumulada (SWE)
         </span>
@@ -141,7 +141,7 @@ const hasEntries = entries.length > 0;
           <div set:html={chartSvg} />
         ) : (
           <div class="text-center py-8">
-            <p class="text-[11px] text-text-muted">
+            <p class="text-[11px] text-muted">
               Sin datos de nieve acumulada
             </p>
           </div>
@@ -150,3 +150,4 @@ const hasEntries = entries.length > 0;
     </div>
   ) : null
 }
+

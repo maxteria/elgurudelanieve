@@ -1,8 +1,8 @@
-ï»¿---
+---
 const { zoneHourlyToday, zoneHourlyTomorrow, dailySummaries, periods } =
   Astro.props;
 const periodKeys = ['today', 'tomorrow', 'sevenDays'];
-const periodLabels = ['Hoy', 'MaÃ±ana', '7 dÃ­as'];
+const periodLabels = ['Hoy', 'Mañana', '7 días'];
 const charts = {
   today: zoneHourlyToday,
   tomorrow: zoneHourlyTomorrow,
@@ -261,11 +261,11 @@ const firstKey = periodKeys[0];
 ---
 
 <div
-  class="bg-surface border border-border-subtle rounded-xl px-4 py-3 shadow-[0_4px_20px_rgba(0,0,0,0.35)]"
+  class="bg-surface border border-subtle rounded-xl px-4 py-3 shadow-[0_4px_20px_rgba(0,0,0,0.35)]"
 >
   <div class="mb-1.5">
     <span
-      class="text-[7px] text-text-muted tracking-[0.3em] uppercase font-medium"
+      class="text-[7px] text-muted tracking-[0.3em] uppercase font-medium"
       >Temperatura y Cota</span
     >
   </div>
@@ -284,33 +284,33 @@ const firstKey = periodKeys[0];
   <div class="flex items-center gap-3 mt-1.5 flex-wrap">
     <div class="flex items-center gap-1">
       <span class="w-2.5 h-[1.5px] bg-hielo rounded-full" style="background:var(--chart-line)"></span><span
-        class="text-[7px] text-text-muted">Temperatura &deg;C</span
+        class="text-[7px] text-muted">Temperatura &deg;C</span
       >
     </div>
     <div class="flex items-center gap-1">
       <span
         class="w-2.5 h-0 rounded-full border-t border-dashed"
         style="border-color:var(--chart-freeze)"
-      ></span><span class="text-[7px] text-text-muted">Cota de nieve m</span>
+      ></span><span class="text-[7px] text-muted">Cota de nieve m</span>
     </div>
     <div class="flex items-center gap-1">
       <span class="w-2.5 h-2.5 rounded-sm" style="background:var(--chart-precip)"></span><span
-        class="text-[7px] text-text-muted">Precipitaci&oacute;n</span
+        class="text-[7px] text-muted">Precipitaci&oacute;n</span
       >
     </div>
     <div class="flex items-center gap-1">
       <svg width="8" height="6" viewBox="0 0 8 6" class="inline-block"><path d="M4,0 L7,4 L1,4 Z" fill="var(--chart-wind)"/></svg><span
-        class="text-[7px] text-text-muted">Viento</span
+        class="text-[7px] text-muted">Viento</span
       >
     </div>
     <div class="flex items-center gap-1">
       <span class="w-1.5 h-1.5 rounded-full" style="background:var(--chart-cloud)"></span><span
-        class="text-[7px] text-text-muted">Nubosidad</span
+        class="text-[7px] text-muted">Nubosidad</span
       >
     </div>
   </div>
   <p
-    class="text-[8px] text-text-muted mt-1.5 leading-relaxed period-desc"
+    class="text-[8px] text-muted mt-1.5 leading-relaxed period-desc"
     data-period={firstKey}
   >
     {
@@ -319,3 +319,4 @@ const firstKey = periodKeys[0];
     }
   </p>
 </div>
+
