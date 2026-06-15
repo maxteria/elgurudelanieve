@@ -1,6 +1,7 @@
 import type { SnowInterpretation, PeriodKey } from '../types';
 import type { DailySummary, AicStationData } from '../weather/types';
 import type { GuruNpcOutput, GuruMood, GuruCertainty } from './types';
+import { getGuruMessagesInRange, storeGuruMessage } from '../supabase/client';
 
 export type GuruCopyInput = {
   period: PeriodKey;
@@ -20,6 +21,9 @@ export type GuruCopyInput = {
 
 const LLM_KEY_ENV = 'OPENROUTER_API_KEY';
 const LLM_MODEL = 'google/gemini-3.1-flash-lite';
+
+// Cache Guru responses in Supabase for 2 hours
+const CACHE_TTL_MS = 2 * 60 * 60 * 1000;
 
 const VALID_MOODS: GuruMood[] = [
   'excited',
@@ -502,18 +506,69 @@ async function callLlm(
 
 // ─── Main Entry Point ───────────────────────────────────────────────────────
 
+/**
+ * Generate a cache key based on current date only.
+ * The period is stored separately in the 'period' field.
+ * Format: "2026-06-15"
+ */
+function getCacheDateKey(): string {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+}
+
 export async function generateGuruNpcMessage(
   data: GuruCopyInput,
 ): Promise<GuruNpcOutput> {
-  const apiKey = getLlmKey();
+  const cacheDate = getCacheDateKey();
+  const cacheAge = Date.now() - CACHE_TTL_MS;
+  const cutoffDate = new Date(cacheAge).toISOString();
 
+  // Check cache first - look for this period + date combination
+  try {
+    const cached = await getGuruMessagesInRange(cacheDate, cacheDate);
+    const recent = cached.find((r) => {
+      const created = r.created_at ?? '';
+      const matchesPeriod = r.period === data.period;
+      return created > cutoffDate && matchesPeriod;
+    });
+    if (recent && recent.mood && recent.certainty && recent.message) {
+      console.info(`[Guru] Cache hit for ${data.period}-${cacheDate}, skipping LLM call`);
+      return {
+        mood: recent.mood as GuruMood,
+        certainty: recent.certainty as GuruCertainty,
+        message: recent.message,
+        tip: null,
+        source: 'cache',
+      };
+    }
+  } catch (err) {
+    console.warn('[Guru] Cache read failed, falling through to LLM');
+  }
+
+  // Call LLM if no cache or cache miss
+  const apiKey = getLlmKey();
   if (apiKey) {
     const systemPrompt = buildSystemPrompt();
     const userPrompt = buildUserPrompt(data);
     const result = await callLlm(systemPrompt, userPrompt, apiKey);
     if (result) {
       const parsed = extractJsonGuruResponse(result);
-      if (parsed) return parsed;
+      if (parsed) {
+        // Store in cache for future builds
+        try {
+          await storeGuruMessage({
+            period: data.period,
+            period_key: cacheDate,
+            mood: parsed.mood,
+            certainty: parsed.certainty,
+            message: parsed.message,
+            source: 'ai',
+          });
+        } catch (err) {
+          console.warn('[Guru] Failed to cache response');
+        }
+        return parsed;
+      }
     }
   }
 
