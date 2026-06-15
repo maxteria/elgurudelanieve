@@ -20,7 +20,7 @@ const certaintyLabels: Record<string, string> = {
 ---
 
 <section
-  class="relative overflow-hidden rounded-xl border border-hielo/15 bg-surface shadow-[0_8px_40px_rgba(0,0,0,0.5),0_0_30px_rgba(168,231,249,0.06)]"
+  class="relative overflow-hidden rounded-xl border border-hielo/15 bg-[rgba(9,16,22,0.92)] shadow-[0_8px_40px_rgba(0,0,0,0.5),0_0_30px_rgba(168,231,249,0.06)]"
   data-period-guru-tourist
   data-mood={mood}
 >
@@ -64,7 +64,7 @@ const certaintyLabels: Record<string, string> = {
       </div>
       <!-- Mood dot (bottom-right corner of avatar) -->
       <div
-        class="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-surface-elevated z-10"
+        class="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-[rgba(9,16,22,0.92)] z-10"
         style="background: var(--mood-color, #94a3b8)"
         data-mood-indicator
       >
@@ -75,7 +75,7 @@ const certaintyLabels: Record<string, string> = {
     <div class="flex-1 min-w-0">
       <div class="flex items-center gap-2 mb-1.5">
         <span
-          class="text-[9px] text-text-muted tracking-[0.25em] uppercase font-semibold"
+          class="text-[9px] text-white/30 tracking-[0.25em] uppercase font-semibold"
           >Lo que dice el Gurú</span
         >
         <span
@@ -133,7 +133,7 @@ const certaintyLabels: Record<string, string> = {
               <line x1="12" y1="16" x2="12" y2="12" />
               <line x1="12" y1="8" x2="12.01" y2="8" />
             </svg>
-            <span class="text-[11px] text-text-secondary leading-relaxed">{tip}</span>
+            <span class="text-[11px] text-white/50 leading-relaxed">{tip}</span>
           </div>
         )
       }

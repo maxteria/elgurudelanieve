@@ -48,7 +48,7 @@ function renderSweChart(data: DailyHistoryEntry[]): string {
   for (let i = 0; i <= 4; i++) {
     const y = padT + (i / 4) * ph;
     gridLines.push(
-      `<line x1="${padL}" y1="${y.toFixed(1)}" x2="${cw - padR}" y2="${y.toFixed(1)}" stroke="var(--chart-grid)" stroke-width="1"/>`,
+      `<line x1="${padL}" y1="${y.toFixed(1)}" x2="${cw - padR}" y2="${y.toFixed(1)}" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>`,
     );
   }
 
@@ -58,7 +58,7 @@ function renderSweChart(data: DailyHistoryEntry[]): string {
     const value = minVal + (i / 4) * valRange;
     const y = padT + ph - (i / 4) * ph;
     yLabels.push(
-      `<text x="${padL - 5}" y="${(y + 1).toFixed(1)}" text-anchor="end" fill="var(--chart-label)" font-size="7" font-family="Inter, sans-serif">${value.toFixed(0)}</text>`,
+      `<text x="${padL - 5}" y="${(y + 1).toFixed(1)}" text-anchor="end" fill="rgba(255,255,255,0.12)" font-size="7" font-family="Inter, sans-serif">${value.toFixed(0)}</text>`,
     );
   }
 
@@ -72,7 +72,7 @@ function renderSweChart(data: DailyHistoryEntry[]): string {
       month: 'short',
     });
     xLabels.push(
-      `<text x="${xp(i).toFixed(1)}" y="${ch - 8}" text-anchor="middle" fill="var(--chart-label)" font-size="7" font-family="Inter, sans-serif">${label}</text>`,
+      `<text x="${xp(i).toFixed(1)}" y="${ch - 8}" text-anchor="middle" fill="rgba(255,255,255,0.12)" font-size="7" font-family="Inter, sans-serif">${label}</text>`,
     );
   }
   // Ensure last label is always shown
@@ -80,7 +80,7 @@ function renderSweChart(data: DailyHistoryEntry[]): string {
   if (lastIdx % labelStep !== 0) {
     const d = new Date(chartData[lastIdx].date + 'T12:00:00');
     xLabels.push(
-      `<text x="${xp(lastIdx).toFixed(1)}" y="${ch - 8}" text-anchor="middle" fill="var(--chart-label)" font-size="7" font-family="Inter, sans-serif">${d.toLocaleDateString('es-AR', { day: 'numeric', month: 'short' })}</text>`,
+      `<text x="${xp(lastIdx).toFixed(1)}" y="${ch - 8}" text-anchor="middle" fill="rgba(255,255,255,0.12)" font-size="7" font-family="Inter, sans-serif">${d.toLocaleDateString('es-AR', { day: 'numeric', month: 'short' })}</text>`,
     );
   }
 
@@ -98,7 +98,7 @@ function renderSweChart(data: DailyHistoryEntry[]): string {
           const barW = Math.max(2, (pw / chartData.length) * 0.4);
           const bx = xp(i) - barW / 2;
           const by = padT + ph - barH;
-          return `<rect x="${bx.toFixed(1)}" y="${by.toFixed(1)}" width="${barW.toFixed(1)}" height="${barH.toFixed(1)}" rx="1" fill="var(--chart-precip)"/>`;
+          return `<rect x="${bx.toFixed(1)}" y="${by.toFixed(1)}" width="${barW.toFixed(1)}" height="${barH.toFixed(1)}" rx="1" fill="rgba(168,231,249,0.12)"/>`;
         })
         .join('')
     : '';
@@ -107,11 +107,11 @@ function renderSweChart(data: DailyHistoryEntry[]): string {
     ${gridLines.join('')}
     ${yLabels.join('')}
     ${precipBars}
-    <polyline points="${swePoints}" fill="none" stroke="var(--chart-line)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    <polyline points="${swePoints}" fill="none" stroke="#a8e7f9" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
     ${chartData
       .map(
         (e, i) =>
-          `<circle cx="${xp(i).toFixed(1)}" cy="${yp(e.swe!).toFixed(1)}" r="2.5" fill="var(--chart-line)" stroke="#0b0d10" stroke-width="1.2"/>`,
+          `<circle cx="${xp(i).toFixed(1)}" cy="${yp(e.swe!).toFixed(1)}" r="2.5" fill="#a8e7f9" stroke="#0b0d10" stroke-width="1.2"/>`,
       )
       .join('')}
     ${xLabels.join('')}
@@ -126,12 +126,12 @@ const hasEntries = entries.length > 0;
 {
   hasEntries ? (
     <div
-      class="bg-surface border border-border-subtle rounded-xl p-3 shadow-[0_4px_20px_rgba(0,0,0,0.35)] mb-6"
+      class="bg-[rgba(9,16,22,0.6)] border border-white/[0.06] rounded-xl p-3 shadow-[0_4px_20px_rgba(0,0,0,0.35)] mb-6"
     >
       <div class="flex items-center gap-2 mb-2">
         <div class="w-1.5 h-1.5 rounded-full bg-hielo/40"></div>
         <span
-          class="text-[8px] text-text-muted tracking-[0.2em] uppercase font-medium"
+          class="text-[8px] text-white/25 tracking-[0.2em] uppercase font-medium"
         >
           Nieve acumulada (SWE)
         </span>
@@ -141,7 +141,7 @@ const hasEntries = entries.length > 0;
           <div set:html={chartSvg} />
         ) : (
           <div class="text-center py-8">
-            <p class="text-[11px] text-text-muted">
+            <p class="text-[11px] text-white/40">
               Sin datos de nieve acumulada
             </p>
           </div>

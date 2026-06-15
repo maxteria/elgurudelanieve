@@ -12,14 +12,14 @@ if (id === 'village' && current.precipitation === 0) {
 ---
 
 <div
-  class="bg-surface border border-border-subtle rounded-xl px-4 py-3 shadow-[0_4px_20px_rgba(0,0,0,0.35)] flex flex-col h-full"
+  class="bg-[rgba(9,16,22,0.85)] border border-white/[0.06] rounded-xl px-4 py-3 shadow-[0_4px_20px_rgba(0,0,0,0.35)] flex flex-col h-full"
   data-period-zone
 >
   <div class="flex items-center justify-between mb-1.5">
-    <h3 class="text-[10px] font-bold text-text-primary tracking-[0.1em] uppercase">
+    <h3 class="text-[10px] font-bold text-white/80 tracking-[0.1em] uppercase">
       {label}
     </h3>
-    <span class="text-[8px] text-text-faint font-mono">{altitude} m s.n.m.</span>
+    <span class="text-[8px] text-white/20 font-mono">{altitude} m s.n.m.</span>
   </div>
 
   <div class="flex items-center gap-2.5 mb-2">
@@ -28,15 +28,14 @@ if (id === 'village' && current.precipitation === 0) {
       height="32"
       viewBox="0 0 48 48"
       fill="none"
-      stroke={hasSnow ? 'var(--accent-primary)' : 'var(--text-faint)'}
+      stroke={hasSnow ? '#a8e7f9' : 'rgba(255,255,255,0.15)'}
       stroke-width="1.1"
       stroke-linecap="round"
       stroke-linejoin="round"
     >
       <path
         d="M32 22a8 8 0 1 0-7.6-10.3A6.5 6.5 0 1 0 24 28h12a5 5 0 0 0 0-10h-1.5A5.5 5.5 0 0 0 32 22z"
-        fill={hasSnow ? 'var(--accent-primary)' : 'var(--border-subtle)'}
-        opacity={hasSnow ? '0.1' : '1'}
+        fill={hasSnow ? 'rgba(168,231,249,0.1)' : 'rgba(255,255,255,0.03)'}
       ></path>
       {
         hasSnow && (
@@ -59,28 +58,28 @@ if (id === 'village' && current.precipitation === 0) {
         class="text-[30px] font-extrabold text-hielo leading-none"
         data-period-zone-temp>{current.temp}°</span
       >
-      <span class="text-[9px] text-text-muted mt-2"
+      <span class="text-[9px] text-white/25 mt-2"
         >sensación <span data-period-zone-feels>{current.feelsLike}</span
         >°</span
       >
     </div>
   </div>
 
-  <div class="space-y-1.5 text-[9px] pt-1.5 border-t border-border-subtle">
+  <div class="space-y-1.5 text-[9px] pt-1.5 border-t border-white/[0.03]">
     <div class="flex items-center justify-between">
-      <span class="text-text-muted">Viento</span>
+      <span class="text-white/25">Viento</span>
       <span
-        class="text-text-primary font-semibold tabular-nums"
+        class="text-white/70 font-semibold tabular-nums"
         data-period-zone-wind>{current.wind} km/h ↗</span
       >
     </div>
     {
       current.freezingLevel !== undefined && current.freezingLevel !== null && (
         <div
-          class="flex items-center justify-between pt-1 border-t border-border-subtle"
+          class="flex items-center justify-between pt-1 border-t border-white/[0.02]"
         >
-          <span class="text-text-muted">Cota de nieve</span>
-          <span class="text-text-primary font-semibold tabular-nums"
+          <span class="text-white/25">Cota de nieve</span>
+          <span class="text-white/70 font-semibold tabular-nums"
             >{current.freezingLevel > 3000
               ? '>3000 m'
               : `${current.freezingLevel} m`}</span
@@ -89,10 +88,10 @@ if (id === 'village' && current.precipitation === 0) {
       )
     }
     <div
-      class="flex items-center justify-between pt-1 border-t border-border-subtle"
+      class="flex items-center justify-between pt-1 border-t border-white/[0.02]"
     >
-      <span class="text-text-muted">Precipitación</span>
-      <span class="text-text-primary font-semibold tabular-nums"
+      <span class="text-white/25">Precipitación</span>
+      <span class="text-white/70 font-semibold tabular-nums"
         >{current.precipitation} mm</span
       >
     </div>
@@ -100,19 +99,19 @@ if (id === 'village' && current.precipitation === 0) {
       current.precipitationProbability !== undefined &&
         current.precipitationProbability !== null && (
           <div
-            class="flex items-center justify-between pt-1 border-t border-border-subtle"
+            class="flex items-center justify-between pt-1 border-t border-white/[0.02]"
           >
-            <span class="text-text-muted">Prob. de precipitación</span>
-            <span class="text-text-primary font-semibold tabular-nums"
+            <span class="text-white/25">Prob. de precipitación</span>
+            <span class="text-white/70 font-semibold tabular-nums"
               >{current.precipitationProbability}%</span
             >
           </div>
         )
     }
     <div
-      class="flex items-center justify-between pt-1 border-t border-border-subtle"
+      class="flex items-center justify-between pt-1 border-t border-white/[0.02]"
     >
-      <span class="text-text-muted">Prob. de nieve</span>
+      <span class="text-white/25">Prob. de nieve</span>
       <span class="text-hielo font-bold tabular-nums" data-period-zone-snow
         >{current.snowChance}%</span
       >
@@ -120,10 +119,10 @@ if (id === 'village' && current.precipitation === 0) {
     {
       current.humidity !== undefined && current.humidity !== null && (
         <div
-          class="flex items-center justify-between pt-1 border-t border-border-subtle"
+          class="flex items-center justify-between pt-1 border-t border-white/[0.02]"
         >
-          <span class="text-text-muted">Humedad</span>
-          <span class="text-text-primary font-semibold tabular-nums"
+          <span class="text-white/25">Humedad</span>
+          <span class="text-white/70 font-semibold tabular-nums"
             >{current.humidity}%</span
           >
         </div>
@@ -131,10 +130,10 @@ if (id === 'village' && current.precipitation === 0) {
     }
     {
       current.snowDepth !== undefined && current.snowDepth !== null && (
-        <div class="flex items-center justify-between pt-1 border-t border-border-subtle">
-          <span class="text-text-muted">Nieve en pista</span>
+        <div class="flex items-center justify-between pt-1 border-t border-white/[0.02]">
+          <span class="text-white/25">Nieve en pista</span>
           <span
-            class="text-text-primary font-semibold tabular-nums"
+            class="text-white/70 font-semibold tabular-nums"
             data-period-zone-snowdepth
           >
             {current.snowDepth === 0
@@ -146,7 +145,7 @@ if (id === 'village' && current.precipitation === 0) {
     }
   </div>
 
-  <div class="mt-auto pt-1.5 border-t border-border-subtle">
+  <div class="mt-auto pt-1.5 border-t border-white/[0.03]">
     <span class="text-[9px] text-hielo/60 font-medium" data-period-zone-answer
       >{footerText}</span
     >

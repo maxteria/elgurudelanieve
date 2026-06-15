@@ -27,11 +27,11 @@ const swe = entry.swe != null ? `${entry.swe} mm` : null;
 ---
 
 <div
-  class="bg-surface border border-border-subtle rounded-xl p-4 shadow-[0_4px_20px_rgba(0,0,0,0.35)] flex flex-col h-full"
+  class="bg-[rgba(9,16,22,0.6)] border border-white/[0.06] rounded-xl p-4 shadow-[0_4px_20px_rgba(0,0,0,0.35)] flex flex-col h-full"
 >
   <!-- Date header -->
   <div class="mb-2">
-    <h3 class="text-[11px] font-semibold text-text-primary capitalize leading-tight">
+    <h3 class="text-[11px] font-semibold text-white/70 capitalize leading-tight">
       {formatDate(entry.date)}
     </h3>
   </div>
@@ -39,40 +39,40 @@ const swe = entry.swe != null ? `${entry.swe} mm` : null;
   <!-- Metrics -->
   <div class="space-y-1 mb-1.5">
     <div class="flex items-center justify-between text-[9px]">
-      <span class="text-text-muted">Temp</span>
-      <span class="text-text-primary font-semibold tabular-nums"
+      <span class="text-white/25">Temp</span>
+      <span class="text-white/70 font-semibold tabular-nums"
         >{entry.tempMin ?? '--'}° / {entry.tempMax ?? '--'}°</span
       >
     </div>
     <div class="flex items-center justify-between text-[9px]">
-      <span class="text-text-muted">Humedad</span>
-      <span class="text-text-primary font-semibold tabular-nums"
+      <span class="text-white/25">Humedad</span>
+      <span class="text-white/70 font-semibold tabular-nums"
         >{humidity ?? '--'}</span
       >
     </div>
     <div class="flex items-center justify-between text-[9px]">
-      <span class="text-text-muted">Viento</span>
-      <span class="text-text-primary font-semibold tabular-nums"
+      <span class="text-white/25">Viento</span>
+      <span class="text-white/70 font-semibold tabular-nums"
         >{windKmh ?? '--'}</span
       >
     </div>
     <div class="flex items-center justify-between text-[9px]">
-      <span class="text-text-muted">SWE (nieve)</span>
-      <span class="text-text-primary font-semibold tabular-nums"
+      <span class="text-white/25">SWE (nieve)</span>
+      <span class="text-white/70 font-semibold tabular-nums"
         >{swe ?? '--'}</span
       >
     </div>
   </div>
 
   <!-- Guru message -->
-  <div class="mt-auto pt-2.5 border-t border-border-subtle">
+  <div class="mt-auto pt-2.5 border-t border-white/[0.03]">
     {
       entry.guru?.message ? (
-        <p class="text-[10px] text-text-secondary leading-relaxed line-clamp-2">
+        <p class="text-[10px] text-white/50 leading-relaxed line-clamp-2">
           {entry.guru.message}
         </p>
       ) : (
-        <p class="text-[9px] text-text-faint italic">
+        <p class="text-[9px] text-white/20 italic">
           Sin mensaje del Gurú
         </p>
       )

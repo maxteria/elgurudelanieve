@@ -19,24 +19,18 @@ import HistoricoView from '../components/HistoricoView.astro';
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
       rel="stylesheet"
     />
-    <script is:inline>
-      (function() {
-        var t = localStorage.getItem('theme');
-        if (t === 'light') document.documentElement.setAttribute('data-theme', 'light');
-      })();
-    </script>
   </head>
   <body
-    class="text-text-primary min-h-screen antialiased font-premium overflow-x-hidden transition-colors duration-300"
+    class="text-white min-h-screen antialiased font-premium overflow-x-hidden"
   >
     <MobileNav activeSection="historico" />
     <main class="min-h-screen pt-12 px-4 md:px-8 pb-8">
       <div class="max-w-2xl mx-auto">
         <div class="mb-8">
-          <h1 class="text-[28px] font-extrabold text-text-primary tracking-tight">
+          <h1 class="text-[28px] font-extrabold text-white tracking-tight">
             Histórico
           </h1>
-          <p class="text-text-muted text-[11px] mt-1">
+          <p class="text-white/30 text-[11px] mt-1">
             Lecturas pasadas del Gurú · Archivo por fecha
           </p>
         </div>

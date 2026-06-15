@@ -125,7 +125,7 @@ const defaultRest = defaultFiltered.slice(3);
           <div class="w-1.5 h-1.5 rounded-full bg-hielo/40"></div>
           <span
             id="hc-range-label"
-            class="text-[8px] text-text-muted tracking-[0.2em] uppercase font-medium"
+            class="text-[8px] text-white/25 tracking-[0.2em] uppercase font-medium"
           >
             Mostrando {defaultFiltered.length} días
           </span>
@@ -139,7 +139,7 @@ const defaultRest = defaultFiltered.slice(3);
                 class={`text-[9px] px-2 py-1 rounded-full transition-colors ${
                   isDefault
                     ? 'bg-hielo/[0.1] text-hielo/70 font-semibold'
-                    : 'text-text-muted hover:text-text-secondary hover:bg-surface-subtle'
+                    : 'text-white/30 hover:text-white/60 hover:bg-white/[0.04]'
                 }`}
                 data-days={days}
               >
@@ -170,12 +170,12 @@ const defaultRest = defaultFiltered.slice(3);
           defaultRest.length > 0 ? (
             <div>
               <div class="flex items-center gap-2 mb-3">
-                <div class="w-1 h-1 rounded-full text-faint" style="background:var(--text-faint)"></div>
-                <span class="text-[8px] text-text-faint tracking-[0.2em] uppercase font-medium">
+                <div class="w-1 h-1 rounded-full bg-white/20"></div>
+                <span class="text-[8px] text-white/15 tracking-[0.2em] uppercase font-medium">
                   Registro completo
                 </span>
               </div>
-              <div class="bg-surface border border-border-subtle rounded-xl overflow-hidden">
+              <div class="bg-[rgba(9,16,22,0.6)] border border-white/[0.06] rounded-xl overflow-hidden">
                 <HistoricoTable entries={defaultRest} />
               </div>
             </div>
@@ -196,8 +196,8 @@ const defaultRest = defaultFiltered.slice(3);
           <polyline points="12 6 12 12 16 14"></polyline>
         </svg>
       </div>
-      <p class="text-[13px] text-text-muted font-medium mb-1">No hay datos históricos</p>
-      <p class="text-[10px] text-text-faint">Los datos aparecerán cuando el Gurú acumule lecturas.</p>
+      <p class="text-[13px] text-white/40 font-medium mb-1">No hay datos históricos</p>
+      <p class="text-[10px] text-white/20">Los datos aparecerán cuando el Gurú acumule lecturas.</p>
     </div>
   )
 }
@@ -333,33 +333,33 @@ const defaultRest = defaultFiltered.slice(3);
         var h = fmtHumidity(e.aic);
         var s = fmtSwe(e.swe);
         var guruMsg = e.guru && e.guru.message
-          ? '<p class="text-[10px] text-text-secondary leading-relaxed line-clamp-2">' +
+          ? '<p class="text-[10px] text-white/50 leading-relaxed line-clamp-2">' +
             escapeHtml(e.guru.message) +
             '</p>'
-          : '<p class="text-[9px] text-text-faint italic">Sin mensaje del Gur\u00fa</p>';
+          : '<p class="text-[9px] text-white/20 italic">Sin mensaje del Gur\u00fa</p>';
         return (
-          '<div class="bg-surface border border-border-subtle rounded-xl p-4 shadow-[0_4px_20px_rgba(0,0,0,0.35)] flex flex-col h-full">' +
+          '<div class="bg-[rgba(9,16,22,0.6)] border border-white/[0.06] rounded-xl p-4 shadow-[0_4px_20px_rgba(0,0,0,0.35)] flex flex-col h-full">' +
           '<div class="mb-2">' +
-          '<h3 class="text-[11px] font-semibold text-text-primary capitalize leading-tight">' +
+          '<h3 class="text-[11px] font-semibold text-white/70 capitalize leading-tight">' +
           fmtDateLong(e.date) +
           '</h3></div>' +
           '<div class="space-y-1 mb-1.5">' +
-          '<div class="flex items-center justify-between text-[9px]"><span class="text-text-muted">Temp</span><span class="text-text-primary font-semibold tabular-nums">' +
+          '<div class="flex items-center justify-between text-[9px]"><span class="text-white/25">Temp</span><span class="text-white/70 font-semibold tabular-nums">' +
           (e.tempMin != null ? e.tempMin : '--') +
           '\u00b0 / ' +
           (e.tempMax != null ? e.tempMax : '--') +
           '\u00b0</span></div>' +
-          '<div class="flex items-center justify-between text-[9px]"><span class="text-text-muted">Humedad</span><span class="text-text-primary font-semibold tabular-nums">' +
+          '<div class="flex items-center justify-between text-[9px]"><span class="text-white/25">Humedad</span><span class="text-white/70 font-semibold tabular-nums">' +
           (h || '--') +
           '</span></div>' +
-          '<div class="flex items-center justify-between text-[9px]"><span class="text-text-muted">Viento</span><span class="text-text-primary font-semibold tabular-nums">' +
+          '<div class="flex items-center justify-between text-[9px]"><span class="text-white/25">Viento</span><span class="text-white/70 font-semibold tabular-nums">' +
           (w || '--') +
           '</span></div>' +
-          '<div class="flex items-center justify-between text-[9px]"><span class="text-text-muted">SWE (nieve)</span><span class="text-text-primary font-semibold tabular-nums">' +
+          '<div class="flex items-center justify-between text-[9px]"><span class="text-white/25">SWE (nieve)</span><span class="text-white/70 font-semibold tabular-nums">' +
           (s || '--') +
           '</span></div>' +
           '</div>' +
-          '<div class="mt-auto pt-2.5 border-t border-faint">' +
+          '<div class="mt-auto pt-2.5 border-t border-white/[0.03]">' +
           guruMsg +
           '</div></div>'
         );
@@ -377,28 +377,28 @@ const defaultRest = defaultFiltered.slice(3);
         var s = fmtSwe(e.swe);
         var guruText = fmtGuruSnippet(e.guru);
         return (
-          '<tr class="border-b border-faint hover:bg-surface-subtle transition-colors">' +
-          '<td class="px-3 py-2.5 text-text-primary font-semibold whitespace-nowrap">' +
+          '<tr class="border-b border-white/[0.02] hover:bg-white/[0.02] transition-colors">' +
+          '<td class="px-3 py-2.5 text-white/70 font-semibold whitespace-nowrap">' +
           fmtDateShort(e.date) +
           '</td>' +
-          '<td class="px-3 py-2.5 text-right text-text-primary font-semibold tabular-nums whitespace-nowrap">' +
+          '<td class="px-3 py-2.5 text-right text-white/70 font-semibold tabular-nums whitespace-nowrap">' +
           (e.tempMin != null ? e.tempMin : '--') +
           '\u00b0 / ' +
           (e.tempMax != null ? e.tempMax : '--') +
           '\u00b0</td>' +
-          '<td class="px-3 py-2.5 text-right text-text-secondary tabular-nums whitespace-nowrap">' +
+          '<td class="px-3 py-2.5 text-right text-white/50 tabular-nums whitespace-nowrap">' +
           (h || '--') +
           '</td>' +
-          '<td class="px-3 py-2.5 text-right text-text-secondary tabular-nums whitespace-nowrap">' +
+          '<td class="px-3 py-2.5 text-right text-white/50 tabular-nums whitespace-nowrap">' +
           (w || '--') +
           '</td>' +
-          '<td class="px-3 py-2.5 text-right text-text-secondary tabular-nums whitespace-nowrap">' +
+          '<td class="px-3 py-2.5 text-right text-white/50 tabular-nums whitespace-nowrap">' +
           (s || '--') +
           '</td>' +
-          '<td class="px-3 py-2.5 text-text-muted max-w-[160px] truncate">' +
+          '<td class="px-3 py-2.5 text-white/40 max-w-[160px] truncate">' +
           (guruText
             ? escapeHtml(guruText)
-            : '<span class="italic text-text-faint">Sin mensaje</span>') +
+            : '<span class="italic text-white/15">Sin mensaje</span>') +
           '</td>' +
           '</tr>'
         );
@@ -408,13 +408,13 @@ const defaultRest = defaultFiltered.slice(3);
     return (
       '<div>' +
       '<div class="flex items-center gap-2 mb-3">' +
-      '<div class="w-1 h-1 rounded-full" style="background:var(--text-faint)"></div>' +
-      '<span class="text-[8px] text-text-faint tracking-[0.2em] uppercase font-medium">Registro completo</span>' +
+      '<div class="w-1 h-1 rounded-full bg-white/20"></div>' +
+      '<span class="text-[8px] text-white/15 tracking-[0.2em] uppercase font-medium">Registro completo</span>' +
       '</div>' +
       '<div class="overflow-x-auto -mx-4 md:mx-0">' +
       '<table class="w-full min-w-[520px] text-[9px] border-collapse">' +
       '<thead>' +
-      '<tr class="text-text-muted font-medium tracking-[0.1em] uppercase border-b border-border-subtle">' +
+      '<tr class="text-white/20 font-medium tracking-[0.1em] uppercase border-b border-white/[0.04]">' +
       '<th class="text-left px-3 py-2 font-medium">Fecha</th>' +
       '<th class="text-right px-3 py-2 font-medium">Temp M\u00edn/M\u00e1x</th>' +
       '<th class="text-right px-3 py-2 font-medium">Humedad</th>' +
@@ -477,7 +477,7 @@ const defaultRest = defaultFiltered.slice(3);
           (cw - padR) +
           '" y2="' +
           gy.toFixed(1) +
-          '" stroke="var(--chart-grid)" stroke-width="1"/>',
+          '" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>',
       );
     }
 
@@ -490,7 +490,7 @@ const defaultRest = defaultFiltered.slice(3);
           (padL - 5) +
           '" y="' +
           (yy + 1).toFixed(1) +
-          '" text-anchor="end" fill="var(--chart-label)" font-size="7" font-family="Inter, sans-serif">' +
+          '" text-anchor="end" fill="rgba(255,255,255,0.12)" font-size="7" font-family="Inter, sans-serif">' +
           yv.toFixed(0) +
           '</text>',
       );
@@ -505,7 +505,7 @@ const defaultRest = defaultFiltered.slice(3);
           xp(xi).toFixed(1) +
           '" y="' +
           (ch - 8) +
-          '" text-anchor="middle" fill="var(--chart-label)" font-size="7" font-family="Inter, sans-serif">' +
+          '" text-anchor="middle" fill="rgba(255,255,255,0.12)" font-size="7" font-family="Inter, sans-serif">' +
           xd.toLocaleDateString('es-AR', { day: 'numeric', month: 'short' }) +
           '</text>',
       );
@@ -519,7 +519,7 @@ const defaultRest = defaultFiltered.slice(3);
           xp(lastIdxC).toFixed(1) +
           '" y="' +
           (ch - 8) +
-          '" text-anchor="middle" fill="var(--chart-label)" font-size="7" font-family="Inter, sans-serif">' +
+          '" text-anchor="middle" fill="rgba(255,255,255,0.12)" font-size="7" font-family="Inter, sans-serif">' +
           xdl.toLocaleDateString('es-AR', { day: 'numeric', month: 'short' }) +
           '</text>',
       );
@@ -545,7 +545,7 @@ const defaultRest = defaultFiltered.slice(3);
             barW.toFixed(1) +
             '" height="' +
             barH.toFixed(1) +
-            '" rx="1" fill="var(--chart-precip)"/>',
+            '" rx="1" fill="rgba(168,231,249,0.12)"/>',
         );
       }
     }
@@ -558,16 +558,16 @@ const defaultRest = defaultFiltered.slice(3);
           xp(i).toFixed(1) +
           '" cy="' +
           yp(e.swe).toFixed(1) +
-          '" r="2.5" fill="var(--chart-line)" stroke="#0b0d10" stroke-width="1.2"/>'
+          '" r="2.5" fill="#a8e7f9" stroke="#0b0d10" stroke-width="1.2"/>'
         );
       })
       .join('');
 
     return (
-      '<div class="bg-surface border border-border-subtle rounded-xl p-3 shadow-[0_4px_20px_rgba(0,0,0,0.35)] mb-6">' +
+      '<div class="bg-[rgba(9,16,22,0.6)] border border-white/[0.06] rounded-xl p-3 shadow-[0_4px_20px_rgba(0,0,0,0.35)] mb-6">' +
       '<div class="flex items-center gap-2 mb-2">' +
       '<div class="w-1.5 h-1.5 rounded-full bg-hielo/40"></div>' +
-      '<span class="text-[8px] text-text-muted tracking-[0.2em] uppercase font-medium">Nieve acumulada (SWE)</span>' +
+      '<span class="text-[8px] text-white/25 tracking-[0.2em] uppercase font-medium">Nieve acumulada (SWE)</span>' +
       '</div>' +
       '<svg viewBox="0 0 ' +
       cw +
@@ -577,7 +577,7 @@ const defaultRest = defaultFiltered.slice(3);
       gridParts.join('') +
       '<polyline points="' +
       swePoints +
-      '" fill="none" stroke="var(--chart-line)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>' +
+      '" fill="none" stroke="#a8e7f9" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>' +
       circleParts +
       '</svg></div>'
     );
