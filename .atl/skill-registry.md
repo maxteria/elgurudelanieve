@@ -30,6 +30,7 @@ Last updated: 2026-06-13
 | `skill-creator`        | Trigger: new skills, agent instructions, documenting AI usage patterns. Create LLM-first skills with valid frontmatter.             | user  | `C:\Users\Usuario\.config\opencode\skills\skill-creator\SKILL.md`        |
 | `skill-improver`       | Trigger: improve skills, audit skills, refactor skills, skill quality. Audit and upgrade existing LLM-first skills.                 | user  | `C:\Users\Usuario\.config\opencode\skills\skill-improver\SKILL.md`       |
 | `work-unit-commits`    | Plan commits as reviewable work units. Trigger: implementation, commit splitting, chained PRs, or keeping tests and docs with code. | user  | `C:\Users\Usuario\.config\opencode\skills\work-unit-commits\SKILL.md`    |
+| `guru-seo-geo-aeo`     | Trigger: SEO, GEO, AEO, LLM-ready, sitemap, robots.txt, llms.txt, structured data, search visibility for El Gurú de la Nieve. Audit and implement SEO/GEO/AEO improvements. | project | `C:\Users\Usuario\dev\elgurudelanieve\.atl\skills\guru-seo-geo-aeo\SKILL.md` |
 
 ## Loading protocol
 
