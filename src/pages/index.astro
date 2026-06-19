@@ -254,29 +254,86 @@ const cotaLabel =
                 ¿Va a nevar en Caviahue hoy?
               </h2>
               <p class="text-[11px] text-white/55 leading-relaxed">
-                {result.mainAnswer.description}
+                {result.mainAnswer.description} El Gurú lee los modelos para
+                Caviahue y te dice si la combinación de frío y humedad da
+                condiciones de nieve en las próximas horas.
               </p>
             </div>
             <div>
               <h2 class="text-[12px] font-semibold text-white/80 mb-1">
-                ¿En qué altura va a nevar?
+                ¿Hay nieve en Caviahue hoy?
               </h2>
               <p class="text-[11px] text-white/55 leading-relaxed">
-                La nieve se comporta distinto según la cota. En el pronóstico
-                extendido el Gurú desglosa el resultado para pueblo (1647 m),
-                centro (1846 m) y cumbre (2045 m).
+                {result.snowLabel
+                  ? `Hoy el Gurú registra: ${result.snowLabel}.`
+                  : 'Hoy no se espera nieve significativa según los modelos actuales.'}{' '}
+                Para saber si hay nieve acumulada en el pueblo, la base o la
+                cumbre, conviene mirar el pronóstico por cotas.
               </p>
             </div>
             <div>
               <h2 class="text-[12px] font-semibold text-white/80 mb-1">
-                ¿Cuándo es la mejor ventana para esquiar?
+                ¿Cuándo puede nevar en Caviahue?
               </h2>
               <p class="text-[11px] text-white/55 leading-relaxed">
                 {
                   result.bestWindow.hasWindow
-                    ? `${result.bestWindow.label}: de ${result.bestWindow.from} a ${result.bestWindow.to}. ${result.bestWindow.description}`
-                    : 'Por ahora no hay una ventana clara. El Gurú la va a marcar cuando se alineen frío y humedad.'
+                    ? `La mejor ventana que ve el Gurú es ${result.bestWindow.label}, de ${result.bestWindow.from} a ${result.bestWindow.to}. ${result.bestWindow.description}`
+                    : 'Por ahora no hay una ventana clara. El Gurú la va a marcar cuando se alineen frío y humedad en los próximos días.'
                 }
+              </p>
+            </div>
+            <div>
+              <h2 class="text-[12px] font-semibold text-white/80 mb-1">
+                ¿En qué altura puede nevar?
+              </h2>
+              <p class="text-[11px] text-white/55 leading-relaxed">
+                La nieve se comporta distinto según la cota. El Gurú desglosa
+                el pronóstico para pueblo (1647 m), centro (1846 m) y cumbre
+                (2045 m), así sabés dónde esperar acumulación.
+              </p>
+            </div>
+            <div>
+              <h2 class="text-[12px] font-semibold text-white/80 mb-1">
+                ¿Hay nieve en el pueblo o solo en el cerro?
+              </h2>
+              <p class="text-[11px] text-white/55 leading-relaxed">
+                El pueblo de Caviahue suele tener menos nieve que la base o la
+                cumbre. El pronóstico por cotas muestra dónde la cota de nieve
+                permite que se acumule y dónde cae como lluvia.
+              </p>
+            </div>
+            <div>
+              <h2 class="text-[12px] font-semibold text-white/80 mb-1">
+                ¿Conviene subir al cerro Caviahue hoy?
+              </h2>
+              <p class="text-[11px] text-white/55 leading-relaxed">
+                {
+                  result.bestWindow.hasWindow
+                    ? `Hay una ventana favorable entre ${result.bestWindow.from} y ${result.bestWindow.to}, pero siempre consultá el parte oficial del centro de ski y la patrulla antes de subir.`
+                    : 'Hoy no hay una ventana clara. Si vas a subir, consultá el parte oficial del centro de ski y la evaluación de la patrulla.'
+                }
+              </p>
+            </div>
+            <div>
+              <h2 class="text-[12px] font-semibold text-white/80 mb-1">
+                ¿Qué fuentes usa El Gurú de la Nieve?
+              </h2>
+              <p class="text-[11px] text-white/55 leading-relaxed">
+                Open-Meteo, WeatherAPI.com y datos de estaciones AIC. El Gurú
+                también contrasta señales con herramientas como Windguru y Snow
+                Forecast para dar una lectura local de Caviahue.
+              </p>
+            </div>
+            <div>
+              <h2 class="text-[12px] font-semibold text-white/80 mb-1">
+                ¿Qué tan confiable es el pronóstico?
+              </h2>
+              <p class="text-[11px] text-white/55 leading-relaxed">
+                El Gurú interpreta modelos meteorológicos públicos, no emite
+                partes oficiales. La confianza depende de la estabilidad de los
+                modelos y la validación con datos locales. Antes de salir,
+                consultá fuentes oficiales.
               </p>
             </div>
           </div>

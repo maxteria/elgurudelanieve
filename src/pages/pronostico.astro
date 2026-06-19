@@ -78,8 +78,8 @@ const topGuru = getGuruCopy(topDays, 'Cumbre');
 <html lang="es">
   <head>
     <HeadMeta
-      title="Pronóstico | El Gurú de la Nieve"
-      description="Pronóstico extendido para Caviahue. Mira hora por hora cómo viene la montaña en 3 cotas: pueblo, centro y cumbre."
+      title="Clima y pronóstico de nieve en Caviahue | El Gurú de la Nieve"
+      description="Clima Caviahue y pronóstico extendido de nieve. Mirá hora por hora cómo viene la montaña en 3 cotas: pueblo, centro y cumbre."
       canonicalPath="/pronostico"
     />
     <SchemaOrg />
@@ -506,6 +506,35 @@ const topGuru = getGuruCopy(topDays, 'Cumbre');
           }</span
         >
       </div>
+
+      <section
+        id="estado-del-cerro"
+        class="mb-6 bg-[rgba(9,16,22,0.6)] border border-white/[0.04] rounded-xl px-5 py-4"
+      >
+        <h2
+          class="text-[11px] uppercase tracking-[0.2em] text-hielo/60 font-bold mb-2"
+        >
+          Estado del cerro Caviahue
+        </h2>
+        <p class="text-[12px] text-white/60 leading-relaxed mb-2">
+          {periods.today.mainAnswer.description} El pronóstico desglosa la
+          situación por pueblo, centro y cumbre para entender dónde puede nevar
+          y con qué intensidad.
+        </p>
+        {
+          periods.today.bestWindow.hasWindow && (
+            <p class="text-[11px] text-white/50 leading-relaxed mb-2">
+              Mejor ventana prevista: de {periods.today.bestWindow.from} a{' '}
+              {periods.today.bestWindow.to}. {periods.today.bestWindow.description}
+            </p>
+          )
+        }
+        <p class="text-[11px] text-white/40 leading-relaxed">
+          Esta es una interpretación de modelos meteorológicos para Caviahue. No
+          reemplaza el parte oficial del centro de ski ni la evaluación de la
+          patrulla.
+        </p>
+      </section>
 
       <script>
         function initScrollNav() {
