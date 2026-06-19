@@ -1,15 +1,16 @@
 {
-  "seasonStatus": "unknown",
-  "resortOperationalStatus": "unknown",
+  "seasonStatus": "pre_season",
+  "resortOperationalStatus": "closed",
   "officialSnowReportAvailable": false,
   "baseDepthCm": null,
   "liftsOpen": 0,
   "slopesOpen": 0,
-  "lastUpdatedAt": "2026-06-19T00:00:00Z",
-  "updatedBy": "manual",
-  "resortStatusSource": "Estado operativo no confirmado. Información local manual pendiente de actualización.",
+  "lastUpdatedAt": "2026-06-19T20:49:54-03:00",
+  "updatedBy": "local",
+  "resortStatusSource": "Observación local en Caviahue + seguimiento de comunicación oficial. Temporada todavía no operativa.",
   "operationalWarnings": [
-    "No hay estado operativo confirmado para el centro de esquí.",
-    "No se dispone de parte oficial de nieve."
+    "La temporada todavía no está operativa.",
+    "No hay base consolidada para recomendar ski o snowboard.",
+    "No se dispone de parte oficial actualizado de pistas y medios."
   ]
 }
