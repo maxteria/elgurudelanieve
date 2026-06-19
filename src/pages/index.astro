@@ -256,11 +256,12 @@ const cotaLabel =
                 ¿Va a nevar en Caviahue hoy?
               </h2>
               <p class="text-[11px] text-white/55 leading-relaxed">
-                {result.mainAnswer.description} El Gurú lee los modelos
-                meteorológicos para Caviahue y traduce la señal de frío,
-                humedad y cota de nieve. Eso ayuda a decidir si vale la pena
-                preparar el equipo o esperar a otra ventana en los próximos
-                días.
+                El Gurú lee los modelos meteorológicos para Caviahue y traduce
+                la señal de frío, humedad y cota de nieve. {
+                  result.mainAnswer.description
+                } Esto indica nieve meteorológica en formación, no una
+                recomendación de actividad en montaña. Antes de salir, consultá
+                el parte oficial del centro.
               </p>
             </div>
             <div>
@@ -268,13 +269,11 @@ const cotaLabel =
                 ¿Hay nieve en Caviahue hoy?
               </h2>
               <p class="text-[11px] text-white/55 leading-relaxed">
-                {result.snowLabel
-                  ? `Hoy el Gurú registra: ${result.snowLabel}.`
-                  : 'Hoy no se espera nieve significativa según los modelos actuales.'}{' '}
-                Para saber si hay nieve acumulada en el pueblo, la base o la
-                cumbre, conviene mirar el pronóstico extendido desglosado por
-                cotas, porque la nieve no se distribuye igual en todas las
-                alturas.
+                Hoy el Gurú detecta señal de nieve meteorológica según los
+                modelos actuales. Eso describe precipitación sólida esperada,
+                no nieve acumulada ni base esquiable en el cerro. Para entender
+                cómo se distribuye por cotas, mirá el pronóstico extendido
+                desglosado.
               </p>
             </div>
             <div>
@@ -284,8 +283,8 @@ const cotaLabel =
               <p class="text-[11px] text-white/55 leading-relaxed">
                 {
                   result.bestWindow.hasWindow
-                    ? `La mejor ventana que detecta el Gurú es ${result.bestWindow.label}, entre ${result.bestWindow.from} y ${result.bestWindow.to}. ${result.bestWindow.description} Cuando coinciden frío y humedad, la cota de nieve baja y es más probable la acumulación.`
-                    : 'Por ahora no hay una ventana clara. El Gurú la va a marcar cuando se alineen frío y humedad en los próximos días, lo que es condición necesaria para que baje la cota de nieve en Caviahue.'
+                    ? `La mejor ventana que detecta el Gurú es ${result.bestWindow.label}, entre ${result.bestWindow.from} y ${result.bestWindow.to}. ${result.bestWindow.description} Cuando coinciden frío y humedad, la cota de nieve baja y es más probable la precipitación sólida. Esto no garantiza que el centro esté operativo.`
+                    : 'Por ahora no hay una ventana clara. El Gurú la va a marcar cuando se alineen frío y humedad en los próximos días, condición necesaria para que baje la cota de nieve en Caviahue. No implica apertura del centro.'
                 }
               </p>
             </div>
@@ -296,7 +295,7 @@ const cotaLabel =
               <p class="text-[11px] text-white/55 leading-relaxed">
                 La nieve se comporta distinto según la cota. El Gurú desglosa
                 el pronóstico para pueblo (1647 m), centro (1846 m) y cumbre
-                (2045 m), así sabés en qué altura la precipitación se mantiene
+                (2045 m), así se ve en qué altura la precipitación se mantiene
                 como nieve y dónde puede cambiar a lluvia por temperatura más
                 alta.
               </p>
@@ -308,8 +307,8 @@ const cotaLabel =
               <p class="text-[11px] text-white/55 leading-relaxed">
                 El pueblo de Caviahue suele tener menos nieve que la base o la
                 cumbre del cerro. El pronóstico por cotas muestra dónde la cota
-                de nieve permite que se acumule y dónde cae como lluvia, así que
-                conviene comparar las tres alturas antes de salir.
+                de nieve permite acumulación y dónde cae como lluvia, pero no
+                indica si el centro de ski está operativo.
               </p>
             </div>
             <div>
@@ -318,9 +317,11 @@ const cotaLabel =
               </h2>
               <p class="text-[11px] text-white/55 leading-relaxed">
                 {
-                  result.bestWindow.hasWindow
-                    ? `Hay una ventana favorable entre ${result.bestWindow.from} y ${result.bestWindow.to}, pero siempre consultá el parte oficial del centro de ski, el estado de las pistas y la patrulla antes de subir, porque las condiciones reales pueden cambiar rápido en la montaña.`
-                    : 'Hoy no hay una ventana clara. Si igual vas a subir, consultá el parte oficial del centro de ski, el estado de las pistas y la evaluación de la patrulla, ya que las condiciones reales pueden cambiar rápido en la montaña.'
+                  result.resortStatus?.seasonStatus === 'open' || result.resortStatus?.seasonStatus === 'partial'
+                    ? result.resortStatus?.officialSnowReportAvailable
+                      ? 'Hay una ventana meteorológica, pero la decisión de subir depende del parte oficial del centro de ski, del estado de pistas y medios, y de tu propia evaluación. El Gurú lee clima, no reemplaza al parte oficial.'
+                      : 'La temporada estaría abierta, pero sin parte oficial de nieve confirmado no podemos hablar de base ni de condiciones esquiables. Consultá el centro antes de subir.'
+                    : 'La temporada todavía no está operativa, así que no hay recomendación de subir a esquiar. Podés consultar el pronóstico para entender la nieve meteorológica, pero la decisión de subir depende del parte oficial cuando abra el centro y de tu propia evaluación.'
                 }
               </p>
             </div>
@@ -332,8 +333,9 @@ const cotaLabel =
                 Usa Open-Meteo como pronóstico principal, WeatherAPI.com para la
                 condición actual y datos de estaciones AIC para validación
                 local. Además, contrasta señales con herramientas como Windguru
-                y Snow Forecast para dar una lectura local, transparente y
-                entendible del clima y la nieve en Caviahue.
+                y Snow Forecast para dar una lectura local del clima, siempre
+                como interpretación y nunca como reemplazo de los partes
+                oficiales.
               </p>
             </div>
             <div>
@@ -343,8 +345,9 @@ const cotaLabel =
               <p class="text-[11px] text-white/55 leading-relaxed">
                 El Gurú interpreta modelos meteorológicos públicos, no emite
                 partes oficiales. La confianza depende de la estabilidad de los
-                modelos y de la validación con datos locales. Antes de salir a
-                la montaña, consultá fuentes oficiales y la patrulla de ski.
+                modelos, de la validación con datos locales y de cómo evolucionen
+                las condiciones en la montaña. Antes de salir, consultá fuentes
+                oficiales y el parte del centro de ski.
               </p>
             </div>
           </div>
