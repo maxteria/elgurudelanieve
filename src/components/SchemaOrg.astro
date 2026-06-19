@@ -1,8 +1,9 @@
 ---
 import { CAVIAHUE_COORDS } from '../lib/weather/open-meteo-api';
+import { SITE_URL } from '../lib/site';
 
-const siteUrl = 'https://elgurudelanieve.vercel.app/';
-const logoUrl = 'https://elgurudelanieve.vercel.app/emblema.png';
+const siteUrl = SITE_URL.endsWith('/') ? SITE_URL : `${SITE_URL}/`;
+const logoUrl = `${SITE_URL}/emblema.png`;
 
 const schema = {
   '@context': 'https://schema.org',

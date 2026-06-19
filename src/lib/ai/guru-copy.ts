@@ -2,6 +2,7 @@ import type { SnowInterpretation, PeriodKey } from '../types';
 import type { DailySummary, AicStationData } from '../weather/types';
 import type { GuruNpcOutput, GuruMood, GuruCertainty } from './types';
 import { getGuruMessagesInRange, storeGuruMessage } from '../supabase/client';
+import { SITE_URL } from '../site';
 
 export type GuruCopyInput = {
   period: PeriodKey;
@@ -450,7 +451,7 @@ async function callLlm(
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${apiKey}`,
-          'HTTP-Referer': 'https://elgurudelanieve.vercel.app',
+          'HTTP-Referer': SITE_URL,
           'X-Title': 'El Gurú de la Nieve',
         },
         body: JSON.stringify({

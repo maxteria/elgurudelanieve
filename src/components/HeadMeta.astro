@@ -1,4 +1,6 @@
 ---
+import { SITE_URL } from '../lib/site';
+
 export interface Props {
   title: string;
   description: string;
@@ -15,10 +17,10 @@ const {
   ogImage = '/og-image-v2.png',
 } = Astro.props;
 
-const canonicalUrl = `https://elgurudelanieve.vercel.app${canonicalPath}`;
+const canonicalUrl = `${SITE_URL}${canonicalPath}`;
 const ogImageUrl = ogImage.startsWith('http')
   ? ogImage
-  : `https://elgurudelanieve.vercel.app${ogImage}`;
+  : `${SITE_URL}${ogImage}`;
 ---
 
 <meta charset="UTF-8" />

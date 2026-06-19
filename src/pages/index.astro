@@ -254,9 +254,11 @@ const cotaLabel =
                 ¿Va a nevar en Caviahue hoy?
               </h2>
               <p class="text-[11px] text-white/55 leading-relaxed">
-                {result.mainAnswer.description} El Gurú lee los modelos para
-                Caviahue y te dice si la combinación de frío y humedad da
-                condiciones de nieve en las próximas horas.
+                {result.mainAnswer.description} El Gurú lee los modelos
+                meteorológicos para Caviahue y traduce la señal de frío,
+                humedad y cota de nieve. Eso ayuda a decidir si vale la pena
+                preparar el equipo o esperar a otra ventana en los próximos
+                días.
               </p>
             </div>
             <div>
@@ -268,7 +270,9 @@ const cotaLabel =
                   ? `Hoy el Gurú registra: ${result.snowLabel}.`
                   : 'Hoy no se espera nieve significativa según los modelos actuales.'}{' '}
                 Para saber si hay nieve acumulada en el pueblo, la base o la
-                cumbre, conviene mirar el pronóstico por cotas.
+                cumbre, conviene mirar el pronóstico extendido desglosado por
+                cotas, porque la nieve no se distribuye igual en todas las
+                alturas.
               </p>
             </div>
             <div>
@@ -278,8 +282,8 @@ const cotaLabel =
               <p class="text-[11px] text-white/55 leading-relaxed">
                 {
                   result.bestWindow.hasWindow
-                    ? `La mejor ventana que ve el Gurú es ${result.bestWindow.label}, de ${result.bestWindow.from} a ${result.bestWindow.to}. ${result.bestWindow.description}`
-                    : 'Por ahora no hay una ventana clara. El Gurú la va a marcar cuando se alineen frío y humedad en los próximos días.'
+                    ? `La mejor ventana que detecta el Gurú es ${result.bestWindow.label}, entre ${result.bestWindow.from} y ${result.bestWindow.to}. ${result.bestWindow.description} Cuando coinciden frío y humedad, la cota de nieve baja y es más probable la acumulación.`
+                    : 'Por ahora no hay una ventana clara. El Gurú la va a marcar cuando se alineen frío y humedad en los próximos días, lo que es condición necesaria para que baje la cota de nieve en Caviahue.'
                 }
               </p>
             </div>
@@ -290,7 +294,9 @@ const cotaLabel =
               <p class="text-[11px] text-white/55 leading-relaxed">
                 La nieve se comporta distinto según la cota. El Gurú desglosa
                 el pronóstico para pueblo (1647 m), centro (1846 m) y cumbre
-                (2045 m), así sabés dónde esperar acumulación.
+                (2045 m), así sabés en qué altura la precipitación se mantiene
+                como nieve y dónde puede cambiar a lluvia por temperatura más
+                alta.
               </p>
             </div>
             <div>
@@ -299,8 +305,9 @@ const cotaLabel =
               </h2>
               <p class="text-[11px] text-white/55 leading-relaxed">
                 El pueblo de Caviahue suele tener menos nieve que la base o la
-                cumbre. El pronóstico por cotas muestra dónde la cota de nieve
-                permite que se acumule y dónde cae como lluvia.
+                cumbre del cerro. El pronóstico por cotas muestra dónde la cota
+                de nieve permite que se acumule y dónde cae como lluvia, así que
+                conviene comparar las tres alturas antes de salir.
               </p>
             </div>
             <div>
@@ -310,8 +317,8 @@ const cotaLabel =
               <p class="text-[11px] text-white/55 leading-relaxed">
                 {
                   result.bestWindow.hasWindow
-                    ? `Hay una ventana favorable entre ${result.bestWindow.from} y ${result.bestWindow.to}, pero siempre consultá el parte oficial del centro de ski y la patrulla antes de subir.`
-                    : 'Hoy no hay una ventana clara. Si vas a subir, consultá el parte oficial del centro de ski y la evaluación de la patrulla.'
+                    ? `Hay una ventana favorable entre ${result.bestWindow.from} y ${result.bestWindow.to}, pero siempre consultá el parte oficial del centro de ski, el estado de las pistas y la patrulla antes de subir, porque las condiciones reales pueden cambiar rápido en la montaña.`
+                    : 'Hoy no hay una ventana clara. Si igual vas a subir, consultá el parte oficial del centro de ski, el estado de las pistas y la evaluación de la patrulla, ya que las condiciones reales pueden cambiar rápido en la montaña.'
                 }
               </p>
             </div>
@@ -320,9 +327,11 @@ const cotaLabel =
                 ¿Qué fuentes usa El Gurú de la Nieve?
               </h2>
               <p class="text-[11px] text-white/55 leading-relaxed">
-                Open-Meteo, WeatherAPI.com y datos de estaciones AIC. El Gurú
-                también contrasta señales con herramientas como Windguru y Snow
-                Forecast para dar una lectura local de Caviahue.
+                Usa Open-Meteo como pronóstico principal, WeatherAPI.com para la
+                condición actual y datos de estaciones AIC para validación
+                local. Además, contrasta señales con herramientas como Windguru
+                y Snow Forecast para dar una lectura local, transparente y
+                entendible del clima y la nieve en Caviahue.
               </p>
             </div>
             <div>
@@ -332,8 +341,8 @@ const cotaLabel =
               <p class="text-[11px] text-white/55 leading-relaxed">
                 El Gurú interpreta modelos meteorológicos públicos, no emite
                 partes oficiales. La confianza depende de la estabilidad de los
-                modelos y la validación con datos locales. Antes de salir,
-                consultá fuentes oficiales.
+                modelos y de la validación con datos locales. Antes de salir a
+                la montaña, consultá fuentes oficiales y la patrulla de ski.
               </p>
             </div>
           </div>

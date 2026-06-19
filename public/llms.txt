@@ -4,7 +4,7 @@
 
 El Gurú de la Nieve es una aplicación web especializada en pronóstico de nevadas para **Caviahue, Neuquén, Argentina**.
 
-En lugar de mostrar solo datos técnicos, el sitio presenta una **lectura humana y directa** de cómo viene la montaña. El Gurú resume si va a nevar, cuándo, dónde y con qué intensidad, en lenguaje claro y sin tecnicismos.
+En lugar de mostrar solo datos técnicos, el sitio presenta una **lectura humana y directa** del clima, la nieve y el estado del cerro en Caviahue. El Gurú resume si va a nevar, cuándo, dónde y con qué intensidad, en lenguaje claro y sin tecnicismos.
 
 ## Secciones principales
 
