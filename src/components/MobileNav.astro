@@ -1,6 +1,6 @@
 ---
 const { activeSection } = Astro.props as {
-  activeSection?: 'home' | 'lab' | 'historico' | 'pronostico';
+  activeSection?: 'home' | 'lab' | 'historico' | 'pronostico' | 'fuentes';
   updated?: string;
   source?: string;
 };
@@ -12,6 +12,7 @@ const navItems = [
   { key: 'pronostico', label: 'Pronóstico', href: '/pronostico' },
   { key: 'lab', label: 'El Gurú Lab', href: '/lab' },
   { key: 'historico', label: 'Histórico', href: '/historico' },
+  { key: 'fuentes', label: 'Fuentes', href: '/fuentes' },
 ];
 
 function isActive(key: string) {

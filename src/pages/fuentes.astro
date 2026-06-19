@@ -1,0 +1,149 @@
+---
+import '../styles/tailwind.css';
+import MobileNav from '../components/MobileNav.astro';
+import HeadMeta from '../components/HeadMeta.astro';
+import SchemaOrg from '../components/SchemaOrg.astro';
+---
+
+<html lang="es">
+  <head>
+    <HeadMeta
+      title="Fuentes y metodología | El Gurú de la Nieve"
+      description="Conocé las fuentes y el método que usa El Gurú de la Nieve para leer el clima de Caviahue."
+      canonicalPath="/fuentes"
+    />
+    <SchemaOrg />
+  </head>
+  <body
+    class="text-white min-h-screen antialiased font-premium overflow-x-hidden"
+  >
+    <MobileNav activeSection="fuentes" />
+    <main class="min-h-screen pt-12 px-4 md:px-8 pb-8">
+      <div class="max-w-2xl mx-auto">
+        <a
+          href="/"
+          class="inline-flex items-center gap-1.5 text-[9px] text-white/25 hover:text-hielo/50 transition-colors tracking-[0.15em] uppercase font-medium mb-5 group"
+        >
+          <svg
+            width="12"
+            height="12"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+            class="group-hover:-translate-x-0.5 transition-transform"
+            ><path d="M19 12H5M12 19l-7-7 7-7"></path></svg
+          >
+          Volver al Gurú
+        </a>
+
+        <div class="mb-8">
+          <span
+            class="text-[8px] text-hielo/40 tracking-[0.35em] uppercase font-semibold"
+            >TRANSPARENCIA</span
+          >
+          <h1
+            class="text-2xl md:text-3xl font-extrabold text-white tracking-[-0.02em] mt-1"
+          >
+            Fuentes y metodología.
+          </h1>
+          <p class="text-[11px] text-white/30 mt-1.5 leading-relaxed max-w-xl">
+            El Gurú no adivina. Lee modelos meteorológicos públicos, los
+            compara con datos locales y los traduce a un lenguaje que cualquier
+            rider puede entender.
+          </p>
+        </div>
+
+        <div class="space-y-6">
+          <section
+            class="bg-[rgba(9,16,22,0.6)] border border-white/[0.04] rounded-xl px-5 py-4"
+          >
+            <h2
+              class="text-[11px] uppercase tracking-[0.2em] text-hielo/60 font-bold mb-2"
+            >
+              ¿Qué es El Gurú de la Nieve?
+            </h2>
+            <p class="text-[12px] text-white/60 leading-relaxed">
+              Es una lectura humana y directa del pronóstico para Caviahue. No
+              reemplaza a los servicios meteorológicos oficiales: es una capa de
+              interpretación que ayuda a entender si va a nevar, dónde y con qué
+              intensidad.
+            </p>
+          </section>
+
+          <section
+            class="bg-[rgba(9,16,22,0.6)] border border-white/[0.04] rounded-xl px-5 py-4"
+          >
+            <h2
+              class="text-[11px] uppercase tracking-[0.2em] text-hielo/60 font-bold mb-3"
+            >
+              Fuentes de datos
+            </h2>
+            <ul class="space-y-3">
+              <li>
+                <span class="text-[12px] font-semibold text-white/80"
+                  >Open-Meteo</span
+                >
+                <p class="text-[11px] text-white/50 leading-relaxed">
+                  Modelo meteorológico gratuito que provee la base del
+                  pronóstico: temperatura, precipitación, nieve, viento y cota
+                  de nieve.
+                </p>
+              </li>
+              <li>
+                <span class="text-[12px] font-semibold text-white/80"
+                  >WeatherAPI.com</span
+                >
+                <p class="text-[11px] text-white/50 leading-relaxed">
+                  Refuerza la lectura actual con condiciones en tiempo real que
+                  sirven de punto de comparación.
+                </p>
+              </li>
+              <li>
+                <span class="text-[12px] font-semibold text-white/80"
+                  >AIC — Automática de Información Climatológica</span
+                >
+                <p class="text-[11px] text-white/50 leading-relaxed">
+                  Datos históricos de estaciones oficiales de Argentina. Los
+                  usamos para validar lo que los modelos predicen contra lo que
+                  realmente pasó.
+                </p>
+              </li>
+            </ul>
+          </section>
+
+          <section
+            class="bg-[rgba(9,16,22,0.6)] border border-white/[0.04] rounded-xl px-5 py-4"
+          >
+            <h2
+              class="text-[11px] uppercase tracking-[0.2em] text-hielo/60 font-bold mb-2"
+            >
+              Actualización
+            </h2>
+            <p class="text-[12px] text-white/60 leading-relaxed">
+              Los pronósticos se actualizan varias veces al día según la
+              disponibilidad de las fuentes. El histórico se completa a medida
+              que llegan nuevas lecturas.
+            </p>
+          </section>
+
+          <section
+            class="bg-[rgba(9,16,22,0.4)] border border-white/[0.03] rounded-xl px-5 py-4"
+          >
+            <h2
+              class="text-[11px] uppercase tracking-[0.2em] text-white/30 font-bold mb-2"
+            >
+              Nota importante
+            </h2>
+            <p class="text-[11px] text-white/40 leading-relaxed">
+              El Gurú interpreta modelos públicos. No es un parte oficial ni
+              reemplaza el pronóstico del Servicio Meteorológico Nacional ni la
+              evaluación de condiciones locales. Antes de salir a la montaña,
+              consultá fuentes oficiales y la patrulla de ski.
+            </p>
+          </section>
+        </div>
+      </div>
+    </main>
+  </body>
+</html>

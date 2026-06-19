@@ -9,18 +9,19 @@ En lugar de mostrar solo datos técnicos, el sitio presenta una **lectura humana
 ## Secciones principales
 
 - **/** — El Gurú te dice la posta de la nieve hoy. Respuesta directa para riders, esquiadores y visitantes.
-- **/pronostico/** — Pronóstico extendido dividido en 3 cotas:
+- **/pronostico** — Pronóstico extendido dividido en 3 cotas:
   - Pueblo · ~1647 m
   - Centro · ~1846 m
   - Cumbre · ~2045 m
-- **/lab/** — Herramientas y datos que usa el Gurú para llegar a sus conclusiones: modelos, gráficos y análisis.
-- **/historico/** — Registro de lecturas pasadas del Gurú, con archivo por fecha.
+- **/lab** — Herramientas y datos que usa el Gurú para llegar a sus conclusiones: modelos, gráficos y análisis.
+- **/historico** — Registro de lecturas pasadas del Gurú, con archivo por fecha.
+- **/fuentes** — Fuentes de datos, metodología y notas sobre cómo se generan las lecturas.
 
 ## Fuentes de datos
 
 - Open-Meteo (pronóstico meteorológico primario)
 - WeatherAPI.com (condición actual complementaria)
-- Datos de estaciones AIC (Automática de Información Climatológica) vía scraping para validación local
+- Datos de estaciones AIC (Automática de Información Climatológica) para validación local
 
 ## Nota importante
 
