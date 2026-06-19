@@ -9,6 +9,8 @@ import { analyzeAllPeriods } from '../lib/period-engine';
 import { getSevenDayForecast } from '../lib/forecast-periods';
 import { isValidScenario } from '../data/demo-scenarios';
 import MobileNav from '../components/MobileNav.astro';
+import HeadMeta from '../components/HeadMeta.astro';
+import SchemaOrg from '../components/SchemaOrg.astro';
 
 // Import utilities from lib
 import {
@@ -75,23 +77,12 @@ const topGuru = getGuruCopy(topDays, 'Cumbre');
 
 <html lang="es">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Pronóstico | El Gurú de la Nieve</title>
-    <meta
-      name="description"
-      content="Pronóstico extendido para Caviahue. Mira hora por hora cómo viene la montaña."
+    <HeadMeta
+      title="Pronóstico | El Gurú de la Nieve"
+      description="Pronóstico extendido para Caviahue. Mira hora por hora cómo viene la montaña en 3 cotas: pueblo, centro y cumbre."
+      canonicalPath="/pronostico"
     />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="apple-touch-icon" href="/emblema.png" />
-    <meta name="theme-color" content="#a8e7f9" />
-    <link rel="manifest" href="/site.webmanifest" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
-      rel="stylesheet"
-    />
+    <SchemaOrg />
   </head>
   <body
     class="text-white min-h-screen antialiased font-premium overflow-x-hidden"

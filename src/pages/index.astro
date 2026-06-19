@@ -13,6 +13,8 @@ import GuruNpcCard from '../components/guru/GuruNpcCard.astro';
 import { generateGuruNpcMessage, type GuruCopyInput } from '../lib/ai/guru-copy';
 import type { GuruNpcOutput } from '../lib/ai/types';
 import { getSevenDayForecast } from '../lib/forecast-periods';
+import HeadMeta from '../components/HeadMeta.astro';
+import SchemaOrg from '../components/SchemaOrg.astro';
 
 const params = Astro.url.searchParams;
 const demoParam = params.get('demo');
@@ -79,51 +81,12 @@ const cotaLabel =
 
 <html lang="es">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>El Gurú de la Nieve | Caviahue</title>
-    <meta
-      name="description"
-      content="¿Nieva en Caviahue? El Gurú te dice cómo viene la montaña hoy. Lectura humana sin tecnicismos."
+    <HeadMeta
+      title="El Gurú de la Nieve | Caviahue"
+      description="¿Nieva en Caviahue? El Gurú te dice cómo viene la montaña hoy. Lectura humana sin tecnicismos."
+      canonicalPath="/"
     />
-    <meta name="robots" content="index, follow" />
-    <link rel="canonical" href="https://elgurudelanieve.vercel.app/" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="apple-touch-icon" href="/emblema.png" />
-    <meta name="theme-color" content="#a8e7f9" />
-    <link rel="manifest" href="/site.webmanifest" />
-    <meta property="og:type" content="website" />
-    <meta property="og:title" content="El Gurú de la Nieve | Caviahue" />
-    <meta
-      property="og:description"
-      content="¿Nieva en Caviahue? El Gurú te dice cómo viene la montaña."
-    />
-    <meta property="og:url" content="https://elgurudelanieve.vercel.app/" />
-    <meta property="og:site_name" content="El Gurú de la Nieve | Caviahue" />
-    <meta
-      property="og:image"
-      content="https://elgurudelanieve.vercel.app/og-image-v2.png"
-    />
-    <meta property="og:image:type" content="image/png" />
-    <meta property="og:image:width" content="1200" />
-    <meta property="og:image:height" content="630" />
-    <meta property="og:locale" content="es_AR" />
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="El Gurú de la Nieve | Caviahue" />
-    <meta
-      name="twitter:description"
-      content="¿Nieva en Caviahue? El Gurú te dice cómo viene la montaña."
-    />
-    <meta
-      name="twitter:image"
-      content="https://elgurudelanieve.vercel.app/og-image-v2.png"
-    />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
-      rel="stylesheet"
-    />
+    <SchemaOrg />
   </head>
   <body
     class="text-white min-h-screen antialiased font-premium overflow-x-hidden"
@@ -269,6 +232,51 @@ const cotaLabel =
               <p class="text-[11px] text-white/55 leading-relaxed">
                 Si se alinean frío y humedad, puede aparecer una ventana. Quedá
                 atento.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="space-y-3">
+          <div class="flex items-center gap-2">
+            <div class="w-1.5 h-1.5 rounded-full bg-hielo/40"></div>
+            <span
+              class="text-[8px] text-white/25 tracking-[0.2em] uppercase font-medium"
+              >Preguntas frecuentes</span
+            >
+          </div>
+
+          <div
+            class="bg-[rgba(9,16,22,0.7)] border border-white/[0.04] rounded-xl px-4 py-3 space-y-3"
+          >
+            <div>
+              <h2 class="text-[12px] font-semibold text-white/80 mb-1">
+                ¿Va a nevar en Caviahue hoy?
+              </h2>
+              <p class="text-[11px] text-white/55 leading-relaxed">
+                {result.mainAnswer.description}
+              </p>
+            </div>
+            <div>
+              <h2 class="text-[12px] font-semibold text-white/80 mb-1">
+                ¿En qué altura va a nevar?
+              </h2>
+              <p class="text-[11px] text-white/55 leading-relaxed">
+                La nieve se comporta distinto según la cota. En el pronóstico
+                extendido el Gurú desglosa el resultado para pueblo (1647 m),
+                centro (1846 m) y cumbre (2045 m).
+              </p>
+            </div>
+            <div>
+              <h2 class="text-[12px] font-semibold text-white/80 mb-1">
+                ¿Cuándo es la mejor ventana para esquiar?
+              </h2>
+              <p class="text-[11px] text-white/55 leading-relaxed">
+                {
+                  result.bestWindow.hasWindow
+                    ? `${result.bestWindow.label}: de ${result.bestWindow.from} a ${result.bestWindow.to}. ${result.bestWindow.description}`
+                    : 'Por ahora no hay una ventana clara. El Gurú la va a marcar cuando se alineen frío y humedad.'
+                }
               </p>
             </div>
           </div>

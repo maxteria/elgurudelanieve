@@ -1,0 +1,35 @@
+---
+import { CAVIAHUE_COORDS } from '../lib/weather/open-meteo-api';
+
+const siteUrl = 'https://elgurudelanieve.vercel.app/';
+const logoUrl = 'https://elgurudelanieve.vercel.app/emblema.png';
+
+const schema = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'Organization',
+      name: 'El Gurú de la Nieve',
+      url: siteUrl,
+      logo: logoUrl,
+      sameAs: [],
+    },
+    {
+      '@type': 'WebSite',
+      name: 'El Gurú de la Nieve',
+      url: siteUrl,
+    },
+    {
+      '@type': 'Place',
+      name: 'Caviahue, Neuquén, Argentina',
+      geo: {
+        '@type': 'GeoCoordinates',
+        latitude: CAVIAHUE_COORDS.lat,
+        longitude: CAVIAHUE_COORDS.lon,
+      },
+    },
+  ],
+};
+---
+
+<script type="application/ld+json" set:html={JSON.stringify(schema)} />
