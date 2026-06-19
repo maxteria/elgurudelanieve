@@ -11,17 +11,17 @@
 | Delivery strategy | ask-on-risk |
 | Chain strategy | pending |
 
-Decision needed before apply: Yes
+Decision needed before apply: No
 Chained PRs recommended: Yes
-Chain strategy: pending
+Chain strategy: stacked-to-main
 400-line budget risk: Medium
 
 ### Suggested Work Units
 
 | Unit | Goal | Likely PR | Notes |
 |------|------|-----------|-------|
-| 1 | Create reusable `HeadMeta.astro` and `SchemaOrg.astro`; update all page heads. | PR 1 | Base branch: `main`. |
-| 2 | Create `/fuentes`, AEO block, `/pronostico` optimization, anchors, sitemap/llms. | PR 2 | Depends on PR 1 components. |
+| 1 | Create reusable `HeadMeta.astro` and `SchemaOrg.astro`; update all page heads. | PR 1 | Tasks 1.1, 1.2, 2.1. Base branch: `main`. |
+| 2 | Create `/fuentes`, AEO block, `/pronostico` optimization, anchors, sitemap/llms. | PR 2 | Tasks 2.2–2.6, 3.1–3.3, 4.1–4.3. Depends on PR 1. |
 
 ## Phase 1: Foundation
 
