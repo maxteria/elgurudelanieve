@@ -1,4 +1,4 @@
-import type { HourlyForecast, PowderScoreResult } from './types';
+import type { HourlyForecast, PowderScoreResult, ConfidenceScore, SourceStatus } from './types';
 
 export function calculatePowderScore(
   forecast: HourlyForecast[],
@@ -61,4 +61,115 @@ export function calculatePowderScore(
     };
   }
   return { value: maxScore, reason, snowWindow };
+}
+
+/**
+ * Calculate a confidence score (0–100) for a forecast period.
+ * This is a SIGNAL CONSISTENCY index, NOT a probability of accuracy.
+ * Based on: source agreement, precipitation probability, temperature,
+ * freezing level, wind, and AIC availability.
+ */
+export function calculateConfidence(
+  hourly: HourlyForecast[],
+  sourceStatus: SourceStatus,
+  altitude: number,
+): ConfidenceScore {
+  if (!hourly || hourly.length === 0) {
+    return {
+      value: 0,
+      label: 'Baja',
+      reasonsFor: [],
+      reasonsAgainst: ['Datos insuficientes para calcular confianza'],
+    };
+  }
+
+  let value = 50; // baseline neutral
+  const reasonsFor: string[] = [];
+  const reasonsAgainst: string[] = [];
+
+  // 1. Source agreement (up to +20)
+  if (sourceStatus.openMeteo === 'ok') {
+    value += 10;
+    reasonsFor.push('Open-Meteo disponible');
+  } else {
+    value -= 5;
+    reasonsAgainst.push('Open-Meteo no disponible');
+  }
+  if (sourceStatus.weatherApi === 'ok') {
+    value += 5;
+    reasonsFor.push('WeatherAPI disponible');
+  } else if (sourceStatus.weatherApi === 'failed') {
+    reasonsAgainst.push('WeatherAPI no disponible');
+  }
+  if (sourceStatus.aic === 'ok') {
+    value += 5;
+    reasonsFor.push('Validación AIC disponible');
+  } else if (sourceStatus.aic === 'failed') {
+    reasonsAgainst.push('Falta validación AIC actualizada');
+  }
+
+  // 2. Precipitation probability (up to +20)
+  const avgPrecipProb =
+    hourly.reduce((s, h) => s + (h.precipitationProbability ?? 0), 0) /
+    hourly.length;
+  if (avgPrecipProb > 60) {
+    value += 20;
+    reasonsFor.push('Precipitación probable >60%');
+  } else if (avgPrecipProb > 30) {
+    value += 10;
+    reasonsFor.push('Precipitación posible 30–60%');
+  } else if (avgPrecipProb > 10) {
+    value += 5;
+  } else {
+    value -= 10;
+    reasonsAgainst.push('Precipitación baja <10%');
+  }
+
+  // 3. Temperature vs freezing threshold (up to +15)
+  const avgTemp =
+    hourly.reduce((s, h) => s + h.temp, 0) / hourly.length;
+  if (avgTemp <= 1) {
+    value += 15;
+    reasonsFor.push('Temperatura favorable para nieve');
+  } else if (avgTemp <= 3) {
+    value += 5;
+    reasonsFor.push('Temperatura cerca del límite');
+  } else {
+    value -= 15;
+    reasonsAgainst.push('Temperatura alta para nieve');
+  }
+
+  // 4. Freezing level / cota (up to +10)
+  const avgFreezing =
+    hourly.reduce((s, h) => s + h.freezingLevel, 0) / hourly.length;
+  if (avgFreezing <= altitude + 150) {
+    value += 10;
+    reasonsFor.push('Cota favorece sectores altos');
+  } else if (avgFreezing <= altitude + 300) {
+    // neutral — cota media
+  } else {
+    value -= 10;
+    reasonsAgainst.push('Cota alta para acumulación');
+  }
+
+  // 5. Wind (penalty up to -10)
+  const maxWind = Math.max(...hourly.map((h) => h.wind));
+  if (maxWind > 45) {
+    value -= 10;
+    reasonsAgainst.push('Viento muy fuerte (>45 km/h)');
+  } else if (maxWind > 30) {
+    value -= 5;
+    reasonsAgainst.push('Viento fuerte puede afectar acumulación');
+  } else if (maxWind >= 12) {
+    value += 3;
+    reasonsFor.push('Viento moderado favorable');
+  }
+
+  // Clamp to [0, 100]
+  value = Math.max(0, Math.min(100, value));
+
+  const label: ConfidenceScore['label'] =
+    value >= 65 ? 'Alta' : value >= 35 ? 'Media' : 'Baja';
+
+  return { value, label, reasonsFor, reasonsAgainst };
 }

@@ -112,3 +112,54 @@ export interface SnowInterpretation {
     updatedAt: string;
   };
 }
+
+// ─── Trust Layer Types ─────────────────────────────────────────────────────
+
+/** Signal traceability per period — data that drove the Guru's conclusion */
+export interface SignalSummary {
+  temperature: { village: number; mid: number; top: number };
+  precipitation: { village: number; mid: number; top: number };
+  snowfall: { village: number | null; mid: number | null; top: number | null };
+  freezingLevel: { village: number; mid: number; top: number };
+  wind: { village: number; mid: number; top: number };
+  humidity: { village: number | null; mid: number | null; top: number | null };
+}
+
+/** Availability status per data source */
+export type SourceStatusValue = 'ok' | 'failed' | 'unconfigured' | 'demo';
+
+export interface SourceStatus {
+  openMeteo: SourceStatusValue;
+  weatherApi: SourceStatusValue;
+  aic: SourceStatusValue;
+}
+
+/** Confidence score with rule explanation */
+export interface ConfidenceScore {
+  value: number; // 0–100
+  label: 'Alta' | 'Media' | 'Baja';
+  reasonsFor: string[];
+  reasonsAgainst: string[];
+}
+
+/** Narrative intensity tier based on data confidence */
+export type NarrativeTier = 'restricted' | 'normal' | 'expressive';
+
+/** A validated best-window that has passed all guards */
+export interface ValidatedWindow {
+  hasWindow: boolean;
+  from?: string;
+  to?: string;
+  label: string;
+  description: string;
+}
+
+/** Enriched interpretation with trust-layer metadata */
+export interface TrustEnrichedInterpretation {
+  signals: SignalSummary;
+  confidence: ConfidenceScore;
+  narrativeTier: NarrativeTier;
+  validatedWindow: ValidatedWindow;
+  sourceStatus: SourceStatus;
+  degraded: boolean;
+}
