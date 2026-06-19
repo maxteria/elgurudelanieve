@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://elgurudelanieve.vercel.app/sitemap.xml
