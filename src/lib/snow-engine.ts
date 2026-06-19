@@ -1,6 +1,6 @@
 import type { Alert } from './types';
 import type { SnowInterpretation, ZoneInterpretation } from './types';
-import type { SourceStatus, ConfidenceScore, NarrativeTier } from './types';
+import type { SourceStatus, ConfidenceScore, NarrativeTier, ResortStatus } from './types';
 import type {
   NormalizedSnowForecast,
   NormalizedHourlyForecast,
@@ -11,6 +11,7 @@ import { validateWindow } from './validate-window';
 import type { HourlyForecast } from './types';
 import { LAPSE_RATE } from './weather/constants';
 import { computeNarrativeTier } from './ai/guru-copy';
+import { loadResortStatus } from './resort-status';
 
 const WEEKDAY_SHORT = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'];
 
@@ -354,6 +355,7 @@ function generateSummary(interp: SnowInterpretation): string {
 export function analyzeWeather(
   normalized: NormalizedSnowForecast,
   sourceStatus?: SourceStatus,
+  resortStatus?: ResortStatus,
 ): SnowInterpretation {
   const baseAlt = normalized.zones.village.altitude;
 
@@ -520,6 +522,7 @@ export function analyzeWeather(
           (s) => s === 'failed' || s === 'unconfigured',
         )
       : undefined,
+    resortStatus: resortStatus ?? loadResortStatus(),
   };
 
   // Compute narrative tier from confidence + snow status + wind

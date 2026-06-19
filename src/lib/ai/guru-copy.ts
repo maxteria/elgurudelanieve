@@ -1,4 +1,4 @@
-import type { SnowInterpretation, PeriodKey, NarrativeTier, ConfidenceScore } from '../types';
+import type { SnowInterpretation, PeriodKey, NarrativeTier, ConfidenceScore, ResortStatus } from '../types';
 import type { DailySummary, AicStationData } from '../weather/types';
 import type { GuruNpcOutput, GuruMood, GuruCertainty } from './types';
 import { getGuruMessagesInRange, storeGuruMessage } from '../supabase/client';
@@ -20,6 +20,8 @@ export type GuruCopyInput = {
   aicHistory?: AicStationData[];
   /** Narrative governance tier. If omitted, defaults to 'normal'. */
   narrativeTier?: NarrativeTier;
+  /** Manual/local resort operational status. */
+  resortStatus?: ResortStatus;
 };
 
 const LLM_KEY_ENV = 'OPENROUTER_API_KEY';
@@ -90,6 +92,135 @@ export function computeNarrativeTier(
     return 'expressive';
   }
   return 'normal';
+}
+
+// ─── Resort Operational Status Governance ───────────────────────────────────
+
+const MIN_SKI_BASE_DEPTH_CM = 30;
+
+/** True when the resort is open/partial and has enough base for moderate ski recommendations. */
+export function isSkiRecommendationAllowed(
+  resortStatus: ResortStatus | undefined,
+): boolean {
+  if (!resortStatus) return true; // No resort data means no restriction (backward compatibility)
+  const seasonOpen =
+    resortStatus.seasonStatus === 'open' ||
+    resortStatus.seasonStatus === 'partial';
+  const resortOpen =
+    resortStatus.resortOperationalStatus === 'open' ||
+    resortStatus.resortOperationalStatus === 'partial';
+  const baseOk =
+    resortStatus.baseDepthCm !== null &&
+    resortStatus.baseDepthCm >= MIN_SKI_BASE_DEPTH_CM;
+  return seasonOpen && resortOpen && baseOk;
+}
+
+/** True when an official snow report exists and reports a usable base. */
+export function isBaseClaimAllowed(
+  resortStatus: ResortStatus | undefined,
+): boolean {
+  if (!resortStatus) return true; // No resort data means no restriction (backward compatibility)
+  if (!resortStatus.officialSnowReportAvailable) return false;
+  if (
+    resortStatus.baseDepthCm === null ||
+    resortStatus.baseDepthCm < MIN_SKI_BASE_DEPTH_CM
+  )
+    return false;
+  return true;
+}
+
+/** Format resort status context for the LLM prompt. */
+function buildResortStatusContext(
+  resortStatus: ResortStatus | undefined,
+): string {
+  if (!resortStatus) {
+    return 'Estado operativo del centro: no disponible. No menciones base esquiable ni recomiendas ski/snowboard.';
+  }
+
+  const lines = [
+    `Temporada: ${resortStatus.seasonStatus}`,
+    `Centro operativo: ${resortStatus.resortOperationalStatus}`,
+    `Parte oficial disponible: ${resortStatus.officialSnowReportAvailable ? 'sí' : 'no'}`,
+    `Base (cm): ${resortStatus.baseDepthCm ?? 'sin dato'}`,
+    `Medios abiertos: ${resortStatus.liftsOpen ?? 0}`,
+    `Pistas abiertas: ${resortStatus.slopesOpen ?? 0}`,
+    `Fuente: ${resortStatus.resortStatusSource}`,
+  ];
+
+  if (resortStatus.operationalWarnings.length > 0) {
+    lines.push(
+      `Advertencias: ${resortStatus.operationalWarnings.join('; ')}`,
+    );
+  }
+
+  const skiAllowed = isSkiRecommendationAllowed(resortStatus);
+  const baseAllowed = isBaseClaimAllowed(resortStatus);
+
+  lines.push(
+    `Reglas de narrativa: ${skiAllowed ? 'Podés recomendar ski/snowboard con moderación y disclaimer.' : 'NO recomiendes ski/snowboard. Hablá solo de nieve meteorológica en formación.'}`,
+  );
+  lines.push(
+    `Reglas de base: ${baseAllowed ? 'Podés mencionar base consolidada con disclaimer de verificar parte oficial.' : 'NO digas "base consolidada", "base excelente" ni afirmes condiciones esquiables.'}`,
+  );
+
+  return lines.join('\n');
+}
+
+/**
+ * Layer 3b post-processor: enforce resort-operational governance.
+ * Blocks ski/base claims when the resort status does not support them.
+ */
+export function postProcessResortGovernance(
+  output: GuruNpcOutput,
+  resortStatus: ResortStatus | undefined,
+): GuruNpcOutput | null {
+  if (!resortStatus) return output;
+
+  const text = `${output.message} ${output.tip ?? ''}`.toLowerCase();
+
+  const skiPhrases = [
+    /esqui[aeáéíóú]/i,
+    /ski/i,
+    /snowboard/i,
+    /tabla/i,
+    /subí(?:s)?/i,
+    /bajad[aeo]/i,
+    /pista/i,
+    /medios/i,
+  ];
+
+  const basePhrases = [
+    /base consolidada/i,
+    /base excelente/i,
+    /base suficiente/i,
+    /buena base/i,
+    /base esquiable/i,
+    /nieve esquiable/i,
+  ];
+
+  if (!isSkiRecommendationAllowed(resortStatus)) {
+    for (const re of skiPhrases) {
+      if (re.test(text)) {
+        console.warn(
+          `[Guru] Post-process blocked ski recommendation under resort status`,
+        );
+        return null;
+      }
+    }
+  }
+
+  if (!isBaseClaimAllowed(resortStatus)) {
+    for (const re of basePhrases) {
+      if (re.test(text)) {
+        console.warn(
+          `[Guru] Post-process blocked base claim under resort status`,
+        );
+        return null;
+      }
+    }
+  }
+
+  return output;
 }
 
 /**
@@ -369,8 +500,20 @@ export function generateFallbackNpcMessage(data: GuruCopyInput): GuruNpcOutput {
     return { mood: 'neutral', certainty: 'baja', ...v, source: 'fallback' };
   }
 
+  const skiAllowed = isSkiRecommendationAllowed(data.resortStatus);
+  const baseAllowed = isBaseClaimAllowed(data.resortStatus);
+
   // 7. Nieve probable (yes)
   if (mainStatus === 'yes' && hasWindow) {
+    if (!skiAllowed) {
+      return {
+        mood: 'cautious',
+        certainty: 'media',
+        message: `Se ve una ventana de nieve entre ${data.bestWindow.from} y ${data.bestWindow.to}. Es nieve meteorológica en formación, no significa que el centro esté esquiable.`,
+        tip: 'Revisá el parte oficial antes de cualquier plan de montaña.',
+        source: 'fallback',
+      };
+    }
     return {
       mood: 'confident',
       certainty: 'alta',
@@ -381,6 +524,16 @@ export function generateFallbackNpcMessage(data: GuruCopyInput): GuruNpcOutput {
   }
 
   if (mainStatus === 'yes') {
+    if (!skiAllowed) {
+      return {
+        mood: 'cautious',
+        certainty: 'media',
+        message:
+          'Veo nieve en formación. Las condiciones meteorológicas se dan, pero no implican que el centro esté operativo para ski.',
+        tip: 'Revisá el parte oficial antes de salir.',
+        source: 'fallback',
+      };
+    }
     return {
       mood: 'confident',
       certainty: 'media',
@@ -393,6 +546,15 @@ export function generateFallbackNpcMessage(data: GuruCopyInput): GuruNpcOutput {
 
   // 8. Ventana clara (possible con ventana)
   if (mainStatus === 'possible' && hasWindow) {
+    if (!skiAllowed) {
+      return {
+        mood: 'cautious',
+        certainty: 'media',
+        message: `Hay una ventana meteorológica entre ${data.bestWindow.from} y ${data.bestWindow.to}. Puede nevar, pero no indica que el centro esté esquiable.`,
+        tip: 'Seguí el parte oficial para saber si abren medios.',
+        source: 'fallback',
+      };
+    }
     return {
       mood: 'cautious',
       certainty: 'media',
@@ -455,7 +617,10 @@ No uses "paquetón" ni "powder day" ni "garantizado".
 Podés mostrar optimismo moderado si hay señales, pero sin prometer.`;
 }
 
-function buildSystemPrompt(tier: NarrativeTier): string {
+function buildSystemPrompt(
+  tier: NarrativeTier,
+  resortStatus: ResortStatus | undefined,
+): string {
   return `Sos El Gurú de la Nieve. Un guía de montaña que hace 30 inviernos que mira Caviahue. Conocés cada ladera, cada viento, cada cambio de temperatura.
 
 Generá un objeto JSON con esta estructura exacta, sin markdown ni explicaciones adicionales:
@@ -473,6 +638,8 @@ No inventes datos. No contradigas el diagnóstico técnico.
 No prometas nieve si no hay señal clara.
 
 ${buildNarrativeRules(tier)}
+
+${buildResortStatusContext(resortStatus)}
 
 Mirá SIEMPRE los "Próximos días" del diagnóstico. Si hoy está seco pero ves nieve pronosticada para los próximos 3 a 5 días, MENCIONALO con tono optimista pero sin prometer. Por ejemplo: "El jueves el cielo se pone a trabajar y empieza a cerrar para algo de acumulación", "Viene cambiando el panorama para el finde, ojo", "Recién hacia el jueves se arma algo". No te quedes solo en el presente si hay señal clara más adelante — dale esperanza al rider con mesura.
 
@@ -535,12 +702,17 @@ function buildUserPrompt(data: GuruCopyInput): string {
     .filter(Boolean)
     .join('\n');
 
+  const resortContext = buildResortStatusContext(data.resortStatus);
+
   return `Generá el JSON con el mensaje del Gurú basado en este diagnóstico:
 
 ${diagnostics}
 
 Zonas:
 ${zoneLines}
+
+Estado operativo del centro:
+${resortContext}
 
 Recordá: SOLO JSON, sin markdown, sin texto alrededor.`;
 }
@@ -662,7 +834,7 @@ export async function generateGuruNpcMessage(
   // Call LLM if no cache or cache miss
   const apiKey = getLlmKey();
   if (apiKey) {
-    const systemPrompt = buildSystemPrompt(tier);
+    const systemPrompt = buildSystemPrompt(tier, data.resortStatus);
     const userPrompt = buildUserPrompt(data);
     const result = await callLlm(systemPrompt, userPrompt, apiKey);
     if (result) {
@@ -674,20 +846,28 @@ export async function generateGuruNpcMessage(
           console.info('[Guru] Post-process blocked output, using fallback');
           return generateFallbackNpcMessage(data);
         }
+        // Layer 3b: post-process — enforce resort operational governance
+        const resortSafe = postProcessResortGovernance(safe, data.resortStatus);
+        if (!resortSafe) {
+          console.info(
+            '[Guru] Resort governance blocked output, using fallback',
+          );
+          return generateFallbackNpcMessage(data);
+        }
         // Store in cache for future builds
         try {
           await storeGuruMessage({
             period: data.period,
             period_key: cacheDate,
-            mood: safe.mood,
-            certainty: safe.certainty,
-            message: safe.message,
+            mood: resortSafe.mood,
+            certainty: resortSafe.certainty,
+            message: resortSafe.message,
             source: 'ai',
           });
         } catch (err) {
           console.warn('[Guru] Failed to cache response');
         }
-        return safe;
+        return resortSafe;
       }
     }
   }

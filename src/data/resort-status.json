@@ -1,0 +1,15 @@
+{
+  "seasonStatus": "unknown",
+  "resortOperationalStatus": "unknown",
+  "officialSnowReportAvailable": false,
+  "baseDepthCm": null,
+  "liftsOpen": 0,
+  "slopesOpen": 0,
+  "lastUpdatedAt": "2026-06-19T00:00:00Z",
+  "updatedBy": "manual",
+  "resortStatusSource": "Estado operativo no confirmado. Información local manual pendiente de actualización.",
+  "operationalWarnings": [
+    "No hay estado operativo confirmado para el centro de esquí.",
+    "No se dispone de parte oficial de nieve."
+  ]
+}

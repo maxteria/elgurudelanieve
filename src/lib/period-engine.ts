@@ -4,9 +4,11 @@ import type {
   PeriodInterpretations,
   SnowInterpretation,
   SourceStatus,
+  ResortStatus,
 } from './types';
 import { getTodayForecast, getTomorrowForecast } from './forecast-periods';
 import { analyzeWeather } from './snow-engine';
+import { loadResortStatus } from './resort-status';
 
 function filterByPeriod(
   normalized: NormalizedSnowForecast,
@@ -34,13 +36,15 @@ function filterByPeriod(
 export function analyzeAllPeriods(
   normalized: NormalizedSnowForecast,
   sourceStatus?: SourceStatus,
+  resortStatus?: ResortStatus,
 ): PeriodInterpretations {
   const periods: PeriodKey[] = ['today', 'tomorrow', 'sevenDays'];
   const result = {} as PeriodInterpretations;
+  const status = resortStatus ?? loadResortStatus();
 
   for (const period of periods) {
     const periodNorm = filterByPeriod(normalized, period);
-    result[period] = analyzeWeather(periodNorm, sourceStatus);
+    result[period] = analyzeWeather(periodNorm, sourceStatus, status);
   }
 
   return result;

@@ -118,6 +118,7 @@ export interface SnowInterpretation {
   validatedWindow?: ValidatedWindow;
   narrativeTier?: NarrativeTier;
   degraded?: boolean;
+  resortStatus?: ResortStatus;
 }
 
 // ─── Trust Layer Types ─────────────────────────────────────────────────────
@@ -169,4 +170,29 @@ export interface TrustEnrichedInterpretation {
   validatedWindow: ValidatedWindow;
   sourceStatus: SourceStatus;
   degraded: boolean;
+}
+
+// ─── Resort Operational Status ─────────────────────────────────────────────
+
+export type SeasonStatus =
+  | 'pre_season'
+  | 'open'
+  | 'partial'
+  | 'suspended'
+  | 'closed'
+  | 'unknown';
+
+export type ResortOperationalStatus = 'open' | 'partial' | 'closed' | 'unknown';
+
+export interface ResortStatus {
+  seasonStatus: SeasonStatus;
+  resortOperationalStatus: ResortOperationalStatus;
+  officialSnowReportAvailable: boolean;
+  baseDepthCm: number | null;
+  liftsOpen: number | null;
+  slopesOpen: number | null;
+  lastUpdatedAt: string;
+  updatedBy: 'local' | 'official' | 'manual';
+  resortStatusSource: string;
+  operationalWarnings: string[];
 }

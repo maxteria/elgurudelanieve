@@ -64,6 +64,7 @@ const touristResults = await Promise.all(
       nextDays: dailySummaries,
       aicHistory: normalized.aicHistory,
       narrativeTier: p.narrativeTier,
+      resortStatus: p.resortStatus,
     };
     return generateGuruNpcMessage(input);
   }),
