@@ -225,6 +225,16 @@ The data sources **MUST** be visible to users, not only in `llms.txt`. `/fuentes
 
 The `Place` schema **MUST** use the coordinates already defined in `src/lib/weather/open-meteo-api.ts` and **MUST NOT** invent location data.
 
+### External Authority / Institutional Mention
+
+The system **SHOULD** prepare `/pronostico` and `/fuentes` to be referenced by an editorial article on `caviahue-copahue.gob.ar` about climate, snow, mountain status, or winter travel preparation.
+
+- `/fuentes` **MUST** explain sources, methodology, limits, and disclaimer in a professional tone.
+- `/pronostico` **MUST** be linkable with anchor text such as "clima y pronóstico de nieve en Caviahue".
+- All copy **MUST** avoid stating or implying that El Gurú de la Nieve is an official tool, unless that status is formally confirmed.
+- The external mention **MUST** be positioned as a complementary local resource, not as a purchased authority signal.
+- The goal of the mention is to reinforce territorial entity and public utility, not to manipulate rankings.
+
 ## 10. AEO requirements
 
 ### Requirement: Question-oriented headings on the homepage
@@ -290,6 +300,7 @@ The following decisions are now **taken** and must be implemented as specified:
 - [ ] `/fuentes` explains the project, sources, update frequency, and disclaimer.
 - [ ] `/fuentes` explains how the Guru relates to Windguru, Snow Forecast, Open-Meteo, WeatherAPI, and AIC.
 - [ ] `/fuentes` provides Caviahue/Copahue context without becoming a tourism guide.
+- [ ] `/fuentes` and `/pronostico` are ready for an editorial link from `caviahue-copahue.gob.ar` without claiming official status.
 - [ ] No invented authors, addresses, or social profiles are present.
 
 ### AEO
