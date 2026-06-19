@@ -117,6 +117,7 @@ export interface SnowInterpretation {
   signals?: SignalSummary;
   validatedWindow?: ValidatedWindow;
   narrativeTier?: NarrativeTier;
+  degraded?: boolean;
 }
 
 // ─── Trust Layer Types ─────────────────────────────────────────────────────

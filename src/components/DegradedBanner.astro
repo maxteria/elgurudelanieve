@@ -1,0 +1,66 @@
+---
+import type { SourceStatus } from '../lib/types';
+
+interface Props {
+  degraded?: boolean;
+  sourceStatus?: SourceStatus;
+}
+
+const { degraded, sourceStatus } = Astro.props;
+
+const isDegraded =
+  degraded === true ||
+  (sourceStatus !== undefined &&
+    Object.values(sourceStatus).some(
+      (s) => s === 'failed' || s === 'unconfigured',
+    ));
+
+if (!isDegraded) return;
+
+const failedSources: string[] = [];
+if (sourceStatus) {
+  if (sourceStatus.openMeteo === 'failed' || sourceStatus.openMeteo === 'unconfigured')
+    failedSources.push('pronóstico Open-Meteo');
+  if (sourceStatus.weatherApi === 'failed' || sourceStatus.weatherApi === 'unconfigured')
+    failedSources.push('condición actual WeatherAPI');
+  if (sourceStatus.aic === 'failed' || sourceStatus.aic === 'unconfigured')
+    failedSources.push('validación AIC');
+}
+
+let message: string;
+if (failedSources.length === 0) {
+  message =
+    'Disponibilidad limitada — algunas fuentes meteorológicas no respondieron correctamente.';
+} else if (failedSources.length === 1) {
+  message = `Lectura parcial: ${failedSources[0]} no está disponible.`;
+} else {
+  message = `Disponibilidad limitada — ${failedSources.join(', ')} no están respondiendo.`;
+}
+---
+
+<div
+  class="bg-white/[0.03] border border-white/[0.08] rounded-xl px-4 py-3"
+  data-degraded-banner
+>
+  <div class="flex items-start gap-2.5">
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="#9ca3af"
+      stroke-width="1.5"
+      class="shrink-0 mt-0.5"
+    >
+      <path d="M12 9v4M12 17h.01M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+    </svg>
+    <div>
+      <span class="text-[9px] text-white/40 tracking-[0.15em] uppercase font-medium block mb-0.5">
+        Datos parciales
+      </span>
+      <p class="text-[11px] text-white/55 leading-relaxed">
+        {message}
+      </p>
+    </div>
+  </div>
+</div>

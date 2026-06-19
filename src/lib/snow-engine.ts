@@ -515,6 +515,11 @@ export function analyzeWeather(
     sourceStatus,
     signals: sourceStatus ? extractSignalSummary(zoneHourlies) : undefined,
     validatedWindow: bestWindow.hasWindow ? bestWindow : undefined,
+    degraded: sourceStatus
+      ? Object.values(sourceStatus).some(
+          (s) => s === 'failed' || s === 'unconfigured',
+        )
+      : undefined,
   };
 
   // Compute narrative tier from confidence + snow status + wind

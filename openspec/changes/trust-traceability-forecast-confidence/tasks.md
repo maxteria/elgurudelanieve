@@ -22,26 +22,28 @@ Chain strategy: pending
 
 ## Phase 1: Foundation (types, validation, confidence)
 
-- [ ] 1.1 Add new types to `src/lib/types.ts`: `SignalSummary`, `SourceStatus`, `ConfidenceScore`, `NarrativeTier`, `ValidatedWindow`, `TrustEnrichedInterpretation`
-- [ ] 1.2 Create `src/lib/validate-window.ts` — pure function `validateWindow()` that rejects zero-duration, past, null, and malformed windows; returns `ValidatedWindow`
-- [ ] 1.3 Create fixture for window edge case: "vie 23:00 a vie 23:00" MUST be rejected
-- [ ] 1.4 Add `calculateConfidence()` to `src/lib/scoring.ts` — 0–100 score from source agreement, precip, temp, freezing level, wind, AIC availability; returns `ConfidenceScore` with `reasonsFor[]` and `reasonsAgainst[]`
+- [x] 1.1 Add new types to `src/lib/types.ts`: `SignalSummary`, `SourceStatus`, `ConfidenceScore`, `NarrativeTier`, `ValidatedWindow`, `TrustEnrichedInterpretation`
+- [x] 1.2 Create `src/lib/validate-window.ts` — pure function `validateWindow()` that rejects zero-duration, past, null, and malformed windows; returns `ValidatedWindow`
+- [x] 1.3 Create fixture for window edge case: "vie 23:00 a vie 23:00" MUST be rejected
+- [x] 1.4 Add `calculateConfidence()` to `src/lib/scoring.ts` — 0–100 score from source agreement, precip, temp, freezing level, wind, AIC availability; returns `ConfidenceScore` with `reasonsFor[]` and `reasonsAgainst[]`
 
 ## Phase 2: Core Logic (source status, governance, snow-engine)
 
-- [ ] 2.1 Update `src/lib/weather/weather-source.ts` to propagate `SourceStatus` per source (ok / failed / unconfigured / demo) alongside `WeatherResult`
-- [ ] 2.2 Add `computeNarrativeTier()` to `src/lib/guru-copy.ts` — maps confidence + snow + wind to `restricted | normal | expressive`
-- [ ] 2.3 Implement governed prompt assembly in `guru-copy.ts` — inject tier + blocked phrases into LLM system prompt (layer 2 governance)
-- [ ] 2.4 Implement post-processor in `guru-copy.ts` — regex scan for blocked phrases; if violation found, fall back to safe fallback message (layer 3 governance)
-- [ ] 2.5 Update `src/lib/snow-engine.ts` to produce enriched output: call `validateWindow`, `calculateConfidence`, extract `SignalSummary`, apply `NarrativeTier`, propagate `degraded` flag
+- [x] 2.1 Update `src/lib/weather/weather-source.ts` to propagate `SourceStatus` per source (ok / failed / unconfigured / demo) alongside `WeatherResult`
+- [x] 2.2 Add `computeNarrativeTier()` to `src/lib/ai/guru-copy.ts` — maps confidence + snow + wind to `restricted | normal | expressive`
+- [x] 2.3 Implement governed prompt assembly in `guru-copy.ts` — inject tier + blocked phrases into LLM system prompt (layer 2 governance)
+- [x] 2.4 Implement post-processor in `guru-copy.ts` — regex scan for blocked phrases; if violation found, fall back to safe fallback message (layer 3 governance)
+- [x] 2.5 Update `src/lib/snow-engine.ts` to produce enriched output: call `validateWindow`, `calculateConfidence`, extract `SignalSummary`, apply `NarrativeTier`
+- [ ] 2.6 Compute and propagate `degraded` flag on `SnowInterpretation` (deferred to PR 3 UI integration)
 
 ## Phase 3: UI Components
 
-- [ ] 3.1 Create `src/components/ConfidenceBadge.astro` — shows Alta/Media/Baja label, 0–100 score, tooltip with reasonsFor/reasonsAgainst, disclaimer "Índice de consistencia de señales, no probabilidad exacta"
-- [ ] 3.2 Create `src/components/SignalSummary.astro` — collapsible "¿Por qué dice esto?" block with temperature, precipitation, snow, cota, wind, humidity, altitude, sources per zone
-- [ ] 3.3 Create `src/components/DegradedBanner.astro` — shown only when `degraded` is true or `sourceStatus` has failures; muted style, specific message per missing source
-- [ ] 3.4 Update `src/components/SnowWindow.astro` to consume `ValidatedWindow` — never renders invalid windows; if `hasWindow` is false, shows "No hay una ventana clara de nieve en este período."
-- [ ] 3.5 Update `src/pages/pronostico.astro` — integrate ConfidenceBadge near GuruSummary, SignalSummary as collapsible block, DegradedBanner conditionally, pass validated data to SnowWindow; verify mobile layout
+- [x] 3.1 Create `src/components/ConfidenceBadge.astro` — shows Alta/Media/Baja label, 0–100 score, tooltip with reasonsFor/reasonsAgainst, disclaimer "Índice de consistencia de señales, no probabilidad exacta"
+- [x] 3.2 Create `src/components/SignalSummary.astro` — collapsible "¿Por qué dice esto?" block with temperature, precipitation, snow, cota, wind, humidity, altitude, sources per zone
+- [x] 3.3 Create `src/components/DegradedBanner.astro` — shown only when `degraded` is true or `sourceStatus` has failures; muted style, specific message per missing source
+- [x] 3.4 Update `src/components/SnowWindow.astro` to consume `ValidatedWindow` — never renders invalid windows; if `hasWindow` is false, shows "No hay una ventana clara de nieve en este período."
+- [x] 3.5 Update `src/pages/pronostico.astro` — integrate ConfidenceBadge, SignalSummary as collapsible block, DegradedBanner conditionally, pass validated data to SnowWindow; verify mobile layout
+- [x] 3.6 Update `src/pages/lab.astro` to pass `window` prop to `SnowWindow`
 
 ## Phase 4: Tests & Final Validation
 

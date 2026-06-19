@@ -11,6 +11,10 @@ import { isValidScenario } from '../data/demo-scenarios';
 import MobileNav from '../components/MobileNav.astro';
 import HeadMeta from '../components/HeadMeta.astro';
 import SchemaOrg from '../components/SchemaOrg.astro';
+import ConfidenceBadge from '../components/ConfidenceBadge.astro';
+import SignalSummary from '../components/SignalSummary.astro';
+import DegradedBanner from '../components/DegradedBanner.astro';
+import SnowWindow from '../components/SnowWindow.astro';
 
 // Import utilities from lib
 import {
@@ -98,6 +102,11 @@ const topGuru = getGuruCopy(topDays, 'Cumbre');
         )
       }
 
+      <DegradedBanner
+        degraded={periods.today.degraded}
+        sourceStatus={periods.today.sourceStatus}
+      />
+
       <a
         href="/"
         class="inline-flex items-center gap-1.5 text-[9px] text-white/25 hover:text-hielo/50 transition-colors tracking-[0.15em] uppercase font-medium mb-5 group"
@@ -129,6 +138,31 @@ const topGuru = getGuruCopy(topDays, 'Cumbre');
           La mesa larga del Gurú: día por día, por altura y por momento del día.
         </p>
       </div>
+
+      {
+        (periods.today.confidence || periods.today.signals) && (
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-5">
+            {periods.today.confidence && (
+              <div class="md:col-span-1">
+                <ConfidenceBadge confidence={periods.today.confidence} />
+              </div>
+            )}
+            {periods.today.validatedWindow && (
+              <div class="md:col-span-1">
+                <SnowWindow window={periods.today.validatedWindow} />
+              </div>
+            )}
+            {periods.today.signals && (
+              <div class="md:col-span-1">
+                <SignalSummary
+                  signals={periods.today.signals}
+                  sourceStatus={periods.today.sourceStatus}
+                />
+              </div>
+            )}
+          </div>
+        )
+      }
 
       <div class="flex items-center gap-2 mb-3">
         <span class="text-[8px] text-white/30 tracking-wide uppercase"

@@ -232,13 +232,7 @@ const zoneHourlyTomorrow = buildZoneHourly('tomorrow');
           value={result.powderScore.value}
           reason={result.powderScore.description}
         />
-        <SnowWindow
-          hasWindow={result.bestWindow.hasWindow}
-          from={result.bestWindow.from}
-          to={result.bestWindow.to}
-          label={result.bestWindow.label}
-          description={result.bestWindow.description}
-        />
+        <SnowWindow window={result.bestWindow} />
         <AlertsPanel alerts={result.alerts} />
       </div>
 

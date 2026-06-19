@@ -444,4 +444,39 @@ describe('generateSummary (via analyzeWeather)', () => {
     expect(result.powderScore.value).toBeGreaterThanOrEqual(70);
     expect(result.guruSummary).toContain('Polvo asegurado');
   });
+
+  it('sets degraded true when any source failed', () => {
+    const forecast = makeForecastFromFactory(() => ({
+      precipitation: 0,
+      temp: 5,
+      freezingLevel: 3000,
+    }));
+    const result = analyzeWeather(forecast, {
+      openMeteo: 'failed',
+      weatherApi: 'ok',
+      aic: 'ok',
+    });
+    expect(result.degraded).toBe(true);
+  });
+
+  it('sets degraded false when all sources are ok or demo', () => {
+    const forecast = makeForecastFromFactory(() => ({
+      precipitation: 0,
+      temp: 5,
+      freezingLevel: 3000,
+    }));
+    const resultOk = analyzeWeather(forecast, {
+      openMeteo: 'ok',
+      weatherApi: 'ok',
+      aic: 'ok',
+    });
+    expect(resultOk.degraded).toBe(false);
+
+    const resultDemo = analyzeWeather(forecast, {
+      openMeteo: 'demo',
+      weatherApi: 'ok',
+      aic: 'demo',
+    });
+    expect(resultDemo.degraded).toBe(false);
+  });
 });
