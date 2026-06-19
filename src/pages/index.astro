@@ -27,12 +27,12 @@ const envMode: WeatherMode | undefined =
   process.env.PUBLIC_WEATHER_MODE === 'demo' ? 'demo' : undefined;
 const activeMode: WeatherMode = queryMode ?? envMode ?? 'real';
 
-const { normalized, weatherApi, source } = await getWeatherData({
+const { normalized, weatherApi, source, sourceStatus } = await getWeatherData({
   mode: activeMode,
   scenario: activeScenario,
 });
 const firstPeriod: PeriodKey = 'today';
-const periods = analyzeAllPeriods(normalized);
+const periods = analyzeAllPeriods(normalized, sourceStatus);
 const result = periods[firstPeriod];
 if (weatherApi) result.weatherApi = weatherApi;
 const isDemo = source === 'mock-demo';
@@ -52,6 +52,7 @@ const touristResults = await Promise.all(
       now: weatherApi ?? undefined,
       nextDays: dailySummaries,
       aicHistory: normalized.aicHistory,
+      narrativeTier: p.narrativeTier,
     };
     return generateGuruNpcMessage(input);
   }),

@@ -6,6 +6,7 @@ import type {
 } from './types';
 import type { SMNCurrent } from './smn';
 import type { DemoScenario } from '../../data/demo-scenarios';
+import type { SourceStatus, SourceStatusValue } from '../types';
 import { fetchOpenMeteo, CAVIAHUE_COORDS } from './open-meteo-api';
 import { normalizeOpenMeteoResponse } from './normalize-weather';
 import {
@@ -30,6 +31,7 @@ export type WeatherResult = {
   weatherApi: WeatherAPICurrent | null;
   smn: SMNCurrent | null;
   source: DataSource;
+  sourceStatus: SourceStatus;
 };
 
 function resolveMode(mode?: WeatherMode): WeatherMode {
@@ -95,7 +97,13 @@ export async function getWeatherData(options?: {
       const cmp = compareSources(smn, weatherApi, normalized);
       logComparison(cmp);
     }
-    return { normalized, weatherApi, smn, source: 'mock-demo' };
+    return {
+      normalized,
+      weatherApi,
+      smn,
+      source: 'mock-demo',
+      sourceStatus: { openMeteo: 'demo', weatherApi: weatherApi ? 'ok' : 'failed', aic: 'demo' },
+    };
   }
 
   try {
@@ -158,7 +166,17 @@ export async function getWeatherData(options?: {
       const cmp = compareSources(smn, weatherApi, normalized);
       logComparison(cmp);
     }
-    return { normalized, weatherApi, smn, source: 'open-meteo' };
+    return {
+      normalized,
+      weatherApi,
+      smn,
+      source: 'open-meteo',
+      sourceStatus: {
+        openMeteo: 'ok',
+        weatherApi: weatherApi ? 'ok' : 'failed',
+        aic: aicData ? 'ok' : 'failed',
+      },
+    };
   } catch (err) {
     console.warn(
       '[WeatherSource] Open-Meteo fetch failed, using demo fallback:',
@@ -171,6 +189,16 @@ export async function getWeatherData(options?: {
       const cmp = compareSources(smn, weatherApi, normalized);
       logComparison(cmp);
     }
-    return { normalized, weatherApi, smn, source: 'mock-fallback' };
+    return {
+      normalized,
+      weatherApi,
+      smn,
+      source: 'mock-fallback',
+      sourceStatus: {
+        openMeteo: 'failed',
+        weatherApi: weatherApi ? 'ok' : 'failed',
+        aic: 'failed',
+      },
+    };
   }
 }

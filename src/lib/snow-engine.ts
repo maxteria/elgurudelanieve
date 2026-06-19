@@ -1,13 +1,16 @@
 import type { Alert } from './types';
 import type { SnowInterpretation, ZoneInterpretation } from './types';
+import type { SourceStatus, ConfidenceScore, NarrativeTier } from './types';
 import type {
   NormalizedSnowForecast,
   NormalizedHourlyForecast,
   NormalizedZoneForecast,
 } from './weather/types';
-import { calculatePowderScore } from './scoring';
+import { calculatePowderScore, calculateConfidence } from './scoring';
+import { validateWindow } from './validate-window';
 import type { HourlyForecast } from './types';
 import { LAPSE_RATE } from './weather/constants';
+import { computeNarrativeTier } from './ai/guru-copy';
 
 const WEEKDAY_SHORT = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'];
 
@@ -49,6 +52,66 @@ function computeSnowLabel(
     return 'nieve moderada';
   }
   return 'nevada débil';
+}
+
+/**
+ * Extract SignalSummary from zone interpretations.
+ */
+function extractSignalSummary(
+  zoneHourlies: Record<string, HourlyForecast[]>,
+): {
+  temperature: { village: number; mid: number; top: number };
+  precipitation: { village: number; mid: number; top: number };
+  snowfall: { village: number | null; mid: number | null; top: number | null };
+  freezingLevel: { village: number; mid: number; top: number };
+  wind: { village: number; mid: number; top: number };
+  humidity: { village: number | null; mid: number | null; top: number | null };
+} {
+  const getZoneSignal = (zh: HourlyForecast[]) => {
+    const first = zh[0];
+    if (!first) return { temp: 0, precip: 0, snowfall: null, freezingLevel: 0, wind: 0, humidity: null };
+    return {
+      temp: first.temp,
+      precip: first.precip,
+      snowfall: first.snowfall ?? null,
+      freezingLevel: first.freezing_level,
+      wind: first.wind,
+      humidity: first.humidity ?? null,
+    };
+  };
+
+  return {
+    temperature: {
+      village: getZoneSignal(zoneHourlies.village).temp,
+      mid: getZoneSignal(zoneHourlies.mid).temp,
+      top: getZoneSignal(zoneHourlies.top).temp,
+    },
+    precipitation: {
+      village: getZoneSignal(zoneHourlies.village).precip,
+      mid: getZoneSignal(zoneHourlies.mid).precip,
+      top: getZoneSignal(zoneHourlies.top).precip,
+    },
+    snowfall: {
+      village: getZoneSignal(zoneHourlies.village).snowfall,
+      mid: getZoneSignal(zoneHourlies.mid).snowfall,
+      top: getZoneSignal(zoneHourlies.top).snowfall,
+    },
+    freezingLevel: {
+      village: getZoneSignal(zoneHourlies.village).freezingLevel,
+      mid: getZoneSignal(zoneHourlies.mid).freezingLevel,
+      top: getZoneSignal(zoneHourlies.top).freezingLevel,
+    },
+    wind: {
+      village: getZoneSignal(zoneHourlies.village).wind,
+      mid: getZoneSignal(zoneHourlies.mid).wind,
+      top: getZoneSignal(zoneHourlies.top).wind,
+    },
+    humidity: {
+      village: getZoneSignal(zoneHourlies.village).humidity,
+      mid: getZoneSignal(zoneHourlies.mid).humidity,
+      top: getZoneSignal(zoneHourlies.top).humidity,
+    },
+  };
 }
 
 /** Compute zone-specific hourly forecast from base hourly + zone altitude */
@@ -290,6 +353,7 @@ function generateSummary(interp: SnowInterpretation): string {
 
 export function analyzeWeather(
   normalized: NormalizedSnowForecast,
+  sourceStatus?: SourceStatus,
 ): SnowInterpretation {
   const baseAlt = normalized.zones.village.altitude;
 
@@ -380,6 +444,7 @@ export function analyzeWeather(
   const powder = calculatePowderScore(bestZh, bestZone.altitude);
   const mainAnswer = getMainAnswer(zoneInterpretations);
 
+  // Use validateWindow instead of inline formatting
   let bestWindow: SnowInterpretation['bestWindow'] = {
     hasWindow: false,
     label: 'Sin ventana definida',
@@ -387,16 +452,27 @@ export function analyzeWeather(
   };
 
   if (powder.snowWindow) {
-    const { fromTime, toTime } = powder.snowWindow;
-    const fromLabel = formatWindowTime(fromTime);
-    const toLabel = formatWindowTime(toTime);
-    bestWindow = {
-      hasWindow: true,
-      from: fromLabel,
-      to: toLabel,
-      label: `${fromLabel} a ${toLabel}`,
-      description: 'Mejor acumulación prevista en ese período.',
-    };
+    const validated = validateWindow(
+      powder.snowWindow.fromTime,
+      powder.snowWindow.toTime,
+    );
+    if (validated.hasWindow) {
+      bestWindow = {
+        hasWindow: true,
+        from: validated.from,
+        to: validated.to,
+        label: validated.label,
+        description: validated.description,
+      };
+    } else {
+      bestWindow = {
+        hasWindow: false,
+        from: undefined,
+        to: undefined,
+        label: validated.label,
+        description: validated.description,
+      };
+    }
   }
 
   let powderDescription = powder.reason;
@@ -431,7 +507,27 @@ export function analyzeWeather(
     alerts: allAlerts,
     guruSummary: '',
     updated: normalized.updatedAt,
+
+    // Trust layer (optional fields)
+    confidence: sourceStatus
+      ? calculateConfidence(bestZh, sourceStatus, bestZone.altitude)
+      : undefined,
+    sourceStatus,
+    signals: sourceStatus ? extractSignalSummary(zoneHourlies) : undefined,
+    validatedWindow: bestWindow.hasWindow ? bestWindow : undefined,
   };
+
+  // Compute narrative tier from confidence + snow status + wind
+  if (interp.confidence) {
+    const maxWind = Math.max(
+      ...Object.values(zoneHourlies).flat().map((h) => h.wind),
+    );
+    interp.narrativeTier = computeNarrativeTier(
+      interp.confidence,
+      interp.mainAnswer.status,
+      maxWind,
+    );
+  }
 
   interp.guruSummary = generateSummary(interp);
 

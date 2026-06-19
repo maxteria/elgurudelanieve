@@ -1,4 +1,4 @@
-import type { SnowInterpretation, PeriodKey } from '../types';
+import type { SnowInterpretation, PeriodKey, NarrativeTier, ConfidenceScore } from '../types';
 import type { DailySummary, AicStationData } from '../weather/types';
 import type { GuruNpcOutput, GuruMood, GuruCertainty } from './types';
 import { getGuruMessagesInRange, storeGuruMessage } from '../supabase/client';
@@ -18,6 +18,8 @@ export type GuruCopyInput = {
   now?: SnowInterpretation['weatherApi'];
   nextDays?: DailySummary[];
   aicHistory?: AicStationData[];
+  /** Narrative governance tier. If omitted, defaults to 'normal'. */
+  narrativeTier?: NarrativeTier;
 };
 
 const LLM_KEY_ENV = 'OPENROUTER_API_KEY';
@@ -35,6 +37,89 @@ const VALID_MOODS: GuruMood[] = [
 ];
 
 const VALID_CERTAINTIES: GuruCertainty[] = ['alta', 'media', 'baja'];
+
+// ─── Narrative Governance ────────────────────────────────────────────────────
+
+/** Blocked phrases per narrative tier. Layer 3 post-processor scans these. */
+const BLOCKED_PHRASES: Record<NarrativeTier, RegExp[]> = {
+  restricted: [
+    /paquetón/i,
+    /powder day/i,
+    /pólvora/i,
+    /épico/i,
+    /subí sin dudar/i,
+    /nevad(a|ón) fuerte/i,
+    /garantizad[ao]/i,
+    /segur[oa] (que|de)/i,
+    /imperdible/i,
+    /no te lo pierdas/i,
+  ],
+  normal: [
+    /paquetón/i,
+    /powder day/i,
+    /garantizad[ao]/i,
+    /segur[oa] (que|de)/i,
+  ],
+  expressive: [], // expressive has no blocked phrases (trusted tone)
+};
+
+/**
+ * Compute the narrative governance tier based on confidence, snow status, and wind.
+ *
+ * - restricted: Baja confidence, or no-snow status, or extreme wind (>50 km/h)
+ * - normal: Media confidence, or possible snow, or strong wind (35-50 km/h)
+ * - expressive: Alta confidence AND yes/possible snow AND wind <= 35 km/h
+ */
+export function computeNarrativeTier(
+  confidence: ConfidenceScore,
+  mainStatus: 'yes' | 'possible' | 'no',
+  maxWind: number,
+): NarrativeTier {
+  if (
+    confidence.label === 'Baja' ||
+    mainStatus === 'no' ||
+    maxWind > 50
+  ) {
+    return 'restricted';
+  }
+  if (
+    confidence.label === 'Alta' &&
+    mainStatus !== 'no' &&
+    maxWind <= 35
+  ) {
+    return 'expressive';
+  }
+  return 'normal';
+}
+
+/**
+ * Layer 3 post-processor: scan output for blocked phrases.
+ * If a violation is found, return null to signal fallback to safe message.
+ */
+export function postProcessGuruMessage(
+  output: GuruNpcOutput,
+  tier: NarrativeTier,
+): GuruNpcOutput | null {
+  const patterns = BLOCKED_PHRASES[tier];
+  if (!patterns || patterns.length === 0) return output;
+
+  for (const re of patterns) {
+    if (re.test(output.message)) {
+      console.warn(
+        `[Guru] Post-process blocked phrase "${re.source}" in tier "${tier}", falling back`,
+      );
+      return null;
+    }
+    if (output.tip && re.test(output.tip)) {
+      console.warn(
+        `[Guru] Post-process blocked phrase "${re.source}" in tip for tier "${tier}", falling back`,
+      );
+      return null;
+    }
+  }
+
+  return output;
+}
 
 function getLlmKey(): string | undefined {
   // Local dev: Astro/Vite loads .env into import.meta.env
@@ -340,7 +425,37 @@ export function generateFallbackNpcMessage(data: GuruCopyInput): GuruNpcOutput {
 
 // ─── LLM Prompts ────────────────────────────────────────────────────────────
 
-function buildSystemPrompt(): string {
+function buildNarrativeRules(tier: NarrativeTier): string {
+  const base = `No digas "garantizado", "imposible", "seguro".
+No uses tecnicismos: hPa, mm de acumulación.
+Podés mencionar cota de nieve si ayuda a explicar la situación.
+No inventes horarios fuera de la ventana marcada.
+No inventes acumulación.`;
+
+  if (tier === 'restricted') {
+    return `${base}
+Modo RESTRINGIDO activo. NO uses expresiones de alta confianza.
+NO uses: "paquetón", "powder day", "pólvora", "épico", "subí sin dudar", "nevada fuerte", "garantizado", "imperdible".
+Limitá el tono a informativo y cauto.
+No prometas nieve bajo ninguna circunstancia.
+Priorizá: "No hay señal clara", "Puede cambiar", "Seguí monitoreando".`;
+  }
+
+  if (tier === 'expressive') {
+    return `${base}
+Modo EXPRESIVO activo. Señales alineadas, podés usar más entusiasmo sin exagerar.
+Evitá igual "garantizado" y "seguro".
+Podés usar lenguaje como "linda nevada", "buena señal", "se viene algo lindo" con moderación.`;
+  }
+
+  // normal — default rules
+  return `${base}
+Modo NORMAL. Tono neutral-conservador.
+No uses "paquetón" ni "powder day" ni "garantizado".
+Podés mostrar optimismo moderado si hay señales, pero sin prometer.`;
+}
+
+function buildSystemPrompt(tier: NarrativeTier): string {
   return `Sos El Gurú de la Nieve. Un guía de montaña que hace 30 inviernos que mira Caviahue. Conocés cada ladera, cada viento, cada cambio de temperatura.
 
 Generá un objeto JSON con esta estructura exacta, sin markdown ni explicaciones adicionales:
@@ -356,11 +471,8 @@ Hablá siempre en primera persona ("Yo veo...", "No veo...", "Veo...").
 No digas "el Gurú ve..." ni "el Gurú dice...".
 No inventes datos. No contradigas el diagnóstico técnico.
 No prometas nieve si no hay señal clara.
-No uses "garantizado", "imposible", "seguro".
-No uses tecnicismos: hPa, mm de acumulación.
-Podés mencionar cota de nieve si ayuda a explicar la situación.
-No inventes horarios fuera de la ventana marcada.
-No inventes acumulación.
+
+${buildNarrativeRules(tier)}
 
 Mirá SIEMPRE los "Próximos días" del diagnóstico. Si hoy está seco pero ves nieve pronosticada para los próximos 3 a 5 días, MENCIONALO con tono optimista pero sin prometer. Por ejemplo: "El jueves el cielo se pone a trabajar y empieza a cerrar para algo de acumulación", "Viene cambiando el panorama para el finde, ojo", "Recién hacia el jueves se arma algo". No te quedes solo en el presente si hay señal clara más adelante — dale esperanza al rider con mesura.
 
@@ -520,6 +632,7 @@ function getCacheDateKey(): string {
 export async function generateGuruNpcMessage(
   data: GuruCopyInput,
 ): Promise<GuruNpcOutput> {
+  const tier = data.narrativeTier ?? 'normal';
   const cacheDate = getCacheDateKey();
   const cacheAge = Date.now() - CACHE_TTL_MS;
   const cutoffDate = new Date(cacheAge).toISOString();
@@ -549,26 +662,32 @@ export async function generateGuruNpcMessage(
   // Call LLM if no cache or cache miss
   const apiKey = getLlmKey();
   if (apiKey) {
-    const systemPrompt = buildSystemPrompt();
+    const systemPrompt = buildSystemPrompt(tier);
     const userPrompt = buildUserPrompt(data);
     const result = await callLlm(systemPrompt, userPrompt, apiKey);
     if (result) {
       const parsed = extractJsonGuruResponse(result);
       if (parsed) {
+        // Layer 3: post-process — block phrases by tier
+        const safe = postProcessGuruMessage(parsed, tier);
+        if (!safe) {
+          console.info('[Guru] Post-process blocked output, using fallback');
+          return generateFallbackNpcMessage(data);
+        }
         // Store in cache for future builds
         try {
           await storeGuruMessage({
             period: data.period,
             period_key: cacheDate,
-            mood: parsed.mood,
-            certainty: parsed.certainty,
-            message: parsed.message,
+            mood: safe.mood,
+            certainty: safe.certainty,
+            message: safe.message,
             source: 'ai',
           });
         } catch (err) {
           console.warn('[Guru] Failed to cache response');
         }
-        return parsed;
+        return safe;
       }
     }
   }

@@ -111,6 +111,12 @@ export interface SnowInterpretation {
     cloudCover: number;
     updatedAt: string;
   };
+  // ── Trust layer (optional, populated when sourceStatus is available) ──
+  confidence?: ConfidenceScore;
+  sourceStatus?: SourceStatus;
+  signals?: SignalSummary;
+  validatedWindow?: ValidatedWindow;
+  narrativeTier?: NarrativeTier;
 }
 
 // ─── Trust Layer Types ─────────────────────────────────────────────────────

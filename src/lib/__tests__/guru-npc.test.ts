@@ -8,6 +8,21 @@ import type { DailySummary } from '../weather/types';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────
 
+/** Return a date string (YYYY-MM-DD) N days from today */
+function daysFromNow(n: number): string {
+  const d = new Date();
+  d.setDate(d.getDate() + n);
+  return d.toISOString().slice(0, 10);
+}
+
+/** Return the short weekday name for a date N days from now */
+function weekdayFromNow(n: number): string {
+  const days = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'];
+  const d = new Date();
+  d.setDate(d.getDate() + n);
+  return days[d.getDay()];
+}
+
 function makeInput(overrides: Partial<GuruCopyInput> = {}): GuruCopyInput {
   return {
     period: 'today',
@@ -494,10 +509,9 @@ describe('generateFallbackNpcMessage', () => {
 
   it('branch: multi-period — snow soon (1-3 days, higher urgency)', () => {
     // mainStatus === 'no' + nextDays with snow in 1-3 days
-    // Today is 2026-06-15, so use 2026-06-16 (tomorrow = 1 day) or 2026-06-17 (2 days)
     const tomorrow: DailySummary = {
-      date: '2026-06-16',
-      weekday: 'Tue',
+      date: daysFromNow(1),
+      weekday: weekdayFromNow(1),
       tempMin: -2,
       tempMax: 4,
       feelsLikeMin: -5,
@@ -525,10 +539,9 @@ describe('generateFallbackNpcMessage', () => {
 
   it('branch: multi-period — snow later (4-7 days, lower urgency)', () => {
     // mainStatus === 'no' + nextDays with snow in 4+ days
-    // Today is 2026-06-15, so use 2026-06-19 (4 days) or later
     const day4: DailySummary = {
-      date: '2026-06-19',
-      weekday: 'Fri',
+      date: daysFromNow(4),
+      weekday: weekdayFromNow(4),
       tempMin: -1,
       tempMax: 5,
       feelsLikeMin: -4,
@@ -556,8 +569,8 @@ describe('generateFallbackNpcMessage', () => {
   it('branch: multi-period — no snow in nextDays falls through to other branches', () => {
     // nextDays exists but all entries have totalSnow === 0
     const dryDay: DailySummary = {
-      date: '2026-06-15',
-      weekday: 'Mon',
+      date: daysFromNow(1),
+      weekday: weekdayFromNow(1),
       tempMin: 5,
       tempMax: 12,
       feelsLikeMin: 3,

@@ -3,6 +3,7 @@ import type {
   PeriodKey,
   PeriodInterpretations,
   SnowInterpretation,
+  SourceStatus,
 } from './types';
 import { getTodayForecast, getTomorrowForecast } from './forecast-periods';
 import { analyzeWeather } from './snow-engine';
@@ -32,13 +33,14 @@ function filterByPeriod(
 
 export function analyzeAllPeriods(
   normalized: NormalizedSnowForecast,
+  sourceStatus?: SourceStatus,
 ): PeriodInterpretations {
   const periods: PeriodKey[] = ['today', 'tomorrow', 'sevenDays'];
   const result = {} as PeriodInterpretations;
 
   for (const period of periods) {
     const periodNorm = filterByPeriod(normalized, period);
-    result[period] = analyzeWeather(periodNorm);
+    result[period] = analyzeWeather(periodNorm, sourceStatus);
   }
 
   return result;

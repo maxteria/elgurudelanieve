@@ -10,13 +10,20 @@ import type {
 // Helpers — build NormalizedSnowForecast for the refactored engine
 // ---------------------------------------------------------------------------
 
+/** Future date string (YYYY-MM-DD) for test data — always ahead of today */
+function futureDateStr(daysAhead = 7): string {
+  const d = new Date();
+  d.setDate(d.getDate() + daysAhead);
+  return d.toISOString().slice(0, 10);
+}
+
 function makeHourlyForecast(
   index: number,
   overrides: Partial<NormalizedHourlyForecast> = {},
 ): NormalizedHourlyForecast {
   // Use local-time format (no Z suffix) matching real Open-Meteo data
   const hour = String(index).padStart(2, '0');
-  const time = `2026-06-13T${hour}:00:00`;
+  const time = `${futureDateStr(7)}T${hour}:00:00`;
   return {
     time,
     temp: 0,
@@ -87,7 +94,7 @@ function makeSnowForecast(
     zones[z.id] = makeZoneSnapshot(z.id, z.altitude, z.label, first);
   }
   return {
-    updatedAt: '2026-06-13T12:00:00Z',
+    updatedAt: `${futureDateStr(7)}T12:00:00Z`,
     location: { name: 'Caviahue', lat: -37.85, lon: -71.05 },
     zones: zones as NormalizedSnowForecast['zones'],
     hourly: baseHourly,
@@ -180,7 +187,7 @@ describe('analyzeWeather', () => {
   it('handles empty hourly gracefully (no data)', () => {
     // Build forecast with empty hourly but valid zone snapshots
     const forecast: NormalizedSnowForecast = {
-      updatedAt: '2026-06-13T12:00:00Z',
+      updatedAt: `${futureDateStr(7)}T12:00:00Z`,
       location: { name: 'Caviahue', lat: -37.85, lon: -71.05 },
       zones: {
         village: {
