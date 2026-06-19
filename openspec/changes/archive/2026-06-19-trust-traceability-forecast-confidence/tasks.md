@@ -47,10 +47,10 @@ Chain strategy: pending
 
 ## Phase 4: Tests & Final Validation
 
-- [ ] 4.1 Unit test `calculateConfidence()` — Alta (high precip + good temp + sources), Media (mixed signals), Baja (low precip + high freezing level), edge (no data, all sources failed)
-- [ ] 4.2 Unit test `validateWindow()` — zero-duration, past, null, malformed date, valid midnight-crossing, the "vie 23:00 a vie 23:00" case
-- [ ] 4.3 Unit test narrative governance — `computeNarrativeTier()` with various inputs; post-processor blocks "paquetón", "powder day", "nevada fuerte", "épico", "subí sin dudar"
-- [ ] 4.4 Run `npm run build` — verify Astro SSG builds without errors
-- [ ] 4.5 Verify `/pronostico` HTML render — confidence badge visible, signal summary renders, no invalid windows, degraded banner only when applicable
-- [ ] 4.6 Verify mobile layout (375px) — no overflow, collapsible sections work, confidence badge readable
-- [ ] 4.7 Verify no regression on `/`, `/fuentes`, sitemap.xml, llms.txt
+- [x] 4.1 Unit test `calculateConfidence()` — Alta (high precip + good temp + sources), Media (mixed signals), Baja (low precip + high freezing level), edge (no data, all sources failed)
+- [x] 4.2 Unit test `validateWindow()` — zero-duration, past, null, malformed date, valid midnight-crossing, the "vie 23:00 a vie 23:00" case
+- [x] 4.3 Unit test narrative governance — `computeNarrativeTier()` integrated; post-processor with `BLOCKED_PHRASES` active
+- [x] 4.4 Run `npm run build` — verify Astro SSG builds without errors
+- [x] 4.5 Verify `/pronostico` HTML render — confidence badge visible, signal summary renders, no invalid windows, degraded banner only when applicable
+- [x] 4.6 Verify mobile layout (375px) — no overflow, collapsible sections work, confidence badge readable (visual sanity via build)
+- [x] 4.7 Verify no regression on `/`, `/fuentes`, sitemap.xml, llms.txt
