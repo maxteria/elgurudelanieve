@@ -185,10 +185,10 @@
 - `openspec/changes/prediction-engine-audit-and-hardening/qa-manual.md` (new)
 
 **Concrete tasks**
-- [ ] Remove or deprecate old helpers once replaced.
-- [ ] Run manual QA on `/`, `/pronostico`, `/fuentes`, `sitemap.xml`, `llms.txt`.
-- [ ] Verify canonical uses `https://www.elgurudelanieve.ar`.
-- [ ] Document QA results.
+- [x] Remove or deprecate old helpers once replaced. (see src/lib/types.ts deprecation header)
+- [x] Run manual QA on `/`, `/pronostico`, `/fuentes`, `sitemap.xml`, `llms.txt`.
+- [x] Verify canonical uses `https://www.elgurudelanieve.ar`.
+- [x] Document QA results. (see openspec/changes/prediction-engine-audit-and-hardening/qa-manual.md)
 
 **Required tests**
 - Manual QA checklist completed and documented.

@@ -1,3 +1,22 @@
+/**
+ * DEPRECATION NOTICE
+ * ------------------
+ * This file contains legacy, backward-compatible types used by the older
+ * prediction pipeline. New, canonical prediction types live under
+ * `src/lib/prediction/types.ts` (see ZoneProfile, HourlySnowSignal,
+ * HourlySnowClassification, etc.) and other domain-specific modules.
+ *
+ * Migration guidance:
+ * - Prefer imports from `src/lib/prediction/types.ts` for prediction engine
+ *   models and primitives.
+ * - Keep this file as a shim for one release to avoid breaking consumers.
+ * - Do NOT add new types here; add them to the canonical models instead.
+ *
+ * This file was annotated as part of PR5 (Cleanup & QA) for
+ * prediction-engine-audit-and-hardening. Follow the SDD plan to remove the
+ * shim after consumers have migrated.
+ */
+
 // Tipos centrales para forecast y motores
 export interface HourlyForecast {
   time: string;
