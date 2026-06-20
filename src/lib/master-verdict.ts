@@ -57,9 +57,9 @@ export function buildMasterVerdict(
   const cotaLabel =
     freezingLevel == null
       ? 'Cota no disponible'
-      : freezingLevel > 2600
+      : freezingLevel >= 2600
         ? 'Cota alta'
-        : freezingLevel > 2200
+        : freezingLevel >= 2200
           ? 'Cota justa'
           : 'Cota favorable';
   const skyLabel = buildSkyLabel(currentCloudCover);

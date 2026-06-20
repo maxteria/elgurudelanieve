@@ -379,12 +379,12 @@ const SNOW_SOON: Variant[] = [
   {
     message:
       'Hoy no cae nada, pero no te desconectes: los próximos días vienen con blanco. La montaña se está preparando.',
-    tip: 'Dejá todo listo, que en un par de días puede haber pólvora.',
+    tip: 'Dejá todo listo, que en un par de días puede haber buena nieve.',
   },
   {
     message:
       'Hoy está seco, pero los modelos marcan nieve en los próximos días. No es promesa, pero la señal es buena.',
-    tip: 'Mantené la tabla encerada por si el viento gira.',
+    tip: 'Mantené el equipo a mano por si el viento gira.',
   },
 ];
 
@@ -509,7 +509,7 @@ export function generateFallbackNpcMessage(data: GuruCopyInput): GuruNpcOutput {
       return {
         mood: 'cautious',
         certainty: 'media',
-        message: `Se ve una ventana de nieve entre ${data.bestWindow.from} y ${data.bestWindow.to}. Es nieve meteorológica en formación, no significa que el centro esté esquiable.`,
+        message: `Se detecta una ventana de nieve entre ${data.bestWindow.from} y ${data.bestWindow.to}. Es nieve meteorológica en formación, no significa que el centro esté esquiable.`,
         tip: 'Revisá el parte oficial antes de cualquier plan de montaña.',
         source: 'fallback',
       };
