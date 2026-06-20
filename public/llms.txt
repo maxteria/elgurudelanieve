@@ -8,14 +8,14 @@ El sitio lee modelos meteorológicos públicos y presenta una interpretación lo
 
 ## Secciones principales
 
-- [Home](/) — Interpretación del pronóstico actual para Caviahue.
-  - [Pronóstico extendido](/pronostico) — Pronóstico desglosado en 3 cotas:
+- [Home](https://www.elgurudelanieve.ar/) — Interpretación del pronóstico actual para Caviahue.
+  - [Pronóstico extendido](https://www.elgurudelanieve.ar/pronostico) — Pronóstico desglosado en 3 cotas:
     - Pueblo · ~1647 m
     - Centro · ~1846 m
     - Cumbre · ~2045 m
-- [Lab](/lab) — Instrumentos y datos que el sitio usa para interpretar los modelos: gráficos, cota, viento y análisis.
-- [Histórico](/historico) — Registro de lecturas pasadas del Gurú, con archivo por fecha.
-- [Fuentes y metodología](/fuentes) — Fuentes de datos, metodología y notas sobre cómo se generan las interpretaciones.
+- [Lab](https://www.elgurudelanieve.ar/lab) — Instrumentos y datos que el sitio usa para interpretar los modelos: gráficos, cota, viento y análisis.
+- [Histórico](https://www.elgurudelanieve.ar/historico) — Registro de lecturas pasadas del Gurú, con archivo por fecha.
+- [Fuentes y metodología](https://www.elgurudelanieve.ar/fuentes) — Fuentes de datos, metodología y notas sobre cómo se generan las interpretaciones.
 
 ## Fuentes de datos
 
