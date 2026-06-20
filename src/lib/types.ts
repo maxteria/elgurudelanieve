@@ -125,11 +125,11 @@ export interface SnowInterpretation {
 
 /** Signal traceability per period — data that drove the Guru's conclusion */
 export interface SignalSummary {
-  temperature: { village: number; mid: number; top: number };
-  precipitation: { village: number; mid: number; top: number };
+  temperature: { village: number | null; mid: number | null; top: number | null };
+  precipitation: { village: number | null; mid: number | null; top: number | null };
   snowfall: { village: number | null; mid: number | null; top: number | null };
-  freezingLevel: { village: number; mid: number; top: number };
-  wind: { village: number; mid: number; top: number };
+  freezingLevel: { village: number | null; mid: number | null; top: number | null };
+  wind: { village: number | null; mid: number | top: number | null };
   humidity: { village: number | null; mid: number | null; top: number | null };
 }
 

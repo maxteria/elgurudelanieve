@@ -70,13 +70,21 @@ function extractSignalSummary(
 } {
   const getZoneSignal = (zh: HourlyForecast[]) => {
     const first = zh[0];
-    if (!first) return { temp: 0, precip: 0, snowfall: null, freezingLevel: 0, wind: 0, humidity: null };
+    if (!first)
+      return {
+        temp: null,
+        precip: null,
+        snowfall: null,
+        freezingLevel: null,
+        wind: null,
+        humidity: null,
+      };
     return {
-      temp: first.temp,
-      precip: first.precip,
+      temp: first.temp ?? null,
+      precip: first.precip ?? null,
       snowfall: first.snowfall ?? null,
-      freezingLevel: first.freezing_level,
-      wind: first.wind,
+      freezingLevel: first.freezing_level ?? null,
+      wind: first.wind ?? null,
       humidity: first.humidity ?? null,
     };
   };
@@ -186,7 +194,7 @@ function getMainAnswer(
       status: 'possible',
       label: 'nieve moderada',
       description:
-        'Probabilidad de nevada. Condiciones conditionally favorables.',
+        'Hay señal de nevada, pero depende de que la cota se sostenga.',
     };
   return {
     status: 'no',
