@@ -3,7 +3,7 @@ import type { DailySummary, AicStationData } from '../weather/types';
 import type { GuruNpcOutput, GuruMood, GuruCertainty } from './types';
 import { getGuruMessagesInRange, storeGuruMessage } from '../supabase/client';
 import { SITE_URL } from '../site';
-import { applyNarrativeGovernance } from '../governance/apply-narrative-governance';
+import { applyNarrativeGovernance, isSkiRecommendationAllowed, isBaseClaimAllowed } from '../governance/apply-narrative-governance';
 
 export type GuruCopyInput = {
   period: PeriodKey;
@@ -95,40 +95,8 @@ export function computeNarrativeTier(
   return 'normal';
 }
 
-// ─── Resort Operational Status Governance ───────────────────────────────────
-
-const MIN_SKI_BASE_DEPTH_CM = 30;
-
-/** True when the resort is open/partial and has enough base for moderate ski recommendations. */
-export function isSkiRecommendationAllowed(
-  resortStatus: ResortStatus | undefined,
-): boolean {
-  if (!resortStatus) return true; // No resort data means no restriction (backward compatibility)
-  const seasonOpen =
-    resortStatus.seasonStatus === 'open' ||
-    resortStatus.seasonStatus === 'partial';
-  const resortOpen =
-    resortStatus.resortOperationalStatus === 'open' ||
-    resortStatus.resortOperationalStatus === 'partial';
-  const baseOk =
-    resortStatus.baseDepthCm !== null &&
-    resortStatus.baseDepthCm >= MIN_SKI_BASE_DEPTH_CM;
-  return seasonOpen && resortOpen && baseOk;
-}
-
-/** True when an official snow report exists and reports a usable base. */
-export function isBaseClaimAllowed(
-  resortStatus: ResortStatus | undefined,
-): boolean {
-  if (!resortStatus) return true; // No resort data means no restriction (backward compatibility)
-  if (!resortStatus.officialSnowReportAvailable) return false;
-  if (
-    resortStatus.baseDepthCm === null ||
-    resortStatus.baseDepthCm < MIN_SKI_BASE_DEPTH_CM
-  )
-    return false;
-  return true;
-}
+// Resort operational governance helpers are centralized in
+// src/lib/governance/apply-narrative-governance.ts and imported above.
 
 /** Format resort status context for the LLM prompt. */
 function buildResortStatusContext(
@@ -175,8 +143,6 @@ export function postProcessResortGovernance(
   output: GuruNpcOutput,
   resortStatus: ResortStatus | undefined,
 ): GuruNpcOutput | null {
-  if (!resortStatus) return output;
-
   const text = `${output.message} ${output.tip ?? ''}`.toLowerCase();
 
   const skiPhrases = [
@@ -199,6 +165,7 @@ export function postProcessResortGovernance(
     /nieve esquiable/i,
   ];
 
+  // Use centralized governance checks (conservative defaults when status missing)
   if (!isSkiRecommendationAllowed(resortStatus)) {
     for (const re of skiPhrases) {
       if (re.test(text)) {

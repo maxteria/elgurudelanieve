@@ -157,4 +157,26 @@ describe('resort status narrative governance', () => {
     expect(text).toMatch(/buena señal|equipo|ventana/);
     expect(text).not.toMatch(/nieve en formación|no significa/);
   });
+
+  it('does not recommend ski/snowboard when resortStatus is undefined (conservative default)', () => {
+    const input = makeInput({}); // no resortStatus provided
+    const result = generateFallbackNpcMessage(input);
+
+    const text = `${result.message} ${result.tip ?? ''}`.toLowerCase();
+    expect(text).not.toMatch(
+      /\b(esqui[aeáéíóú]|ski|snowboard|tabla|subí|pista|medios)\b/,
+    );
+  });
+
+  it('does not recommend ski/snowboard when resortStatus is incomplete/unknown', () => {
+    const input = makeInput({
+      resortStatus: makeResortStatus({ seasonStatus: 'unknown', resortOperationalStatus: 'unknown' }),
+    });
+    const result = generateFallbackNpcMessage(input);
+
+    const text = `${result.message} ${result.tip ?? ''}`.toLowerCase();
+    expect(text).not.toMatch(
+      /\b(esqui[aeáéíóú]|ski|snowboard|tabla|subí|pista|medios)\b/,
+    );
+  });
 });

@@ -9,22 +9,33 @@ import {
 /** Minimum base depth for ski recommendations (kept in sync with guru-copy) */
 const MIN_SKI_BASE_DEPTH_CM = 30;
 
-function isSkiRecommendationAllowed(resortStatus: ResortStatus | undefined) {
-  if (!resortStatus) return true;
+/**
+ * Conservative governance: when resortStatus is undefined or incomplete,
+ * block ski/snowboard recommendations by default.
+ */
+export function isSkiRecommendationAllowed(resortStatus: ResortStatus | undefined): boolean {
+  // Conservative default: without a valid status, do not allow recommendations
+  if (!resortStatus) return false;
+
   const seasonOpen =
     resortStatus.seasonStatus === 'open' ||
     resortStatus.seasonStatus === 'partial';
   const resortOpen =
     resortStatus.resortOperationalStatus === 'open' ||
     resortStatus.resortOperationalStatus === 'partial';
+
   const baseOk =
     resortStatus.baseDepthCm !== null &&
     resortStatus.baseDepthCm >= MIN_SKI_BASE_DEPTH_CM;
+
+  // Allow only when season and resort are operational (open/partial) and
+  // there is a usable base depth value.
   return seasonOpen && resortOpen && baseOk;
 }
 
-function isBaseClaimAllowed(resortStatus: ResortStatus | undefined) {
-  if (!resortStatus) return true;
+export function isBaseClaimAllowed(resortStatus: ResortStatus | undefined): boolean {
+  // Conservative default: without a valid status, do not allow base claims
+  if (!resortStatus) return false;
   if (!resortStatus.officialSnowReportAvailable) return false;
   if (resortStatus.baseDepthCm === null || resortStatus.baseDepthCm < MIN_SKI_BASE_DEPTH_CM)
     return false;

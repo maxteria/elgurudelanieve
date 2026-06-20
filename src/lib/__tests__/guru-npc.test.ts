@@ -629,8 +629,10 @@ describe('generateFallbackNpcMessage', () => {
       },
     });
     const result = generateFallbackNpcMessage(input);
-    expect(result.mood).toBe('confident');
-    expect(result.certainty).toBe('alta');
+    // With conservative resort governance (no explicit resortStatus), ski
+    // recommendations are blocked and fallback returns a more cautious tone.
+    expect(result.mood).toBe('cautious');
+    expect(result.certainty).toBe('media');
     expect(result.source).toBe('fallback');
     expect(result.tip).not.toBeNull();
   });
@@ -651,7 +653,9 @@ describe('generateFallbackNpcMessage', () => {
       },
     });
     const result = generateFallbackNpcMessage(input);
-    expect(result.mood).toBe('confident');
+    // With conservative resort governance (no explicit resortStatus), ski
+    // recommendations are blocked and fallback returns a more cautious tone.
+    expect(result.mood).toBe('cautious');
     expect(result.certainty).toBe('media');
     expect(result.source).toBe('fallback');
   });

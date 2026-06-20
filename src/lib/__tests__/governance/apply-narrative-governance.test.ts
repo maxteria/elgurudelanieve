@@ -59,4 +59,17 @@ describe('applyNarrativeGovernance', () => {
     const res = applyNarrativeGovernance(out, 'normal', makeResortStatus());
     expect(res).toBeNull();
   });
+
+  it('blocks ski recommendation when resortStatus is undefined (conservative default)', () => {
+    const out = makeOutput('Prepare your skis and head up the mountain.');
+    const res = applyNarrativeGovernance(out, 'normal', undefined);
+    expect(res).toBeNull();
+  });
+
+  it('blocks ski recommendation when resortStatus is incomplete/unknown', () => {
+    const incomplete = makeResortStatus({ seasonStatus: 'unknown', resortOperationalStatus: 'unknown' });
+    const out = makeOutput('Prepare your skis and head up the mountain.');
+    const res = applyNarrativeGovernance(out, 'normal', incomplete);
+    expect(res).toBeNull();
+  });
 });
