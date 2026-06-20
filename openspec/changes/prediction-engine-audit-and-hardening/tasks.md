@@ -153,12 +153,12 @@
 - `src/lib/governance/blocked-phrases.ts` (new)
 - `src/lib/__tests__/governance/apply-narrative-governance.test.ts` (new)
 
-**Concrete tasks**
-- [ ] Implement `applyNarrativeGovernance()` for LLM output, fallback, and window summaries.
-- [ ] Block ski/snowboard language in pre_season/closed without official report.
-- [ ] Block base/pistes language without official report.
-- [ ] Add safe fallback copy.
-- [ ] Add tests for prohibited phrases and allowed safe phrases.
+ **Concrete tasks**
+ - [x] Implement `applyNarrativeGovernance()` for LLM output, fallback, and window summaries.
+ - [x] Block ski/snowboard language in pre_season/closed without official report.
+ - [x] Block base/pistes language without official report.
+ - [x] Add safe fallback copy.
+ - [x] Add tests for prohibited phrases and allowed safe phrases.
 
 **Required tests**
 - With `seasonStatus=pre_season`, `resortOperationalStatus=closed`, `officialSnowReportAvailable=false`, `baseDepthCm=null`:

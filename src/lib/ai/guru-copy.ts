@@ -3,6 +3,7 @@ import type { DailySummary, AicStationData } from '../weather/types';
 import type { GuruNpcOutput, GuruMood, GuruCertainty } from './types';
 import { getGuruMessagesInRange, storeGuruMessage } from '../supabase/client';
 import { SITE_URL } from '../site';
+import { applyNarrativeGovernance } from '../governance/apply-narrative-governance';
 
 export type GuruCopyInput = {
   period: PeriodKey;
@@ -842,18 +843,10 @@ export async function generateGuruNpcMessage(
     if (result) {
       const parsed = extractJsonGuruResponse(result);
       if (parsed) {
-        // Layer 3: post-process — block phrases by tier
-        const safe = postProcessGuruMessage(parsed, tier);
-        if (!safe) {
-          console.info('[Guru] Post-process blocked output, using fallback');
-          return generateFallbackNpcMessage(data);
-        }
-        // Layer 3b: post-process — enforce resort operational governance
-        const resortSafe = postProcessResortGovernance(safe, data.resortStatus);
-        if (!resortSafe) {
-          console.info(
-            '[Guru] Resort governance blocked output, using fallback',
-          );
+        // Layer 3: unified governance post-processor — blocks/approves AI output
+        const governed = applyNarrativeGovernance(parsed, tier, data.resortStatus);
+        if (!governed) {
+          console.info('[Guru] Post-process/governance blocked output, using fallback');
           return generateFallbackNpcMessage(data);
         }
         // Store in cache for future builds
@@ -861,15 +854,15 @@ export async function generateGuruNpcMessage(
           await storeGuruMessage({
             period: data.period,
             period_key: cacheDate,
-            mood: resortSafe.mood,
-            certainty: resortSafe.certainty,
-            message: resortSafe.message,
+            mood: governed.mood,
+            certainty: governed.certainty,
+            message: governed.message,
             source: 'ai',
           });
         } catch (err) {
           console.warn('[Guru] Failed to cache response');
         }
-        return resortSafe;
+        return governed;
       }
     }
   }
