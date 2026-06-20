@@ -85,6 +85,13 @@
 - [ ] Add tests for window validation (valid, start==end, end<start, past window, Caviahue TZ).
 - [ ] Add tests for confidence caps (missing data, high freezing level, high temp, source failed/demo).
 
+- [x] Implement `evaluateZone()` with counts, accumulation estimate, contradictions, and summary.
+- [x] Implement `buildSnowWindows()` with validity rules and TZ enforcement.
+- [x] Implement `computeConsistencyIndex()` with hard caps from spec.
+- [x] Add tests for zone evaluation (summit snow, rain in town/snow above, marginal, no precip, high freezing level, strong wind).
+- [x] Add tests for window validation (valid, start==end, end<start, past window, Caviahue TZ).
+- [x] Add tests for confidence caps (missing data, high freezing level, high temp, source failed/demo).
+
 **Required tests**
 - No invalid windows are produced.
 - High freezing level and high temperature limit confidence.

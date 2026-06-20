@@ -83,3 +83,12 @@ export const explicitSnowfallNoTemp: HourlySnowSignal = {
   snowfallCm: 0.5,
   freezingLevelM: undefined,
 };
+
+export const snowfallOnly: HourlySnowSignal = {
+  zoneId: ZONE_BASE.id,
+  utcHour: '2026-06-13T19:00:00Z',
+  temperatureC: -1.0,
+  precipitationMm: 0,
+  snowfallCm: 0.6,
+  freezingLevelM: ZONE_BASE.elevationM + 100,
+};
