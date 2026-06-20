@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { validateWindow } from '../validate-window';
+import caviahue from '../time/caviahue-time';
 
 describe('validateWindow', () => {
   it('rejects null fromTime', () => {
@@ -45,8 +46,16 @@ describe('validateWindow', () => {
       '2027-01-02T03:00:00',
     );
     expect(result.hasWindow).toBe(true);
-    expect(result.from).toBe('vie 23:00');
-    expect(result.to).toBe('sáb 03:00');
+    // Labels are computed using Caviahue timezone helpers and therefore
+    // deterministic regardless of the test runner's TZ. Compute expected
+    // labels via the same helper.
+    const WEEKDAY_SHORT = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'];
+    const fromParts = caviahue.toCaviahue('2027-01-01T23:00:00');
+    const toParts = caviahue.toCaviahue('2027-01-02T03:00:00');
+    const fromDay = WEEKDAY_SHORT[new Date(fromParts.localIso + 'Z').getUTCDay()];
+    const toDay = WEEKDAY_SHORT[new Date(toParts.localIso + 'Z').getUTCDay()];
+    expect(result.from).toBe(`${fromDay} ${String(fromParts.localHour).padStart(2, '0')}:00`);
+    expect(result.to).toBe(`${toDay} ${String(toParts.localHour).padStart(2, '0')}:00`);
   });
 
   it('accepts valid same-day window', () => {
@@ -55,8 +64,10 @@ describe('validateWindow', () => {
       '2026-12-24T14:00:00',
     );
     expect(result.hasWindow).toBe(true);
-    expect(result.from).toContain('10:00');
-    expect(result.to).toContain('14:00');
+    const partsFrom = caviahue.toCaviahue('2026-12-24T10:00:00');
+    const partsTo = caviahue.toCaviahue('2026-12-24T14:00:00');
+    expect(result.from).toContain(String(partsFrom.localHour).padStart(2, '0') + ':00');
+    expect(result.to).toContain(String(partsTo.localHour).padStart(2, '0') + ':00');
   });
 
   // Regression test: "vie 23:00 a vie 23:00" must be rejected

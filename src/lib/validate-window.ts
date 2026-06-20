@@ -1,4 +1,5 @@
 import type { ValidatedWindow } from './types';
+import caviahue from './time/caviahue-time';
 
 const NO_WINDOW_MESSAGE = 'No hay una ventana clara de nieve en este período.';
 
@@ -13,9 +14,14 @@ function noWindow(): ValidatedWindow {
 const WEEKDAY_SHORT = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'];
 
 function formatWindowTime(isoTime: string): string {
-  const d = new Date(isoTime);
-  const day = WEEKDAY_SHORT[d.getDay()];
-  const hour = String(d.getHours()).padStart(2, '0');
+  // Use caviahue timezone helpers so labels are deterministic and not
+  // dependent on the runtime environment's TZ.
+  const { localIso, localHour } = caviahue.toCaviahue(isoTime);
+  // localIso is like YYYY-MM-DDTHH:MM:SS (no timezone designator). Append Z
+  // and read weekday in UTC which corresponds to the Caviahue local date.
+  const dayIndex = new Date(localIso + 'Z').getUTCDay();
+  const day = WEEKDAY_SHORT[dayIndex];
+  const hour = String(localHour).padStart(2, '0');
   return `${day} ${hour}:00`;
 }
 
@@ -30,23 +36,35 @@ export function validateWindow(
 ): ValidatedWindow {
   if (!fromTime || !toTime) return noWindow();
 
-  const from = new Date(fromTime);
-  const to = new Date(toTime);
+  // Parse strictly using caviahue helpers which enforce ISO formats and
+  // treat timezone-less inputs as UTC. toCaviahue will throw on invalid
+  // strings — catch and reject.
+  let fromParts;
+  let toParts;
+  try {
+    fromParts = caviahue.toCaviahue(fromTime);
+    toParts = caviahue.toCaviahue(toTime);
+  } catch (e) {
+    return noWindow();
+  }
 
-  // Reject if either date is invalid
-  if (isNaN(from.getTime()) || isNaN(to.getTime())) return noWindow();
+  const fromMs = new Date(fromParts.utcIso).getTime();
+  const toMs = new Date(toParts.utcIso).getTime();
 
   // Reject if negative or zero duration
-  if (to.getTime() <= from.getTime()) return noWindow();
+  if (toMs <= fromMs) return noWindow();
 
   // Reject if window is entirely in the past
-  if (to.getTime() < Date.now()) return noWindow();
+  if (toMs < Date.now()) return noWindow();
 
   const fromLabel = formatWindowTime(fromTime);
   const toLabel = formatWindowTime(toTime);
 
   return {
     hasWindow: true,
+    // Preserve normalized UTC boundaries for cache / tracing
+    startUtc: fromParts.utcIso,
+    endUtc: toParts.utcIso,
     from: fromLabel,
     to: toLabel,
     label: `${fromLabel} a ${toLabel}`,

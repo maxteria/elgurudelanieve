@@ -93,6 +93,10 @@ export interface SnowInterpretation {
   };
   bestWindow: {
     hasWindow: boolean;
+    /** UTC ISO start of the best window (if available) */
+    startUtc?: string;
+    /** UTC ISO end of the best window (if available) */
+    endUtc?: string;
     from?: string;
     to?: string;
     label: string;
@@ -129,7 +133,7 @@ export interface SignalSummary {
   precipitation: { village: number | null; mid: number | null; top: number | null };
   snowfall: { village: number | null; mid: number | null; top: number | null };
   freezingLevel: { village: number | null; mid: number | null; top: number | null };
-  wind: { village: number | null; mid: number | top: number | null };
+  wind: { village: number | null; mid: number | null; top: number | null };
   humidity: { village: number | null; mid: number | null; top: number | null };
 }
 
@@ -156,7 +160,13 @@ export type NarrativeTier = 'restricted' | 'normal' | 'expressive';
 /** A validated best-window that has passed all guards */
 export interface ValidatedWindow {
   hasWindow: boolean;
+  /** UTC ISO start of the validated window (if available) */
+  startUtc?: string;
+  /** UTC ISO end of the validated window (if available) */
+  endUtc?: string;
+  /** Localized label start (UI) */
   from?: string;
+  /** Localized label end (UI) */
   to?: string;
   label: string;
   description: string;

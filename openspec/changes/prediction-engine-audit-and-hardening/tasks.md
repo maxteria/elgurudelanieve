@@ -123,10 +123,10 @@
 - `src/lib/__tests__/integration/prediction-pipeline.test.ts` (new)
 
 **Concrete tasks**
-- [ ] Integrate new output into `snow-engine.ts` and `period-engine.ts`.
-- [ ] Adapt `SignalSummary` and `ValidatedWindow` to new fields.
-- [ ] Implement `buildGuruCacheKey()` with required fields.
-- [ ] Add integration tests verifying pipeline output and cache key changes.
+ - [x] Integrate new output into `snow-engine.ts` and `period-engine.ts`.
+ - [x] Adapt `SignalSummary` and `ValidatedWindow` to new fields.
+ - [x] Implement `buildGuruCacheKey()` with required fields.
+ - [x] Add integration tests verifying pipeline output and cache key changes.
 
 **Required tests**
 - `/pronostico` uses real signals (no synthetic zeros).

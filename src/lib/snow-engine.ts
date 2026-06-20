@@ -469,6 +469,9 @@ export function analyzeWeather(
     if (validated.hasWindow) {
       bestWindow = {
         hasWindow: true,
+        // carry both the localized labels and UTC boundaries from validateWindow
+        startUtc: validated.startUtc,
+        endUtc: validated.endUtc,
         from: validated.from,
         to: validated.to,
         label: validated.label,
@@ -477,6 +480,8 @@ export function analyzeWeather(
     } else {
       bestWindow = {
         hasWindow: false,
+        startUtc: validated.startUtc,
+        endUtc: validated.endUtc,
         from: undefined,
         to: undefined,
         label: validated.label,
