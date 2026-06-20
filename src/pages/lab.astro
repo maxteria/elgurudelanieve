@@ -25,6 +25,7 @@ import AlertsPanel from '../components/AlertsPanel.astro';
 import GuruSummary from '../components/GuruSummary.astro';
 import { generateGuruNpcMessage, type GuruCopyInput } from '../lib/ai/guru-copy';
 import type { GuruNpcOutput } from '../lib/ai/types';
+import { buildMasterVerdict } from '../lib/master-verdict';
 
 const params = Astro.url.searchParams;
 const demoParam = params.get('demo');
@@ -45,6 +46,7 @@ const firstPeriod: PeriodKey = 'today';
 const periods = analyzeAllPeriods(normalized, sourceStatus);
 const result = periods[firstPeriod];
 if (weatherApi) result.weatherApi = weatherApi;
+const verdict = buildMasterVerdict(periods, firstPeriod, weatherApi?.cloudCover);
 const zoneList = [result.zones.village, result.zones.mid, result.zones.top];
 const isDemo = source === 'mock-demo';
 
@@ -195,7 +197,7 @@ const zoneHourlyTomorrow = buildZoneHourly('tomorrow');
         <h1
           class="text-2xl md:text-3xl font-extrabold text-white tracking-[-0.02em] mt-1"
         >
-          Los instrumentos con los que miro la montaña.
+          Los instrumentos con los que leo la montaña.
         </h1>
         <p class="text-[11px] text-white/30 mt-1.5 leading-relaxed max-w-xl">
           Temperatura, cota, viento, humedad y señales de nieve para entender
@@ -273,6 +275,14 @@ const zoneHourlyTomorrow = buildZoneHourly('tomorrow');
             >Interpretación automática</span
           >
           <GuruSummary summary={result.guruSummary} />
+          {
+            !verdict.isSkiSeasonOpen && (
+              <p class="text-[9px] text-white/30 mt-1.5 leading-relaxed">
+                Temporada no operativa: estos datos describen nieve meteorológica,
+                no condiciones esquiables ni apertura de medios.
+              </p>
+            )
+          }
         </div>
 
         {
@@ -573,17 +583,29 @@ const zoneHourlyTomorrow = buildZoneHourly('tomorrow');
             var snowEl = card.querySelector('[data-period-zone-snow]');
             var answerEl = card.querySelector('[data-period-zone-answer]');
             if (tempEl)
-              tempEl.textContent = Math.round(z.current.temp) + '\u00b0';
+              tempEl.textContent =
+                z.current.temp != null
+                  ? Math.round(z.current.temp) + '\u00b0'
+                  : '--';
             if (feelsEl)
-              feelsEl.textContent = String(Math.round(z.current.feelsLike));
+              feelsEl.textContent =
+                z.current.feelsLike != null
+                  ? String(Math.round(z.current.feelsLike))
+                  : '--';
             if (windEl)
-              windEl.textContent = Math.round(z.current.wind) + ' km/h';
+              windEl.textContent =
+                z.current.wind != null
+                  ? Math.round(z.current.wind) + ' km/h'
+                  : '--';
             if (snowEl)
-              snowEl.textContent = Math.round(z.current.snowChance) + '%';
+              snowEl.textContent =
+                z.current.snowChance != null
+                  ? Math.round(z.current.snowChance) + '%'
+                  : '--';
             var snowDepthEl = card.querySelector(
               '[data-period-zone-snowdepth]',
             );
-            if (snowDepthEl && z.current.snowDepth !== undefined) {
+            if (snowDepthEl && z.current.snowDepth != null) {
               var sd = Math.round(z.current.snowDepth * 100);
               snowDepthEl.textContent =
                 sd === 0 ? 'Sin nieve acumulada' : sd + ' cm';
@@ -595,7 +617,11 @@ const zoneHourlyTomorrow = buildZoneHourly('tomorrow');
               var ft = z.answer.label;
               if (z.id === 'village' && z.current.precipitation === 0)
                 ft = 'Sin precipitación activa';
-              else if (z.id === 'top' && z.current.freezingLevel > 2500)
+              else if (
+                z.id === 'top' &&
+                z.current.freezingLevel != null &&
+                z.current.freezingLevel > 2500
+              )
                 ft = 'Cota alta para acumulación relevante';
               answerEl.textContent = ft;
             }

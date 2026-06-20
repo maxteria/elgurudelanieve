@@ -41,8 +41,8 @@ describe('validateWindow', () => {
 
   it('accepts valid midnight-crossing window', () => {
     const result = validateWindow(
-      '2026-06-19T23:00:00',
-      '2026-06-20T03:00:00',
+      '2027-01-01T23:00:00',
+      '2027-01-02T03:00:00',
     );
     expect(result.hasWindow).toBe(true);
     expect(result.from).toBe('vie 23:00');

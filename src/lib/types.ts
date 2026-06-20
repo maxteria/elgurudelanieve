@@ -47,16 +47,16 @@ export interface ZoneInterpretation {
   label: string;
   altitude: number;
   current: {
-    temp: number;
-    feelsLike: number;
-    wind: number;
-    precipitation: number;
-    snowChance: number;
-    freezingLevel: number;
-    humidity: number;
-    snowDepth: number;
-    precipitationProbability: number;
-    weatherCode: number;
+    temp: number | null;
+    feelsLike: number | null;
+    wind: number | null;
+    precipitation: number | null;
+    snowChance: number | null;
+    freezingLevel: number | null;
+    humidity: number | null;
+    snowDepth: number | null;
+    precipitationProbability: number | null;
+    weatherCode: number | null;
   };
   answer: {
     status: 'yes' | 'possible' | 'no';
@@ -80,7 +80,7 @@ export interface SnowInterpretation {
     | 'nevada débil'
     | 'nieve moderada'
     | 'linda nevada'
-    | 'se viene un paquetón';
+    | 'nevada importante';
   powderScore: {
     value: number;
     label: string;

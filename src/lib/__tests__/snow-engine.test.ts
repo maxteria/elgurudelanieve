@@ -162,7 +162,7 @@ describe('analyzeWeather', () => {
     expect(anySnow).toBe(true);
   });
 
-  it('returns "se viene un paquetón" for heavy snow with window', () => {
+  it('returns "nevada importante" for heavy snow with window', () => {
     // Heavy snow starting hour 0, very cold → high powder score + snow window
     const forecast = makeForecastFromFactory((i) => {
       if (i < 8) {
@@ -181,7 +181,7 @@ describe('analyzeWeather', () => {
     expect(result.mainAnswer.status).toBe('yes');
     expect(result.powderScore.value).toBeGreaterThanOrEqual(78);
     expect(result.bestWindow.hasWindow).toBe(true);
-    expect(result.snowLabel).toBe('se viene un paquetón');
+    expect(result.snowLabel).toBe('nevada importante');
   });
 
   it('handles empty hourly gracefully (no data)', () => {

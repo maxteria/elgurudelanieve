@@ -36,6 +36,7 @@ import {
   roundWind,
   degreesToCardinal,
 } from '../lib/pronostico';
+import { buildMasterVerdict } from '../lib/master-verdict';
 
 const params = Astro.url.searchParams;
 const demoParam = params.get('demo');
@@ -57,6 +58,8 @@ const isDemo = source === 'mock-demo';
 
 const dailySummaries = getSevenDayForecast(normalized.hourly);
 
+const verdict = buildMasterVerdict(periods, 'today', weatherApi?.cloudCover);
+
 // Build data for each zone
 const villageDays = buildDaysData(
   dailySummaries,
@@ -74,9 +77,9 @@ const topDays = buildDaysData(
   ZONE_CONFIG.top.altitude,
 );
 
-const villageGuru = getGuruCopy(villageDays, 'Pueblo');
-const midGuru = getGuruCopy(midDays, 'Centro');
-const topGuru = getGuruCopy(topDays, 'Cumbre');
+const villageGuru = getGuruCopy(villageDays, 'Pueblo', verdict.isSkiSeasonOpen);
+const midGuru = getGuruCopy(midDays, 'Centro', verdict.isSkiSeasonOpen);
+const topGuru = getGuruCopy(topDays, 'Cumbre', verdict.isSkiSeasonOpen);
 ---
 
 <html lang="es">
@@ -205,7 +208,7 @@ const topGuru = getGuruCopy(topDays, 'Cumbre');
               <div class="bg-[rgba(9,16,22,0.8)] border border-hielo/20 rounded-xl px-5 py-4 mb-5">
                 <div class="flex items-center justify-between mb-2">
                   <span class="text-[8px] text-hielo/50 tracking-[0.3em] uppercase font-semibold">
-                    EL GURÚ VE EN EL EXTENDIDO
+                    EL GURÚ LEE EL EXTENDIDO
                   </span>
                   <span class="text-[9px] text-white/25">
                     {days.length} días
@@ -551,12 +554,12 @@ const topGuru = getGuruCopy(topDays, 'Cumbre');
           Estado del cerro Caviahue
         </h2>
         <p class="text-[12px] text-white/60 leading-relaxed mb-2">
-          {periods.today.mainAnswer.description} El pronóstico desglosa la
-          situación por pueblo, centro y cumbre para entender dónde puede nevar
-          y con qué intensidad.
+          {verdict.mainDescription} El pronóstico desglosa la situación por
+          pueblo, centro y cumbre para entender dónde puede nevar y con qué
+          intensidad.
         </p>
         {
-          periods.today.bestWindow.hasWindow && (
+          verdict.hasWindow && (
             <p class="text-[11px] text-white/50 leading-relaxed mb-2">
               Mejor ventana prevista: de {periods.today.bestWindow.from} a{' '}
               {periods.today.bestWindow.to}. {periods.today.bestWindow.description}
@@ -564,9 +567,11 @@ const topGuru = getGuruCopy(topDays, 'Cumbre');
           )
         }
         <p class="text-[11px] text-white/40 leading-relaxed">
-          Esta es una interpretación de modelos meteorológicos para Caviahue. No
-          reemplaza el parte oficial del centro de ski ni la evaluación de la
-          patrulla.
+          Esta es una interpretación de modelos meteorológicos para Caviahue. {
+            verdict.isSkiSeasonOpen
+              ? 'No reemplaza el parte oficial del centro de ski ni la evaluación de la patrulla.'
+              : 'La temporada todavía no está operativa, así que no hay recomendación de actividad en montaña. Consultá el parte oficial cuando abra el centro.'
+          }
         </p>
       </section>
 

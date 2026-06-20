@@ -314,12 +314,12 @@ function pick<T>(arr: T[]): T {
 const NO_SNOW_HIGH_ALTITUDE: Variant[] = [
   {
     message:
-      'Hoy no veo nieve, rider. La montaña está fría pero seca. No te hagas ilusiones todavía: andá encerando la tabla.',
+      'Hoy no detecto nieve, rider. La montaña está fría pero seca. No te hagas ilusiones todavía: guardá la tabla para cuando los modelos confirmen humedad.',
     tip: 'Aprovechá para hacer mantenimiento y estar listo cuando llegue.',
   },
   {
     message:
-      'No veo pinta de que nieve, la cota está por las nubes. Humedad hay, pero no alcanza. Paciencia.',
+      'No detecto pinta de que nieve, la cota está por las nubes. Humedad hay, pero no alcanza. Paciencia.',
     tip: 'Es buen momento para revisar cantos y ceras.',
   },
   {
@@ -337,7 +337,7 @@ const NO_SNOW_HIGH_ALTITUDE: Variant[] = [
 const NO_SNOW_GENERIC: Variant[] = [
   {
     message:
-      'Hoy no veo nevada, la montaña está tranquila. Esperá que llegue moisture o no hay nada que hacer.',
+      'Hoy no detecto nevada, la montaña está tranquila. Esperá que llegue moisture o no hay nada que hacer.',
     tip: 'Seguí mirando las actualizaciones, Caviahue cambia rápido.',
   },
   {
@@ -350,13 +350,13 @@ const NO_SNOW_GENERIC: Variant[] = [
 const COLD_DRY: Variant[] = [
   {
     message:
-      'Hace frío y seco, pero sin nieve. Buen día para andar ligero y mirar el cerro desde abajo.',
-    tip: 'Si querés recorrer, las vistas están despejadas.',
+      'Hace frío y seco, pero sin nieve. Buen día para recorrer y mirar el cerro desde abajo.',
+    tip: 'Si querés recorrer, las vistas se ven amplias.',
   },
   {
     message:
       'Frío seco, cero humedad. La montaña está linda para caminar, no para deslizar.',
-    tip: 'Aprovechá el día despejado para conocer Caviahue.',
+    tip: 'Aprovechá el día para conocer Caviahue.',
   },
 ];
 
@@ -391,8 +391,8 @@ const SNOW_SOON: Variant[] = [
 const SNOW_LATER: Variant[] = [
   {
     message:
-      'Hoy no veo blanco, pero más adelante en la semana puede asomarse algo. Hay que tener paciencia.',
-    tip: 'Seguí mirando las actualizaciones. Caviahue cambia rápido.',
+      'Hoy no detecto blanco, pero más adelante en la semana puede asomarse algo. Hay que tener paciencia.',
+    tip: 'Seguí mirando las actualizaciones, Caviahue cambia rápido.',
   },
   {
     message:
@@ -430,7 +430,7 @@ function findNextSnowWindow(
 const WINDY: Variant[] = [
   {
     message:
-      'Veo viento importante. Puede haber nevada débil, pero el viento complica la experiencia en altura.',
+      'Detecto viento importante. Puede haber nevada débil, pero el viento complica la experiencia en altura.',
     tip: 'Evitá las cotas más expuestas si querés tablar tranquilo.',
   },
   {
@@ -529,7 +529,7 @@ export function generateFallbackNpcMessage(data: GuruCopyInput): GuruNpcOutput {
         mood: 'cautious',
         certainty: 'media',
         message:
-          'Veo nieve en formación. Las condiciones meteorológicas se dan, pero no implican que el centro esté operativo para ski.',
+          'Detecto nieve en formación. Las condiciones meteorológicas se dan, pero no implican que el centro esté operativo para ski.',
         tip: 'Revisá el parte oficial antes de salir.',
         source: 'fallback',
       };
@@ -538,7 +538,7 @@ export function generateFallbackNpcMessage(data: GuruCopyInput): GuruNpcOutput {
       mood: 'confident',
       certainty: 'media',
       message:
-        'Veo nieve posible. Las condiciones se están dando para los que buscan blanco arriba.',
+        'Detecto nieve posible. Las condiciones se están dando para los que buscan blanco arriba.',
       tip: 'Monitoreá la ventana de acumulación para afinar el timing.',
       source: 'fallback',
     };
@@ -570,7 +570,7 @@ export function generateFallbackNpcMessage(data: GuruCopyInput): GuruNpcOutput {
       mood: 'cautious',
       certainty: 'baja',
       message:
-        'Veo señales pero no hay ventana clara. Quedate atento, puede cambiar rápido.',
+        'Detecto señales pero no hay ventana clara. Quedate atento, puede cambiar rápido.',
       tip: 'Actualizá la página más tarde para ver si se forma ventana.',
       source: 'fallback',
     };
@@ -641,10 +641,10 @@ ${buildNarrativeRules(tier)}
 
 ${buildResortStatusContext(resortStatus)}
 
-Mirá SIEMPRE los "Próximos días" del diagnóstico. Si hoy está seco pero ves nieve pronosticada para los próximos 3 a 5 días, MENCIONALO con tono optimista pero sin prometer. Por ejemplo: "El jueves el cielo se pone a trabajar y empieza a cerrar para algo de acumulación", "Viene cambiando el panorama para el finde, ojo", "Recién hacia el jueves se arma algo". No te quedes solo en el presente si hay señal clara más adelante — dale esperanza al rider con mesura.
+Mirá SIEMPRE los "Próximos días" del diagnóstico. Si hoy está seco pero el pronóstico muestra nieve para los próximos 3 a 5 días, MENCIONALO con tono optimista pero sin prometer. Por ejemplo: "El jueves el cielo se pone a trabajar y empieza a cerrar para algo de acumulación", "Viene cambiando el panorama para el finde, ojo", "Recién hacia el jueves se arma algo". No te quedes solo en el presente si hay señal clara más adelante — dale esperanza al rider con mesura.
 
 Códigos WMO de referencia:
-- 0: Cielo despejado
+- 0: Despejado
 - 1–3: Mayormente despejado a parcialmente nublado
 - 45–48: Niebla
 - 51–57: Llovizna
@@ -669,14 +669,16 @@ Respondé SOLO con el JSON, sin markdown, sin texto adicional.`;
 }
 
 function buildUserPrompt(data: GuruCopyInput): string {
-  const toCm = (m: number | undefined): string => {
-    if (m === undefined || m === null) return 'N/A';
+  const toCm = (m: number | null | undefined): string => {
+    if (m == null) return 'N/A';
     return `${Math.round(m * 100)}`;
   };
+  const fmt = (n: number | null | undefined, unit: string): string =>
+    n != null ? `${n}${unit}` : 'N/A';
   const zoneLines = [
-    `- Pueblo (${data.zones.village.current.temp}°C, ${data.zones.village.current.precipitation}mm precip, nieve: ${toCm(data.zones.village.current.snowDepth)}cm, cota: ${data.zones.village.current.freezingLevel ?? 'N/A'}m, prob: ${data.zones.village.current.precipitationProbability ?? 'N/A'}%)`,
-    `- Centro (${data.zones.mid.current.temp}°C, ${data.zones.mid.current.precipitation}mm precip, nieve: ${toCm(data.zones.mid.current.snowDepth)}cm, cota: ${data.zones.mid.current.freezingLevel ?? 'N/A'}m, prob: ${data.zones.mid.current.precipitationProbability ?? 'N/A'}%)`,
-    `- Cumbre (${data.zones.top.current.temp}°C, ${data.zones.top.current.precipitation}mm precip, nieve: ${toCm(data.zones.top.current.snowDepth)}cm, cota: ${data.zones.top.current.freezingLevel ?? 'N/A'}m, prob: ${data.zones.top.current.precipitationProbability ?? 'N/A'}%)`,
+    `- Pueblo (${fmt(data.zones.village.current.temp, '°C')}, ${fmt(data.zones.village.current.precipitation, 'mm')} precip, nieve: ${toCm(data.zones.village.current.snowDepth)}cm, cota: ${fmt(data.zones.village.current.freezingLevel, 'm')}, prob: ${fmt(data.zones.village.current.precipitationProbability, '%')})`,
+    `- Centro (${fmt(data.zones.mid.current.temp, '°C')}, ${fmt(data.zones.mid.current.precipitation, 'mm')} precip, nieve: ${toCm(data.zones.mid.current.snowDepth)}cm, cota: ${fmt(data.zones.mid.current.freezingLevel, 'm')}, prob: ${fmt(data.zones.mid.current.precipitationProbability, '%')})`,
+    `- Cumbre (${fmt(data.zones.top.current.temp, '°C')}, ${fmt(data.zones.top.current.precipitation, 'mm')} precip, nieve: ${toCm(data.zones.top.current.snowDepth)}cm, cota: ${fmt(data.zones.top.current.freezingLevel, 'm')}, prob: ${fmt(data.zones.top.current.precipitationProbability, '%')})`,
   ].join('\n');
 
   const diagnostics = [
@@ -689,7 +691,7 @@ function buildUserPrompt(data: GuruCopyInput): string {
     data.now
       ? `Ahora en Caviahue: ${data.now.condition}, ${data.now.temp}°C`
       : null,
-    data.zones.village.current.weatherCode !== undefined
+    data.zones.village.current.weatherCode != null
       ? `Código WMO: ${data.zones.village.current.weatherCode}`
       : null,
     data.nextDays && data.nextDays.length > 0

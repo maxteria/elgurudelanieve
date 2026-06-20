@@ -17,9 +17,17 @@ const { currentWeather, weatherApi } = Astro.props as Props;
  * WMO weather code → Spanish condition mapping.
  * Used when Open-Meteo current_weather is available.
  */
-function wmoCondition(code: number): string {
-  if (code === 0) return 'Despejado';
-  if (code <= 3) return 'Parcialmente nublado';
+function wmoCondition(code: number, cloudCover?: number | null): string {
+  if (code === 0) {
+    if (cloudCover != null && cloudCover >= 40) return 'Nublado';
+    if (cloudCover != null && cloudCover >= 10) return 'Poco nublado';
+    return 'Despejado';
+  }
+  if (code <= 3) {
+    if (cloudCover != null && cloudCover >= 80) return 'Muy nublado';
+    if (cloudCover != null && cloudCover >= 40) return 'Nublado';
+    return 'Parcialmente nublado';
+  }
   if (code === 45 || code === 48) return 'Niebla';
   if (code >= 51 && code <= 57) return 'Llovizna';
   if (code >= 61 && code <= 67) return 'Lluvia';
@@ -42,7 +50,7 @@ const displayWindKmh: number | null =
 // Condition text: OM WMO → text primary, WA condition text fallback
 const displayCondition: string | null =
   currentWeather?.weathercode != null
-    ? wmoCondition(currentWeather.weathercode)
+    ? wmoCondition(currentWeather.weathercode, weatherApi?.cloudCover)
     : (weatherApi?.condition ?? null);
 // FeelsLike, humidity, cloudCover: only from WA (OM doesn't provide these for current_weather)
 const displayFeelsLike = weatherApi?.feelsLike ?? null;

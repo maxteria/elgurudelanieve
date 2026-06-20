@@ -33,7 +33,7 @@ type SnowLabel =
   | 'nevada débil'
   | 'nieve moderada'
   | 'linda nevada'
-  | 'se viene un paquetón';
+  | 'nevada importante';
 
 function computeSnowLabel(
   mainStatus: 'yes' | 'possible' | 'no',
@@ -44,7 +44,7 @@ function computeSnowLabel(
     return 'sin nieve a la vista';
   }
   if (powderScore >= 78 && hasWindow) {
-    return 'se viene un paquetón';
+    return 'nevada importante';
   }
   if (powderScore >= 55 || (mainStatus === 'yes' && hasWindow)) {
     return 'linda nevada';
@@ -380,20 +380,20 @@ export function analyzeWeather(
     const answer = getZoneAnswer(zh, zone.altitude);
     const alerts = generateZoneAlerts(zh, zone.label, zone.altitude);
     const current = zh[0] ?? {
-      temp: -999,
-      feels_like: -999,
-      wind: 0,
-      windDir: 0,
-      cloudCover: 0,
-      windGusts: 0,
-      precip: 0,
-      snow_prob: 0,
-      freezing_level: 9999,
-      humidity: 0,
-      snowfall: 0,
-      snowDepth: 0,
-      weatherCode: 0,
-      precipitationProbability: 0,
+      temp: null,
+      feels_like: null,
+      wind: null,
+      windDir: null,
+      cloudCover: null,
+      windGusts: null,
+      precip: null,
+      snow_prob: null,
+      freezing_level: null,
+      humidity: null,
+      snowfall: null,
+      snowDepth: null,
+      weatherCode: null,
+      precipitationProbability: null,
     };
 
     return {
@@ -480,7 +480,7 @@ export function analyzeWeather(
   let powderDescription = powder.reason;
   if (powder.value < 35) {
     const villagePrecip = zoneInterpretations[0].current.precipitation;
-    if (villagePrecip <= 0.2) {
+    if (villagePrecip != null && villagePrecip <= 0.2) {
       powderDescription = 'Score bajo — falta precipitación para acumulación.';
     } else {
       powderDescription =

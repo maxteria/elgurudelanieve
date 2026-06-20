@@ -11,6 +11,7 @@ import { isValidScenario } from '../data/demo-scenarios';
 import MobileNav from '../components/MobileNav.astro';
 import GuruNpcCard from '../components/guru/GuruNpcCard.astro';
 import { generateGuruNpcMessage, type GuruCopyInput } from '../lib/ai/guru-copy';
+import { buildMasterVerdict, type MasterVerdict } from '../lib/master-verdict';
 import type { GuruNpcOutput } from '../lib/ai/types';
 import { getSevenDayForecast } from '../lib/forecast-periods';
 import HeadMeta from '../components/HeadMeta.astro';
@@ -66,19 +67,31 @@ periodKeys.forEach((key, i) => {
   touristData[key] = touristResults[i];
 });
 
+const verdict: MasterVerdict = buildMasterVerdict(
+  periods,
+  'today',
+  result.weatherApi?.cloudCover,
+);
+
+const safeSkiPhrase = verdict.isSkiSeasonOpen
+  ? 'La base de pistas todavía no está confirmada, así que conviene esperar al parte oficial.'
+  : 'La temporada no está operativa, así que no hay recomendación de actividad en montaña.';
+
 const mainCopy =
   touristData.today?.message ||
-  'Hoy no veo nieve, rider. La montaña está fría, pero seca. No te manijees todavía: por ahora es día de encerar la tabla y mirar el cerro de reojo.';
+  (verdict.hasSnowSignal
+    ? `Hoy los modelos muestran señal de nieve meteorológica en Caviahue. ${safeSkiPhrase}`
+    : `Hoy no detecto señal de nieve meteorológica en Caviahue: frío hay, pero falta humedad para que se forme. ${safeSkiPhrase}`);
 const tomorrowCopy =
   touristData.tomorrow?.message ||
-  'Mañana lo veo parecido: frío hay, pero sin humedad no hay negocio.';
+  (verdict.hasSnowSignal
+    ? 'Mañana los modelos muestran condiciones similares. Quedate atento a actualizaciones.'
+    : 'Mañana tampoco detecto señal de nieve meteorológica: frío hay, pero sin humedad no se forma.');
 const weekCopy =
   touristData.sevenDays?.message ||
-  'Más adelante voy a mirar si baja la cota y entra precipitación.';
+  'En los próximos días voy a seguir leyendo los modelos. Cuando se alineen frío y humedad, voy a marcar una ventana.';
 
-const freez = result.zones.village.current.freezingLevel;
-const cotaLabel =
-  freez > 2600 ? 'Cota alta' : freez > 2200 ? 'Cota justa' : 'Cota favorable';
+const cotaLabel = verdict.cotaLabel;
 ---
 
 <html lang="es">
@@ -111,7 +124,7 @@ const cotaLabel =
           message={mainCopy}
           tip={touristData.today?.tip ?? null}
           source={touristData.today?.source ?? 'fallback'}
-          snowLabel={result.snowLabel}
+          snowLabel={verdict.snowLabel}
         />
 
         {
@@ -258,7 +271,7 @@ const cotaLabel =
               <p class="text-[11px] text-white/55 leading-relaxed">
                 El Gurú lee los modelos meteorológicos para Caviahue y traduce
                 la señal de frío, humedad y cota de nieve. {
-                  result.mainAnswer.description
+                  verdict.mainDescription
                 } Esto indica nieve meteorológica en formación, no una
                 recomendación de actividad en montaña. Antes de salir, consultá
                 el parte oficial del centro.
@@ -269,11 +282,12 @@ const cotaLabel =
                 ¿Hay nieve en Caviahue hoy?
               </h2>
               <p class="text-[11px] text-white/55 leading-relaxed">
-                Hoy el Gurú detecta señal de nieve meteorológica según los
-                modelos actuales. Eso describe precipitación sólida esperada,
-                no nieve acumulada ni base esquiable en el cerro. Para entender
-                cómo se distribuye por cotas, mirá el pronóstico extendido
-                desglosado.
+                {
+                  verdict.hasSnowSignal
+                    ? 'Hoy el Gurú detecta señal de nieve meteorológica según los modelos actuales. Eso describe precipitación sólida esperada, no nieve acumulada ni base esquiable en el cerro.'
+                    : 'Hoy el Gurú no detecta señal de nieve meteorológica según los modelos actuales. Eso no significa que no pueda cambiar en las próximas horas: Caviahue depende de que se alineen frío y humedad.'
+                } Para entender cómo se distribuye por cotas, mirá el pronóstico
+                extendido desglosado.
               </p>
             </div>
             <div>

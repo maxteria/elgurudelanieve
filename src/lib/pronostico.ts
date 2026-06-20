@@ -367,13 +367,17 @@ export function buildDaysData(
 
 // ─── Guru Copy ──────────────────────────────────────────────────────────────
 
-export function getGuruCopy(days: DayData[], zoneLabel: string): string {
+export function getGuruCopy(
+  days: DayData[],
+  zoneLabel: string,
+  skiAllowed = false,
+): string {
   const hasPrecip = days.some((d) => d.verdict !== 'Seco');
   if (!hasPrecip)
     return `Los próximos ${days.length} días no me entusiasmo demasiado. Aparece frío por momentos, pero sin precipitación la montaña no arma nieve.`;
   if (zoneLabel === 'Cumbre')
-    return `Arriba hay mejor señal. No canto paquetón, pero algunas ventanas pueden caer como nieve si se sostiene la cota.`;
+    return `Arriba hay mejor señal. No canto nevada grande, pero algunas ventanas pueden caer como nieve si se sostiene la cota.${skiAllowed ? ' Cuando abra el centro, estas son las condiciones que hay que monitorear.' : ' No implica que el centro esté operativo.'}`;
   if (zoneLabel === 'Centro')
-    return `En el centro la cosa mejora un poco, pero todavía depende mucho de que la cota acompañe.`;
-  return `Hay señales para mirar hacia mitad de semana, pero abajo la cota manda. Si no baja más, lo leo más como lluvia que como nieve para el pueblo.`;
+    return `En el centro la cosa mejora un poco, pero todavía depende mucho de que la cota acompañe.${skiAllowed ? '' : ' La temporada todavía no está operativa.'}`;
+  return `Hay señales para mirar hacia mitad de semana, pero abajo la cota manda. Si no baja más, lo leo más como lluvia que como nieve para el pueblo.${skiAllowed ? '' : ' No hay recomendación de actividad en montaña.'}`;
 }
