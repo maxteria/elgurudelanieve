@@ -1,4 +1,5 @@
 import type { NormalizedHourlyForecast, DailySummary } from './weather/types';
+import { getCaviahueDayKey } from './time/caviahue-time';
 
 const WEEKDAYS = [
   'domingo',
@@ -59,25 +60,32 @@ export function getSevenDayForecast(
 ): DailySummary[] {
   const grouped = new Map<string, NormalizedHourlyForecast[]>();
 
+  // Group by Caviahue local date
   for (const h of hourly) {
-    const d = parseLocalDate(h.time);
-    const key = d.toISOString().slice(0, 10);
-    if (!grouped.has(key)) grouped.set(key, []);
-    grouped.get(key)!.push(h);
+    const dayKey = getCaviahueDayKey(h.time);
+    if (!grouped.has(dayKey)) grouped.set(dayKey, []);
+    grouped.get(dayKey)!.push(h);
   }
 
-  const now = new Date();
-  const maxDate = new Date(now);
-  maxDate.setDate(maxDate.getDate() + 16);
+  const todayKey = getCaviahueDayKey(new Date().toISOString());
+  // Compute yesterday key for conditional inclusion
+  const yesterdayDate = new Date();
+  yesterdayDate.setDate(yesterdayDate.getDate() - 1);
+  const yesterdayKey = getCaviahueDayKey(yesterdayDate.toISOString());
+
+  // Max date: today + 16 days
+  const [ty, tm, td] = todayKey.split('-').map(Number);
+  const maxDate = new Date(Date.UTC(ty, tm - 1, td + 16));
+  const maxKey = maxDate.toISOString().slice(0, 10);
 
   const summaries: DailySummary[] = [];
 
   for (const [dateStr, entries] of grouped) {
-    const d = parseLocalDate(dateStr + 'T12:00:00');
-    // skip past dates and beyond 16 days
-    if (d < now) continue;
-    if (d > maxDate) continue;
+    // Skip before yesterday (Caviahue), skip beyond 16 days
+    if (dateStr < yesterdayKey) continue;
+    if (dateStr > maxKey) continue;
 
+    const d = parseLocalDate(dateStr + 'T12:00:00');
     const temps = entries.map((e) => e.temp);
     const feelsLikes = entries.map((e) => e.feelsLike);
     const winds = entries.map((e) => e.wind);
@@ -128,5 +136,7 @@ export function getSevenDayForecast(
     });
   }
 
+  // Sort chronologically and return up to 7 days
+  summaries.sort((a, b) => a.date.localeCompare(b.date));
   return summaries.slice(0, 7);
 }

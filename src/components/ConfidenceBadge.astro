@@ -42,9 +42,6 @@ const colors = colorByLabel[confidence.label];
     <span class={`text-[13px] font-bold ${colors.text}`}>
       {confidence.label}
     </span>
-    <span class="text-[11px] text-white/40 font-semibold">
-      {confidence.value}
-    </span>
     <svg
       width="12"
       height="12"
@@ -58,12 +55,14 @@ const colors = colorByLabel[confidence.label];
       <path d="M12 16v-4M12 8h.01"></path>
     </svg>
   </summary>
-  <div class="mt-2 pt-2 border-t border-white/[0.06]">
+  {
+    confidence.reasonsFor.length > 0 || confidence.reasonsAgainst.length > 0 ? (
+    <div class="mt-2 pt-2 border-t border-white/[0.06]">
     {
       confidence.reasonsFor.length > 0 && (
         <div class="mb-1.5">
           <span class="text-[7px] text-emerald-300/70 tracking-[0.15em] uppercase font-medium block mb-1">
-            A favor
+            Señales a favor
           </span>
           <ul class="space-y-0.5">
             {confidence.reasonsFor.map((reason) => (
@@ -80,7 +79,7 @@ const colors = colorByLabel[confidence.label];
       confidence.reasonsAgainst.length > 0 && (
         <div class="mb-1.5">
           <span class="text-[7px] text-rose-300/70 tracking-[0.15em] uppercase font-medium block mb-1">
-            En contra
+            Razones de la lectura
           </span>
           <ul class="space-y-0.5">
             {confidence.reasonsAgainst.map((reason) => (
@@ -97,4 +96,6 @@ const colors = colorByLabel[confidence.label];
       Índice de consistencia de señales, no probabilidad exacta.
     </p>
   </div>
+    ) : null
+  }
 </details>

@@ -1,5 +1,6 @@
 // Utilities for pronostico page
 import type { DailySummary, NormalizedHourlyForecast } from './weather/types';
+import { getCaviahueDayKey } from './time/caviahue-time';
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
@@ -55,6 +56,7 @@ export type DayData = {
   dayNum: string;
   dateStr: string;
   isToday: boolean;
+  isYesterday: boolean;
   zoneAltitude: number;
   verdict: 'Seco' | 'Lluvia' | 'Ventana' | 'Nieve' | 'Mezcla';
   verdictBadgeStyle: { bg: string; text: string };
@@ -226,18 +228,22 @@ export function buildDaysData(
   hourly: NormalizedHourlyForecast[],
   zoneAltitude: number,
 ): DayData[] {
-  const now = new Date();
-  const todayKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+  const todayKey = getCaviahueDayKey(new Date().toISOString());
+  const yesterdayDate = new Date();
+  yesterdayDate.setDate(yesterdayDate.getDate() - 1);
+  const yesterdayKey = getCaviahueDayKey(yesterdayDate.toISOString());
 
   return days.slice(0, 16).map((day) => {
     const { dayLabel, dayNum } = formatDate(day.date);
     const isToday = day.date === todayKey;
+    const isYesterday = day.date === yesterdayKey;
+    const finalDayLabel = isYesterday ? 'AYER' : dayLabel;
 
     const zoneOffset = (zoneAltitude - 1647) * 0.0065;
 
     const hourByPeriod = new Map<string, NormalizedHourlyForecast[]>();
     for (const h of hourly) {
-      const key = toLocalDateKey(h.time);
+      const key = getCaviahueDayKey(h.time);
       if (key !== day.date) continue;
       const hour = new Date(h.time).getHours();
       const label = getPeriodLabel(hour);
@@ -351,10 +357,11 @@ export function buildDaysData(
     const verdictBadgeStyle = getVerdictBadgeStyle(verdict);
 
     return {
-      dayLabel,
+      dayLabel: finalDayLabel,
       dayNum,
       dateStr: day.date,
       isToday,
+      isYesterday,
       zoneAltitude,
       verdict,
       verdictBadgeStyle,
