@@ -22,6 +22,7 @@ import {
   storeAicReading,
   getRecentAicReadings,
 } from '../supabase/client';
+import { storeForecastSnapshot } from '../supabase/forecast-store';
 
 export type WeatherMode = 'real' | 'demo';
 export type DataSource = 'open-meteo' | 'mock-demo' | 'mock-fallback';
@@ -166,6 +167,12 @@ export async function getWeatherData(options?: {
       const cmp = compareSources(smn, weatherApi, normalized);
       logComparison(cmp);
     }
+
+    // Store forecast snapshot (fire-and-forget — never blocks build)
+    storeForecastSnapshot(normalized.hourly).catch((err: unknown) =>
+      console.warn('[WeatherSource] storeForecastSnapshot failed:', err),
+    );
+
     return {
       normalized,
       weatherApi,

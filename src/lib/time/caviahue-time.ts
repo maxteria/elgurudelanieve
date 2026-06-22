@@ -73,6 +73,42 @@ export function toCaviahue(dateInput: string | Date) {
   return { utcIso, localIso, localHour, localDayKey, timeZone: TZ };
 }
 
+/**
+ * Parse an ISO datetime string that is already in Caviahue (America/Argentina/Buenos_Aires) local time
+ * and return the standard Caviahue components.
+ *
+ * Use this for sources like Open-Meteo which return timestamps in local time
+ * WITHOUT a timezone suffix (e.g. "2026-06-22T10:00"). Unlike `toCaviahue()`,
+ * this does NOT treat timezone-naive strings as UTC — it correctly interprets them
+ * as Argentina local time (UTC-3).
+ */
+export function toCaviahueFromLocal(localIso: string) {
+  const m = localIso.match(
+    /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2})(?:\.\d+)?)?$/,
+  );
+  if (!m) {
+    throw new Error(
+      `caviahue-time: invalid local ISO. Expected "YYYY-MM-DDTHH:MM" format. Received: ${localIso}`,
+    );
+  }
+  const [, year, month, day, hour, minute, second] = m;
+  // The input is in America/Argentina/Buenos_Aires (UTC-3, no DST since 2009).
+  // Construct the UTC equivalent by adding 3 hours, then let toCaviahue
+  // extract the correct local components.
+  // Date.UTC normalizes overflows automatically (e.g. hour 25 → next day 01:00 UTC).
+  const utcDate = new Date(
+    Date.UTC(
+      parseInt(year),
+      parseInt(month) - 1,
+      parseInt(day),
+      parseInt(hour) + 3,
+      parseInt(minute),
+      second ? parseInt(second) : 0,
+    ),
+  );
+  return toCaviahue(utcDate);
+}
+
 export function formatCaviahueHour(dateInput: string | Date) {
   const { localHour } = toCaviahue(dateInput);
   return String(localHour).padStart(2, '0') + ':00';
@@ -129,6 +165,7 @@ export function getCaviahueWeekdayIndex(dateInput: string | Date): number {
 
 export default {
   toCaviahue,
+  toCaviahueFromLocal,
   formatCaviahueHour,
   getCaviahueDayKey,
   isPastWindow,
