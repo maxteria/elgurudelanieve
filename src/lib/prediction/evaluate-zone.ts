@@ -27,9 +27,10 @@ export function evaluateZone(profile: ZoneProfile, signals: HourlySnowSignal[]):
   const contradictions: string[] = [];
 
   for (const h of hourly) {
-    const p = h.signal.precipitationMm ?? 0;
-    const sfc = h.signal.snowfallCm ?? null;
-    if ((p && p >= 0.2) || (sfc !== null && sfc >= 0.1)) counts.hoursWithPrecip += 1;
+    // Do not coerce missing precipitation to 0. Treat unknowns explicitly.
+    const p = typeof h.signal.precipitationMm === 'number' ? h.signal.precipitationMm : null;
+    const sfc = typeof h.signal.snowfallCm === 'number' ? h.signal.snowfallCm : null;
+    if ((p !== null && p >= 0.2) || (sfc !== null && sfc >= 0.1)) counts.hoursWithPrecip += 1;
     if (h.classification === 'snow_likely') counts.snowLikely += 1;
     if (h.classification === 'snow_marginal') counts.snowMarginal += 1;
     if (sfc !== null && sfc !== undefined) {
@@ -62,10 +63,12 @@ export function evaluateZone(profile: ZoneProfile, signals: HourlySnowSignal[]):
   let accumulationEstimateCm: number | null = null;
   if (anySnowfallReported) {
     // If any temperature is known and >2.5, block accumulation
-    const anyKnownWarm = hourly.some((h) => typeof h.signal.temperatureC === 'number' && (h.signal.temperatureC ?? 0) > 2.5);
+    const anyKnownWarm = hourly.some(
+      (h) => typeof h.signal.temperatureC === 'number' && h.signal.temperatureC > 2.5,
+    );
     // If any freezing level is known and > zone + 500, block accumulation
     const anyKnownFreezingHigh = hourly.some(
-      (h) => typeof h.signal.freezingLevelM === 'number' && (h.signal.freezingLevelM ?? 0) > profile.elevationM + 500,
+      (h) => typeof h.signal.freezingLevelM === 'number' && h.signal.freezingLevelM > profile.elevationM + 500,
     );
     if (!anyKnownWarm && !anyKnownFreezingHigh) {
       accumulationEstimateCm = Math.round(accumulationSum * 10) / 10; // round to 0.1cm
@@ -78,8 +81,9 @@ export function evaluateZone(profile: ZoneProfile, signals: HourlySnowSignal[]):
     summary = 'unknown';
   } else if (maxConsecLikely >= 3 || (accumulationEstimateCm !== null && accumulationEstimateCm >= 2.0)) {
     // ensure no critical contradictions
-    const hasCritical = hourly.some(
-      (h) => (h.signal.temperatureC ?? -999) > 3 || (h.signal.freezingLevelM ?? -999) > profile.elevationM + 500,
+    const hasCritical = hourly.some((h) =>
+      (typeof h.signal.temperatureC === 'number' && h.signal.temperatureC > 3) ||
+      (typeof h.signal.freezingLevelM === 'number' && h.signal.freezingLevelM > profile.elevationM + 500),
     );
     summary = hasCritical ? 'possible' : 'yes';
   } else if (counts.snowLikely >= 1 && counts.snowLikely <= 2) {

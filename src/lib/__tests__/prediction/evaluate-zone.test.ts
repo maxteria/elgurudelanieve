@@ -52,4 +52,32 @@ describe('evaluateZone', () => {
     const out = evaluateZone(ZONE_BASE, [veryHighFreezing]);
     expect(out.contradictions.length).toBeGreaterThanOrEqual(1);
   });
+
+  it('does not produce a snow-positive summary when precipitation is missing', () => {
+    // temperature and freezing known but precipitation is explicitly missing
+    const sig = {
+      zoneId: ZONE_BASE.id,
+      utcHour: '2026-06-13T20:00:00Z',
+      temperatureC: -1.0,
+      precipitationMm: null,
+      snowfallCm: null,
+      freezingLevelM: ZONE_BASE.elevationM + 100,
+    };
+    const out = evaluateZone(ZONE_BASE, [sig]);
+    // Should not claim snow when precipitation is unknown
+    expect(out.summary === 'yes' || out.summary === 'possible').toBe(false);
+  });
+
+  it('treats missing temperature as unknown even if precipitation present', () => {
+    const sig = {
+      zoneId: ZONE_BASE.id,
+      utcHour: '2026-06-13T21:00:00Z',
+      temperatureC: undefined,
+      precipitationMm: 0.5,
+      snowfallCm: null,
+      freezingLevelM: undefined,
+    };
+    const out = evaluateZone(ZONE_BASE, [sig]);
+    expect(out.summary).toBe('unknown');
+  });
 });

@@ -44,8 +44,11 @@ export function computeConsistencyIndex(
       negativePoints += 1;
     }
 
+    // Explicitly check known precipitation/snowfall values. Do NOT coerce null/undefined to 0.
+    const precipVal = typeof h.signal.precipitationMm === 'number' ? h.signal.precipitationMm : null;
+    const snowfallVal = typeof h.signal.snowfallCm === 'number' ? h.signal.snowfallCm : null;
     const hasSufficientPrecip =
-      (h.signal.precipitationMm ?? 0) >= 0.2 || (h.signal.snowfallCm ?? 0) >= 0.1;
+      (precipVal !== null && precipVal >= 0.2) || (snowfallVal !== null && snowfallVal >= 0.1);
     if (hasSufficientPrecip) precipHours += 1;
   }
 
@@ -69,14 +72,20 @@ export function computeConsistencyIndex(
   }
 
   // 2) insufficient precipitation ⇒ max 40 for snow
-  if (precipHours === 0) {
+  // Only apply this cap when we actually observed precipitation data (known hours)
+  const knownPrecipHours = hourly.reduce((c, h) => {
+    const p = typeof h.signal.precipitationMm === 'number' ? h.signal.precipitationMm : null;
+    const s = typeof h.signal.snowfallCm === 'number' ? h.signal.snowfallCm : null;
+    return c + (p !== null || s !== null ? 1 : 0);
+  }, 0);
+  if (knownPrecipHours > 0 && precipHours === 0) {
     cap = Math.min(cap, 40);
     reasons.push('Insufficient precipitation signal — applying cap 40');
   }
 
   // 3) freezing level too high ⇒ max 35
   const freezingTooHigh = hourly.some(
-    (h) => (h.signal.freezingLevelM ?? Number.POSITIVE_INFINITY) > zone.elevationM + 500,
+    (h) => typeof h.signal.freezingLevelM === 'number' && h.signal.freezingLevelM > zone.elevationM + 500,
   );
   if (freezingTooHigh) {
     cap = Math.min(cap, 35);
@@ -84,7 +93,9 @@ export function computeConsistencyIndex(
   }
 
   // 4) temperature too high ⇒ max 35
-  const tempTooHigh = hourly.some((h) => (h.signal.temperatureC ?? -999) > 3);
+  const tempTooHigh = hourly.some(
+    (h) => typeof h.signal.temperatureC === 'number' && h.signal.temperatureC > 3,
+  );
   if (tempTooHigh) {
     cap = Math.min(cap, 35);
     reasons.push('Temperature > 3°C in the period — applying cap 35');

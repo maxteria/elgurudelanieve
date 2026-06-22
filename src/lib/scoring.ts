@@ -1,4 +1,7 @@
 import type { HourlyForecast, PowderScoreResult, ConfidenceScore, SourceStatus } from './types';
+import type { ZoneProfile } from './prediction/types';
+import evaluateHour from './prediction/evaluate-hour';
+import computeConsistencyIndex from './prediction/compute-consistency-index';
 
 export function calculatePowderScore(
   forecast: HourlyForecast[],
@@ -74,102 +77,39 @@ export function calculateConfidence(
   sourceStatus: SourceStatus,
   altitude: number,
 ): ConfidenceScore {
+  // Delegate to canonical prediction consistency index implementation.
+  // Build HourlySnowSignal shapes and evaluate per-hour classification using
+  // the refactored prediction engine helpers so computeConsistencyIndex is
+  // the single source of truth for value and reasons.
   if (!hourly || hourly.length === 0) {
-    return {
-      value: 0,
-      label: 'Baja',
-      reasonsFor: [],
-      reasonsAgainst: ['Datos insuficientes para calcular confianza'],
-    };
+    // Keep legacy deterministic return shape while delegating reasons/value
+    return { value: 0, label: 'Baja', reasonsFor: [], reasonsAgainst: ['No hourly data to compute consistency'] };
   }
 
-  let value = 50; // baseline neutral
-  const reasonsFor: string[] = [];
-  const reasonsAgainst: string[] = [];
+  // Create a minimal ZoneProfile compatible object for the prediction helpers
+  const zoneProfile: ZoneProfile = { id: 'legacy', name: 'legacy', elevationM: altitude };
 
-  // 1. Source agreement (up to +20)
-  if (sourceStatus.openMeteo === 'ok') {
-    value += 10;
-    reasonsFor.push('Open-Meteo disponible');
-  } else {
-    value -= 5;
-    reasonsAgainst.push('Open-Meteo no disponible');
-  }
-  if (sourceStatus.weatherApi === 'ok') {
-    value += 5;
-    reasonsFor.push('WeatherAPI disponible');
-  } else if (sourceStatus.weatherApi === 'failed') {
-    reasonsAgainst.push('WeatherAPI no disponible');
-  }
-  if (sourceStatus.aic === 'ok') {
-    value += 5;
-    reasonsFor.push('Validación AIC disponible');
-  } else if (sourceStatus.aic === 'failed') {
-    reasonsAgainst.push('Falta validación AIC actualizada');
-  }
+  // Convert HourlyForecast -> HourlySnowSignal and evaluate per-hour
+  const classifications = hourly.map((h) => {
+    const signal = {
+      utcHour: h.time,
+      temperatureC: typeof h.temp === 'number' ? h.temp : null,
+      precipitationMm: typeof h.precip === 'number' ? h.precip : null,
+      snowfallCm: typeof h.snowfall === 'number' ? h.snowfall : null,
+      freezingLevelM: typeof h.freezing_level === 'number' ? h.freezing_level : null,
+      windKmh: typeof h.wind === 'number' ? h.wind : null,
+      humidityPct: typeof h.humidity === 'number' ? h.humidity : null,
+      sourceStatus: undefined,
+    } as any;
+    return evaluateHour(signal, zoneProfile);
+  });
 
-  // 2. Precipitation probability (up to +20)
-  const avgPrecipProb =
-    hourly.reduce((s, h) => s + (h.precipitationProbability ?? 0), 0) /
-    hourly.length;
-  if (avgPrecipProb > 60) {
-    value += 20;
-    reasonsFor.push('Precipitación probable >60%');
-  } else if (avgPrecipProb > 30) {
-    value += 10;
-    reasonsFor.push('Precipitación posible 30–60%');
-  } else if (avgPrecipProb > 10) {
-    value += 5;
-  } else {
-    value -= 10;
-    reasonsAgainst.push('Precipitación baja <10%');
-  }
+  const cci = computeConsistencyIndex(classifications, zoneProfile, sourceStatus);
 
-  // 3. Temperature vs freezing threshold (up to +15)
-  const avgTemp =
-    hourly.reduce((s, h) => s + h.temp, 0) / hourly.length;
-  if (avgTemp <= 1) {
-    value += 15;
-    reasonsFor.push('Temperatura favorable para nieve');
-  } else if (avgTemp <= 3) {
-    value += 5;
-    reasonsFor.push('Temperatura cerca del límite');
-  } else {
-    value -= 15;
-    reasonsAgainst.push('Temperatura alta para nieve');
-  }
+  // Map CCI label -> localized ConfidenceScore label
+  const label: ConfidenceScore['label'] = cci.label === 'High' ? 'Alta' : cci.label === 'Medium' ? 'Media' : 'Baja';
 
-  // 4. Freezing level / cota (up to +10)
-  const avgFreezing =
-    hourly.reduce((s, h) => s + h.freezingLevel, 0) / hourly.length;
-  if (avgFreezing <= altitude + 150) {
-    value += 10;
-    reasonsFor.push('Cota favorece sectores altos');
-  } else if (avgFreezing <= altitude + 300) {
-    // neutral — cota media
-  } else {
-    value -= 10;
-    reasonsAgainst.push('Cota alta para acumulación');
-  }
-
-  // 5. Wind (penalty up to -10)
-  const maxWind = Math.max(...hourly.map((h) => h.wind));
-  if (maxWind > 45) {
-    value -= 10;
-    reasonsAgainst.push('Viento muy fuerte (>45 km/h)');
-  } else if (maxWind > 30) {
-    value -= 5;
-    reasonsAgainst.push('Viento fuerte puede afectar acumulación');
-  } else if (maxWind >= 12) {
-    value += 3;
-    reasonsFor.push('Viento moderado favorable');
-  }
-
-  // Clamp to [0, 100]
-  value = Math.max(0, Math.min(100, value));
-
-  const label: ConfidenceScore['label'] =
-    value >= 65 ? 'Alta' : value >= 35 ? 'Media' : 'Baja';
-
-  return { value, label, reasonsFor, reasonsAgainst };
+  // Expose CCI reasons as reasonsAgainst to preserve the decision trace; keep
+  // reasonsFor empty (the CCI reasons are mixed by nature).
+  return { value: cci.value, label, reasonsFor: [], reasonsAgainst: cci.reasons };
 }
