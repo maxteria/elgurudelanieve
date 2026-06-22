@@ -78,13 +78,6 @@
 - `src/lib/__tests__/prediction/compute-consistency-index.test.ts` (new)
 
 **Concrete tasks**
-- [ ] Implement `evaluateZone()` with counts, accumulation estimate, contradictions, and summary.
-- [ ] Implement `buildSnowWindows()` with validity rules and TZ enforcement.
-- [ ] Implement `computeConsistencyIndex()` with hard caps from spec.
-- [ ] Add tests for zone evaluation (summit snow, rain in town/snow above, marginal, no precip, high freezing level, strong wind).
-- [ ] Add tests for window validation (valid, start==end, end<start, past window, Caviahue TZ).
-- [ ] Add tests for confidence caps (missing data, high freezing level, high temp, source failed/demo).
-
 - [x] Implement `evaluateZone()` with counts, accumulation estimate, contradictions, and summary.
 - [x] Implement `buildSnowWindows()` with validity rules and TZ enforcement.
 - [x] Implement `computeConsistencyIndex()` with hard caps from spec.
