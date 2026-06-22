@@ -788,14 +788,26 @@ export async function generateGuruNpcMessage(
       return created > cutoffDate && matchesPeriod;
     });
     if (recent && recent.mood && recent.certainty && recent.message) {
-      console.info(`[Guru] Cache hit for ${data.period}-${cacheDate}, skipping LLM call`);
-      return {
-        mood: recent.mood as GuruMood,
-        certainty: recent.certainty as GuruCertainty,
-        message: recent.message,
-        tip: null,
-        source: 'cache',
-      };
+      console.info(`[Guru] Cache hit for ${data.period}-${cacheDate}, applying governance`);
+
+      const governed = applyNarrativeGovernance(
+        {
+          mood: recent.mood as GuruMood,
+          certainty: recent.certainty as GuruCertainty,
+          message: recent.message,
+          tip: null,
+          source: 'cache',
+        },
+        tier,
+        data.resortStatus
+      );
+
+      if (!governed) {
+        console.info('[Guru] Cached message blocked by governance, using fallback');
+        return generateFallbackNpcMessage(data);
+      }
+
+      return governed;
     }
   } catch (err) {
     console.warn('[Guru] Cache read failed, falling through to LLM');
