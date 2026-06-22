@@ -464,13 +464,13 @@ describe('generateSummary (via analyzeWeather)', () => {
     expect(result.degraded).toBe(true);
   });
 
-  it('runtime confidence enforces CCI hard caps and uses localized labels', () => {
-    // Create a forecast with missing critical data to trigger the 45 cap
+  it('runtime confidence enforces CCI missing-data cap and uses localized labels', () => {
+    // Create a forecast with missing critical data in 6/24 hours (25% < 33% ⇒ cap at 60)
     const forecast = makeForecastFromFactory((i) => {
       if (i < 6) {
         return {
           precipitation: 0.5,
-          // missing temperature / freezing to force critical-missing cap
+          // missing temperature / freezing to force missing-data cap
           temp: undefined as any,
           freezingLevel: undefined as any,
         };
@@ -484,12 +484,14 @@ describe('generateSummary (via analyzeWeather)', () => {
       aic: 'ok',
     });
 
-    // Confidence must be present and capped at 45 or lower (per CCI rules)
+    // Confidence must be present and capped at 60 or lower (missing-data cap)
     expect(interp.confidence).toBeDefined();
-    expect(interp.confidence!.value).toBeLessThanOrEqual(45);
+    // 18/24 = 75% consistent not_snow → score 75, capped at 60 by missing data
+    expect(interp.confidence!.value).toBe(60);
 
     // Label must be localized (no English leaking)
     expect(['Alta', 'Media', 'Baja']).toContain(interp.confidence!.label);
+    expect(interp.confidence!.label).toBe('Media');
   });
 
   it('sets degraded false when all sources are ok or demo', () => {
