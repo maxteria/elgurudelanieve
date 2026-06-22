@@ -66,14 +66,28 @@ export function applyNarrativeGovernance(
   // permit ski recommendations
   if (!isSkiRecommendationAllowed(resortStatus)) {
     for (const re of SKI_PHRASES) {
-      if (re.test(text)) return null;
+      if (re.test(text)) {
+        return {
+          ...output,
+          message:
+            'Hay señal meteorológica para seguir de cerca, pero no hay estado operativo suficiente para hablar de actividad en el cerro. Revisá el parte oficial antes de planificar.',
+          tip: null,
+        };
+      }
     }
   }
 
   // 3) Block base claims when official report or base depth not available
   if (!isBaseClaimAllowed(resortStatus)) {
     for (const re of BASE_PHRASES) {
-      if (re.test(text)) return null;
+      if (re.test(text)) {
+        return {
+          ...output,
+          message:
+            'Hay señal meteorológica para seguir de cerca, pero no hay estado operativo suficiente para hablar de actividad en el cerro. Revisá el parte oficial antes de planificar.',
+          tip: null,
+        };
+      }
     }
   }
 

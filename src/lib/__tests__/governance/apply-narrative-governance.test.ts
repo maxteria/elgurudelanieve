@@ -36,16 +36,18 @@ describe('applyNarrativeGovernance', () => {
     expect(res).toBeNull();
   });
 
-  it('blocks imperative ski instructions (prepare/sharpen/store skis) under restricted resort status', () => {
+  it('sanitizes imperative ski instructions (prepare/sharpen/store skis) under restricted resort status', () => {
     const out = makeOutput('Prepare your skis and sharpen edges before the trip.');
     const res = applyNarrativeGovernance(out, 'normal', makeResortStatus());
-    expect(res).toBeNull();
+    expect(res).not.toBeNull();
+    expect(res?.message ?? '').not.toMatch(/esqu[ií]\w*|ski|snowboard|tabla|powder/i);
   });
 
-  it('blocks claims about excellent base when official report unavailable', () => {
+  it('sanitizes claims about excellent base when official report unavailable', () => {
     const out = makeOutput('Base excellent: perfect corduroy and consolidated base.');
     const res = applyNarrativeGovernance(out, 'normal', makeResortStatus());
-    expect(res).toBeNull();
+    expect(res).not.toBeNull();
+    expect(res?.message ?? '').not.toMatch(/base (excelente|consolidada|perfecta)/i);
   });
 
   it('allows meteorological snow language even when ski recommendations are blocked', () => {
@@ -63,13 +65,15 @@ describe('applyNarrativeGovernance', () => {
   it('blocks ski recommendation when resortStatus is undefined (conservative default)', () => {
     const out = makeOutput('Prepare your skis and head up the mountain.');
     const res = applyNarrativeGovernance(out, 'normal', undefined);
-    expect(res).toBeNull();
+    expect(res).not.toBeNull();
+    expect(res?.message ?? '').not.toMatch(/esqu[ií]\w*|ski|snowboard|tabla|powder/i);
   });
 
   it('blocks ski recommendation when resortStatus is incomplete/unknown', () => {
     const incomplete = makeResortStatus({ seasonStatus: 'unknown', resortOperationalStatus: 'unknown' });
     const out = makeOutput('Prepare your skis and head up the mountain.');
     const res = applyNarrativeGovernance(out, 'normal', incomplete);
-    expect(res).toBeNull();
+    expect(res).not.toBeNull();
+    expect(res?.message ?? '').not.toMatch(/esqu[ií]\w*|ski|snowboard|tabla|powder/i);
   });
 });

@@ -31,10 +31,11 @@ export const BLOCKED_PHRASES: Record<NarrativeTier, RegExp[]> = {
 
 /** English and Spanish ski-related phrases to block under restricted resort conditions */
 export const SKI_PHRASES: RegExp[] = [
-  /\besqui[aeáéíóú]?\b/i,
+  /esqu[ií]\w*/i,
   /\bski\b/i,
   /\bsnowboard\b/i,
   /\btabla\b/i,
+  /powder/i,
   /\bsub[ií]s?\b/i,
   /\bbajad[aeo]\b/i,
   /\bpista\b/i,

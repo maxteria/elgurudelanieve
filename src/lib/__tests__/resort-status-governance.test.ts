@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { generateFallbackNpcMessage } from '../ai/guru-copy';
+import { applyNarrativeGovernance } from '../governance/apply-narrative-governance';
 import type { GuruCopyInput } from '../ai/guru-copy';
 import type { ResortStatus } from '../types';
 
@@ -178,5 +179,20 @@ describe('resort status narrative governance', () => {
     expect(text).not.toMatch(
       /\b(esqui[aeáéíóú]|ski|snowboard|tabla|subí|pista|medios)\b/,
     );
+  });
+
+  it('blocks ski recommendation from cached message when resortStatus is undefined', () => {
+    const cached = {
+      mood: 'good',
+      certainty: 'high',
+      message: 'Excelente día para esquiar en Caviahue',
+      tip: null,
+      source: 'cache',
+    } as any;
+
+    const result = applyNarrativeGovernance(cached, 'normal', undefined);
+
+    expect(result).not.toBeNull();
+    expect(result?.message ?? '').not.toMatch(/esqu[ií]\w*|ski|snowboard|tabla|powder/i);
   });
 });
