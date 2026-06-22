@@ -1,9 +1,9 @@
 import getSupabase from './client';
 import { getCaviahueDayKey, toCaviahueFromLocal } from '../time/caviahue-time';
-import { buildDaysData, ZONE_CONFIG } from '../pronostico';
+import { buildDaysData, pickBestHistoricalRun, ZONE_CONFIG } from '../pronostico';
 import { getSevenDayForecast } from '../forecast-periods';
 import type { NormalizedHourlyForecast } from '../weather/types';
-import type { ForecastHourInsert, ForecastPeriodSummaryInsert } from './forecast-types';
+import type { ForecastHourInsert, ForecastPeriodSummaryInsert, ForecastPeriodSummaryRow } from './forecast-types';
 
 /**
  * Save a forecast snapshot to Supabase:
@@ -114,4 +114,44 @@ export async function storeForecastSnapshot(
   console.info(
     `[ForecastStore] Saved run ${runId}: ${hourRows.length} hours, ${summaryRows.length} period summaries`,
   );
+}
+
+/**
+ * Fetch the most recent complete historical forecast for "yesterday" (Caviahue local)
+ * from forecast_period_summaries.
+ *
+ * Returns the period summaries grouped by zone if found and complete,
+ * or null if:
+ *   - Supabase env vars are missing
+ *   - No data exists for yesterday
+ *   - No run has complete data (all 3 zones × 3 periods)
+ *
+ * Never throws. This is safe to call during static build; if Supabase is
+ * unavailable or the table doesn't exist yet, it logs a warning and returns null.
+ */
+export async function getHistoricalYesterday(): Promise<Record<
+  string,
+  ForecastPeriodSummaryRow[]
+> | null> {
+  const sb = getSupabase();
+  if (!sb) return null;
+
+  const yesterdayDate = new Date();
+  yesterdayDate.setDate(yesterdayDate.getDate() - 1);
+  const yesterdayKey = getCaviahueDayKey(yesterdayDate.toISOString());
+
+  const { data, error } = await sb
+    .from('forecast_period_summaries')
+    .select('*')
+    .eq('local_date', yesterdayKey)
+    .order('forecast_run_id', { ascending: false });
+
+  if (error) {
+    console.warn('[ForecastStore] getHistoricalYesterday error:', error.message);
+    return null;
+  }
+
+  if (!data || data.length === 0) return null;
+
+  return pickBestHistoricalRun(data as ForecastPeriodSummaryRow[]);
 }

@@ -20,6 +20,7 @@ import SnowWindow from '../components/SnowWindow.astro';
 import {
   ZONE_CONFIG,
   buildDaysData,
+  buildHistoricalDayData,
   getGuruCopy,
   ROWS,
   PERIOD_LABELS,
@@ -36,6 +37,7 @@ import {
   roundWind,
   degreesToCardinal,
 } from '../lib/pronostico';
+import { getHistoricalYesterday } from '../lib/supabase/forecast-store';
 import { buildMasterVerdict } from '../lib/master-verdict';
 
 const params = Astro.url.searchParams;
@@ -76,6 +78,22 @@ const topDays = buildDaysData(
   normalized.hourly,
   ZONE_CONFIG.top.altitude,
 );
+
+// Inject historical yesterday if available (fire-and-forget, never blocks build)
+const historicalYesterday = await getHistoricalYesterday();
+if (historicalYesterday) {
+  const zones = [
+    { key: 'village', days: villageDays, alt: ZONE_CONFIG.village.altitude },
+    { key: 'mid', days: midDays, alt: ZONE_CONFIG.mid.altitude },
+    { key: 'top', days: topDays, alt: ZONE_CONFIG.top.altitude },
+  ] as const;
+  for (const z of zones) {
+    const zoneRows = historicalYesterday[z.key];
+    if (zoneRows && zoneRows.length >= 3) {
+      z.days.unshift(buildHistoricalDayData(zoneRows, z.alt));
+    }
+  }
+}
 
 const villageGuru = getGuruCopy(villageDays, 'Pueblo', verdict.isSkiSeasonOpen);
 const midGuru = getGuruCopy(midDays, 'Centro', verdict.isSkiSeasonOpen);

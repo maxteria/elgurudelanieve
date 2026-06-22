@@ -1,5 +1,6 @@
 // Utilities for pronostico page
 import type { DailySummary, NormalizedHourlyForecast } from './weather/types';
+import type { ForecastPeriodSummaryRow } from './supabase/forecast-types';
 import { getCaviahueDayKey } from './time/caviahue-time';
 
 // ─── Constants ──────────────────────────────────────────────────────────────
@@ -57,6 +58,7 @@ export type DayData = {
   dateStr: string;
   isToday: boolean;
   isYesterday: boolean;
+  isHistorical: boolean;
   zoneAltitude: number;
   verdict: 'Seco' | 'Lluvia' | 'Ventana' | 'Nieve' | 'Mezcla';
   verdictBadgeStyle: { bg: string; text: string };
@@ -362,6 +364,7 @@ export function buildDaysData(
       dateStr: day.date,
       isToday,
       isYesterday,
+      isHistorical: false,
       zoneAltitude,
       verdict,
       verdictBadgeStyle,
@@ -386,5 +389,162 @@ export function getGuruCopy(
     return `Arriba hay mejor señal. No canto nevada grande, pero algunas ventanas pueden caer como nieve si se sostiene la cota.${skiAllowed ? ' Cuando abra el centro, estas son las condiciones que hay que monitorear.' : ' No implica que el centro esté operativo.'}`;
   if (zoneLabel === 'Centro')
     return `En el centro la cosa mejora un poco, pero todavía depende mucho de que la cota acompañe.${skiAllowed ? '' : ' La temporada todavía no está operativa.'}`;
-  return `Hay señales para mirar hacia mitad de semana, pero abajo la cota manda. Si no baja más, lo leo más como lluvia que como nieve para el pueblo.${skiAllowed ? '' : ' No hay recomendación de actividad en montaña.'}`;
+   return `Hay señales para mirar hacia mitad de semana, pero abajo la cota manda. Si no baja más, lo leo más como lluvia que como nieve para el pueblo.${skiAllowed ? '' : ' No hay recomendación de actividad en montaña.'}`;
+}
+
+// ─── Historical Data ────────────────────────────────────────────────────────
+
+/**
+ * Check whether a set of forecast_period_summaries rows for a single date
+ * is "complete" — meaning it has at least 3 zones × 3 periods.
+ * Only complete runs are used to reconstruct yesterday from history.
+ */
+export function isHistoricalRunComplete(
+  rows: ForecastPeriodSummaryRow[],
+): boolean {
+  const zonePeriods = new Map<string, Set<string>>();
+  for (const row of rows) {
+    if (!zonePeriods.has(row.zone)) zonePeriods.set(row.zone, new Set());
+    zonePeriods.get(row.zone)!.add(row.period);
+  }
+  // Must have all 3 zones, each with all 3 periods
+  const zones = ['village', 'mid', 'top'];
+  for (const z of zones) {
+    const periods = zonePeriods.get(z);
+    if (!periods || periods.size < 3) return false;
+  }
+  return true;
+}
+
+/**
+ * Given raw forecast_period_summaries rows for yesterday (multiple runs),
+ * find the most recent run that has complete data and return it grouped by zone.
+ */
+export function pickBestHistoricalRun(
+  rows: ForecastPeriodSummaryRow[],
+): Record<string, ForecastPeriodSummaryRow[]> | null {
+  // Group by forecast_run_id
+  const runs = new Map<number, ForecastPeriodSummaryRow[]>();
+  for (const row of rows) {
+    if (!runs.has(row.forecast_run_id)) runs.set(row.forecast_run_id, []);
+    runs.get(row.forecast_run_id)!.push(row);
+  }
+
+  // Sort by run_id descending (most recent first) and find first complete one
+  const sortedIds = Array.from(runs.keys()).sort((a, b) => b - a);
+  for (const runId of sortedIds) {
+    const runRows = runs.get(runId)!;
+    if (!isHistoricalRunComplete(runRows)) continue;
+
+    // Group by zone for this complete run
+    const byZone: Record<string, ForecastPeriodSummaryRow[]> = {};
+    for (const row of runRows) {
+      if (!byZone[row.zone]) byZone[row.zone] = [];
+      byZone[row.zone].push(row);
+    }
+    return byZone;
+  }
+
+  return null;
+}
+
+/**
+ * Build a DayData for one zone from historical forecast_period_summaries rows.
+ * `rows` must be all period summaries for a single zone + single date (3 rows: AM, PM, Noche).
+ */
+export function buildHistoricalDayData(
+  rows: ForecastPeriodSummaryRow[],
+  zoneAltitude: number,
+): DayData {
+  const dateStr = rows[0]?.local_date ?? '';
+  const { dayLabel, dayNum } = formatDate(dateStr);
+
+  // Group by period
+  const periodMap = new Map<string, ForecastPeriodSummaryRow>();
+  for (const r of rows) {
+    periodMap.set(r.period, r);
+  }
+
+  const periods: PeriodData[] = PERIOD_LABELS.map((label) => {
+    const row = periodMap.get(label);
+    if (!row) {
+      return {
+        label,
+        temp: null,
+        feelsLike: null,
+        precip: null,
+        snowCm: null,
+        windDir: null,
+        windSpeed: null,
+        humidity: null,
+        cloud: null,
+        cota: null,
+        periodStatus: 'Seco' as const,
+      };
+    }
+    return {
+      label,
+      temp: row.temp_max,
+      feelsLike: row.temp_min,
+      precip: row.rain_mm,
+      snowCm: row.snow_cm,
+      windDir: null, // wind direction not stored in period summaries
+      windSpeed: row.wind_kmh,
+      humidity: row.humidity_pct,
+      cloud: row.cloud_pct,
+      cota: row.cota_m,
+      periodStatus: (row.period_status ?? 'Seco') as PeriodData['periodStatus'],
+    };
+  });
+
+  // Compute verdict (same logic as buildDaysData)
+  const hasNieve = periods.some((p) => p.periodStatus === 'Nieve');
+  const hasLluvia = periods.some((p) =>
+    ['Llovizna', 'Lluvia', 'Lluvia fuerte', 'Diluvio'].includes(
+      p.periodStatus,
+    ),
+  );
+  const allSeco = periods.every((p) => p.periodStatus === 'Seco');
+
+  let verdict: DayData['verdict'] = 'Seco';
+  if (allSeco) {
+    verdict = 'Seco';
+  } else if (hasNieve && hasLluvia) {
+    verdict = 'Mezcla';
+  } else if (hasNieve) {
+    verdict = 'Nieve';
+  } else {
+    const rainVerdicts = periods
+      .filter((p) => p.periodStatus !== 'Seco')
+      .map((p) => p.periodStatus);
+    verdict = (rainVerdicts[0] ?? 'Seco') as DayData['verdict'];
+  }
+
+  // Compute day-level temp extremes from period values
+  const tempMaxVal = periods.reduce(
+    (max, p) => (p.temp !== null && (max === null || p.temp > max) ? p.temp : max),
+    null as number | null,
+  );
+  const tempMinVal = periods.reduce(
+    (min, p) =>
+      p.feelsLike !== null && (min === null || p.feelsLike < min)
+        ? p.feelsLike
+        : min,
+    null as number | null,
+  );
+
+  return {
+    dayLabel: 'AYER',
+    dayNum,
+    dateStr,
+    isToday: false,
+    isYesterday: true,
+    isHistorical: true,
+    zoneAltitude,
+    verdict,
+    verdictBadgeStyle: getVerdictBadgeStyle(verdict),
+    tempMax: tempMaxVal !== null ? Math.round(tempMaxVal) : 0,
+    tempMin: tempMinVal !== null ? Math.round(tempMinVal) : 0,
+    periods,
+  };
 }
