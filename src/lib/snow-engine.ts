@@ -6,19 +6,25 @@ import type {
   NormalizedHourlyForecast,
   NormalizedZoneForecast,
 } from './weather/types';
-import { calculatePowderScore, calculateConfidence } from './scoring';
+import { calculatePowderScore } from './scoring';
+import evaluateHour from './prediction/evaluate-hour';
+import computeConsistencyIndex from './prediction/compute-consistency-index';
+import type { ZoneProfile } from './prediction/types';
 import { validateWindow } from './validate-window';
 import type { HourlyForecast } from './types';
 import { LAPSE_RATE } from './weather/constants';
 import { computeNarrativeTier } from './ai/guru-copy';
 import { loadResortStatus } from './resort-status';
+import caviahue from './time/caviahue-time';
 
 const WEEKDAY_SHORT = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'];
 
 function formatWindowTime(isoTime: string): string {
-  const d = new Date(isoTime);
-  const day = WEEKDAY_SHORT[d.getDay()];
-  const hour = String(d.getHours()).padStart(2, '0');
+  // Use Caviahue helpers so labels are deterministic and TZ-safe
+  const { localIso, localHour } = caviahue.toCaviahue(isoTime);
+  const dayIndex = caviahue.getCaviahueWeekdayIndex(isoTime);
+  const day = WEEKDAY_SHORT[dayIndex];
+  const hour = String(localHour).padStart(2, '0');
   return `${day} ${hour}:00`;
 }
 
@@ -136,9 +142,11 @@ function computeZoneHourly(
     const zoneWind =
       Math.round(h.wind * (1 + 0.08 * (altDiff / 100)) * 10) / 10;
 
+    const cav = caviahue.toCaviahue(h.time);
+
     return {
       time: h.time,
-      hour: new Date(h.time).getHours(),
+      hour: cav.localHour,
       temp: zoneTemp,
       feels_like: Math.round((h.feelsLike - tempDrop) * 10) / 10,
       wind: zoneWind,
@@ -146,7 +154,8 @@ function computeZoneHourly(
       cloudCover: h.cloudCover,
       windGusts: h.windGusts,
       precip: h.precipitation,
-      snow_prob: h.precipitationProbability ?? 0,
+      // Do not coerce missing precipitationProbability to 0; preserve unknowns as null
+      snow_prob: typeof h.precipitationProbability === 'number' ? h.precipitationProbability : null,
       freezing_level: h.freezingLevel,
       humidity: h.humidity,
       snowfall: h.snowfall,
@@ -524,8 +533,35 @@ export function analyzeWeather(
     updated: normalized.updatedAt,
 
     // Trust layer (optional fields)
+    // Compute runtime confidence via the canonical consistency index.
     confidence: sourceStatus
-      ? calculateConfidence(bestZh, sourceStatus, bestZone.altitude)
+      ? (() => {
+          // Build ZoneProfile for prediction helpers
+          const zoneProfile: ZoneProfile = {
+            id: bestZoneId.id,
+            name: bestZone.label,
+            elevationM: bestZone.altitude,
+          };
+
+          // Map HourlyForecast -> HourlySnowSignal and evaluate per-hour
+          const classifications = bestZh.map((h) => {
+            const signal = {
+              utcHour: h.time,
+              temperatureC: typeof h.temp === 'number' ? h.temp : null,
+              precipitationMm: typeof h.precip === 'number' ? h.precip : null,
+              snowfallCm: typeof h.snowfall === 'number' ? h.snowfall : null,
+              freezingLevelM: typeof h.freezing_level === 'number' ? h.freezing_level : null,
+              windKmh: typeof h.wind === 'number' ? h.wind : null,
+              humidityPct: typeof h.humidity === 'number' ? h.humidity : null,
+              sourceStatus: undefined,
+            } as any;
+            return evaluateHour(signal, zoneProfile);
+          });
+
+          const cci = computeConsistencyIndex(classifications, zoneProfile, sourceStatus);
+          const label = cci.label === 'High' ? 'Alta' : cci.label === 'Medium' ? 'Media' : 'Baja';
+          return { value: cci.value, label, reasonsFor: [], reasonsAgainst: cci.reasons };
+        })()
       : undefined,
     sourceStatus,
     signals: sourceStatus ? extractSignalSummary(zoneHourlies) : undefined,
@@ -540,9 +576,11 @@ export function analyzeWeather(
 
   // Compute narrative tier from confidence + snow status + wind
   if (interp.confidence) {
-    const maxWind = Math.max(
-      ...Object.values(zoneHourlies).flat().map((h) => h.wind),
-    );
+    const windVals = Object.values(zoneHourlies)
+      .flat()
+      .map((h) => h.wind)
+      .filter((w) => typeof w === 'number') as number[];
+    const maxWind = windVals.length > 0 ? Math.max(...windVals) : 0;
     interp.narrativeTier = computeNarrativeTier(
       interp.confidence,
       interp.mainAnswer.status,

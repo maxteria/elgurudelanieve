@@ -23,13 +23,13 @@ export function buildSnowWindows(signals: HourlySnowSignal[], profile: ZoneProfi
     return { windows: [], message: 'No clear snow window in this period.' };
   }
 
-  // Ensure signals sorted by utcHour
-  const sorted = [...signals].sort((a, b) => new Date(a.utcHour).getTime() - new Date(b.utcHour).getTime());
+  // Ensure signals sorted by utcHour using caviahue ms helper (TZ-safe)
+  const sorted = [...signals].sort((a, b) => caviahue.msFromIso(a.utcHour) - caviahue.msFromIso(b.utcHour));
 
   const classified = sorted.map((s) => ({
     signal: s,
     classification: evaluateHour(s, profile).classification,
-    utcMs: new Date(s.utcHour).getTime(),
+    utcMs: caviahue.msFromIso(s.utcHour),
   }));
 
   const windows: SnowWindow[] = [];
@@ -40,21 +40,20 @@ export function buildSnowWindows(signals: HourlySnowSignal[], profile: ZoneProfi
     const runLen = endIdx - startIdx + 1;
     if (runLen < 2) return;
     const startUtc = classified[startIdx].signal.utcHour;
-    const lastUtc = classified[endIdx].signal.utcHour;
-    const endDate = new Date(lastUtc);
-    endDate.setUTCHours(endDate.getUTCHours() + 1);
-    const endUtc = endDate.toISOString();
+    const startMs = classified[startIdx].utcMs;
+    const endMs = classified[endIdx].utcMs + 60 * 60 * 1000; // window covers the hour ending at lastUtc + 1h
+    const endUtc = caviahue.isoFromMs(endMs);
     try {
-      const startDate = new Date(startUtc);
-      if (endDate.getTime() > startDate.getTime() && !caviahue.isPastWindow(startUtc, endUtc)) {
-        const fromLocalIso = caviahue.toCaviahue(startUtc).localIso;
-        const toLocalIso = caviahue.toCaviahue(endUtc).localIso;
+      // Validate ordering and that window is not fully in the past
+      if (endMs > startMs && !caviahue.isPastWindow(startUtc, endUtc)) {
+        const fromLocalIso = caviahue.toCaviahue(new Date(startMs)).localIso;
+        const toLocalIso = caviahue.toCaviahue(new Date(endMs)).localIso;
         windows.push({
           startUtc,
           endUtc,
           fromLocalIso,
           toLocalIso,
-          durationHours: (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60),
+          durationHours: (endMs - startMs) / (1000 * 60 * 60),
         });
       }
     } catch {

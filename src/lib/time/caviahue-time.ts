@@ -25,7 +25,8 @@ function isIsoDateOnly(s: string) {
 }
 
 function isIsoWithTime(s: string) {
-  return /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+\-]\d{2}:\d{2})?$/.test(s);
+  // Accept ISO datetimes with HH:MM or HH:MM:SS(.sss) and optional timezone
+  return /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?(?:Z|[+\-]\d{2}:\d{2})?$/.test(s);
 }
 
 function hasTimeZoneDesignator(s: string) {
@@ -88,9 +89,51 @@ export function isPastWindow(startUtc: string, endUtc: string) {
   return end.getTime() < nowUtc;
 }
 
+/**
+ * Return epoch milliseconds for an ISO string or Date parsed as UTC.
+ * Centralizes parsing so callers don't use new Date(string) directly.
+ */
+export function msFromIso(dateInput: string | Date): number {
+  return toDate(dateInput).getTime();
+}
+
+/**
+ * Create an ISO (toISOString) from epoch milliseconds.
+ */
+export function isoFromMs(ms: number): string {
+  return new Date(ms).toISOString();
+}
+
+/**
+ * Add hours to an ISO or Date and return an ISO string (UTC).
+ */
+export function addHoursToIso(dateInput: string | Date, hours: number): string {
+  const ms = msFromIso(dateInput);
+  return isoFromMs(ms + hours * 60 * 60 * 1000);
+}
+
+/**
+ * Return the weekday index (0=Sun .. 6=Sat) for the Caviahue local date
+ * corresponding to the provided time. Deterministic and TZ-safe.
+ */
+export function getCaviahueWeekdayIndex(dateInput: string | Date): number {
+  // Use partsFor to extract the Caviahue local Y/M/D and compute weekday
+  const date = toDate(dateInput);
+  const p = partsFor(date);
+  const y = Number(p.year);
+  const m = Number(p.month);
+  const d = Number(p.day);
+  const ms = Date.UTC(y, m - 1, d);
+  return new Date(ms).getUTCDay();
+}
+
 export default {
   toCaviahue,
   formatCaviahueHour,
   getCaviahueDayKey,
   isPastWindow,
+  msFromIso,
+  isoFromMs,
+  addHoursToIso,
+  getCaviahueWeekdayIndex,
 };

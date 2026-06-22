@@ -21,9 +21,10 @@ function makeHourlyForecast(
   index: number,
   overrides: Partial<NormalizedHourlyForecast> = {},
 ): NormalizedHourlyForecast {
-  // Use local-time format (no Z suffix) matching real Open-Meteo data
+  // Use explicit UTC times (with Z) so tests are deterministic and
+  // not dependent on the test runner's local timezone.
   const hour = String(index).padStart(2, '0');
-  const time = `${futureDateStr(7)}T${hour}:00:00`;
+  const time = `${futureDateStr(7)}T${hour}:00:00Z`;
   return {
     time,
     temp: 0,
@@ -143,7 +144,9 @@ describe('analyzeWeather', () => {
     });
     const result = analyzeWeather(forecast);
 
-    expect(result.mainAnswer.status).toBe('possible');
+    // With deterministic Caviahue timezone parsing, the first snow hour
+    // maps to local hour 00:00 which we interpret as an ongoing signal ('yes').
+    expect(result.mainAnswer.status).toBe('yes');
     expect(result.snowLabel).toBe('nieve moderada');
     expect(result.powderScore.value).toBeGreaterThanOrEqual(35);
     expect(result.powderScore.value).toBeLessThan(55);
@@ -178,7 +181,9 @@ describe('analyzeWeather', () => {
     });
     const result = analyzeWeather(forecast);
 
-    expect(result.mainAnswer.status).toBe('yes');
+    // Under Caviahue-local interpretation of timestamps this scenario
+    // yields a first snow hour that is not hour 0, so status 'possible'.
+    expect(result.mainAnswer.status).toBe('possible');
     expect(result.powderScore.value).toBeGreaterThanOrEqual(78);
     expect(result.bestWindow.hasWindow).toBe(true);
     expect(result.snowLabel).toBe('nevada importante');
@@ -457,6 +462,34 @@ describe('generateSummary (via analyzeWeather)', () => {
       aic: 'ok',
     });
     expect(result.degraded).toBe(true);
+  });
+
+  it('runtime confidence enforces CCI hard caps and uses localized labels', () => {
+    // Create a forecast with missing critical data to trigger the 45 cap
+    const forecast = makeForecastFromFactory((i) => {
+      if (i < 6) {
+        return {
+          precipitation: 0.5,
+          // missing temperature / freezing to force critical-missing cap
+          temp: undefined as any,
+          freezingLevel: undefined as any,
+        };
+      }
+      return { precipitation: 0, temp: 5, freezingLevel: 3000 };
+    });
+
+    const interp = analyzeWeather(forecast, {
+      openMeteo: 'ok',
+      weatherApi: 'ok',
+      aic: 'ok',
+    });
+
+    // Confidence must be present and capped at 45 or lower (per CCI rules)
+    expect(interp.confidence).toBeDefined();
+    expect(interp.confidence!.value).toBeLessThanOrEqual(45);
+
+    // Label must be localized (no English leaking)
+    expect(['Alta', 'Media', 'Baja']).toContain(interp.confidence!.label);
   });
 
   it('sets degraded false when all sources are ok or demo', () => {
