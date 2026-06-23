@@ -303,6 +303,63 @@ describe('pickBestHistoricalRun', () => {
   it('returns null for empty input', () => {
     expect(pickBestHistoricalRun([])).toBeNull();
   });
+
+  it('uses runOrder when provided (timestamp-sorted from forecast_runs)', () => {
+    const rows: ForecastPeriodSummaryRow[] = [];
+    // Run 9: complete
+    for (const zone of ['village', 'mid', 'top'] as const) {
+      for (const period of ['AM', 'PM', 'Noche'] as const) {
+        rows.push(makePeriodRow({ zone, period, forecast_run_id: 9 }));
+      }
+    }
+    // Run 99 (higher id but OLDER in runOrder): also complete
+    for (const zone of ['village', 'mid', 'top'] as const) {
+      for (const period of ['AM', 'PM', 'Noche'] as const) {
+        rows.push(makePeriodRow({ zone, period, forecast_run_id: 99 }));
+      }
+    }
+
+    // runOrder puts run 9 first (simulating run_timestamp DESC)
+    const runOrder = [{ id: 9 }, { id: 99 }];
+    const result = pickBestHistoricalRun(rows, runOrder);
+    expect(result).not.toBeNull();
+    // Should pick run 9 because it appears first in runOrder
+    expect(result!.village.every((r) => r.forecast_run_id === 9)).toBe(true);
+  });
+
+  it('skips incomplete runs in runOrder and picks the first complete one', () => {
+    const rows: ForecastPeriodSummaryRow[] = [];
+    // Run 1: incomplete (only village)
+    for (const period of ['AM', 'PM', 'Noche'] as const) {
+      rows.push(makePeriodRow({ zone: 'village', period, forecast_run_id: 1 }));
+    }
+    // Run 2: complete
+    for (const zone of ['village', 'mid', 'top'] as const) {
+      for (const period of ['AM', 'PM', 'Noche'] as const) {
+        rows.push(makePeriodRow({ zone, period, forecast_run_id: 2 }));
+      }
+    }
+
+    const runOrder = [{ id: 1 }, { id: 2 }];
+    const result = pickBestHistoricalRun(rows, runOrder);
+    expect(result).not.toBeNull();
+    // Should skip incomplete run 1, pick complete run 2
+    expect(result!.village.every((r) => r.forecast_run_id === 2)).toBe(true);
+  });
+
+  it('filters out runOrder ids that have no matching data', () => {
+    const rows: ForecastPeriodSummaryRow[] = [];
+    for (const zone of ['village', 'mid', 'top'] as const) {
+      for (const period of ['AM', 'PM', 'Noche'] as const) {
+        rows.push(makePeriodRow({ zone, period, forecast_run_id: 42 }));
+      }
+    }
+    // runOrder includes id 999 which has no matching rows
+    const runOrder = [{ id: 999 }, { id: 42 }];
+    const result = pickBestHistoricalRun(rows, runOrder);
+    expect(result).not.toBeNull();
+    expect(result!.village.every((r) => r.forecast_run_id === 42)).toBe(true);
+  });
 });
 
 describe('buildHistoricalDayData', () => {

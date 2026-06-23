@@ -120,14 +120,20 @@ export async function storeForecastSnapshot(
  * Fetch the most recent complete historical forecast for "yesterday" (Caviahue local)
  * from forecast_period_summaries.
  *
+ * Algorithm:
+ *   1. Query forecast_runs ordered by run_timestamp DESC (created_at fallback)
+ *      filtered to runs whose run_timestamp ≤ end of yesterday in Caviahue
+ *      (a run must not be later than the day it claims to predict).
+ *   2. Query forecast_period_summaries for those run IDs + yesterday's date.
+ *   3. Delegate to pickBestHistoricalRun with the timestamp-sorted run order.
+ *
  * Returns the period summaries grouped by zone if found and complete,
  * or null if:
  *   - Supabase env vars are missing
  *   - No data exists for yesterday
  *   - No run has complete data (all 3 zones × 3 periods)
  *
- * Never throws. This is safe to call during static build; if Supabase is
- * unavailable or the table doesn't exist yet, it logs a warning and returns null.
+ * Never throws. Safe during static build; logs warning and returns null on error.
  */
 export async function getHistoricalYesterday(): Promise<Record<
   string,
@@ -140,18 +146,38 @@ export async function getHistoricalYesterday(): Promise<Record<
   yesterdayDate.setDate(yesterdayDate.getDate() - 1);
   const yesterdayKey = getCaviahueDayKey(yesterdayDate.toISOString());
 
+  // End of yesterday in Caviahue (America/Argentina/Buenos_Aires, UTC-3, no DST).
+  // A run with run_timestamp after this cutoff is too recent for the day it predicts.
+  const yesterdayEndStr = `${yesterdayKey}T23:59:59.999-03:00`;
+
+  // 1. Find valid forecast_runs within the time window, ordered by timestamp
+  const { data: validRuns, error: runError } = await sb
+    .from('forecast_runs')
+    .select('id')
+    .lte('run_timestamp', yesterdayEndStr)
+    .order('run_timestamp', { ascending: false })
+    .order('created_at', { ascending: false });
+
+  if (runError) {
+    console.warn('[ForecastStore] getHistoricalYesterday error:', runError.message);
+    return null;
+  }
+  if (!validRuns || validRuns.length === 0) return null;
+
+  // 2. Get period summaries for those runs
+  const runIds = validRuns.map((r) => r.id);
   const { data, error } = await sb
     .from('forecast_period_summaries')
     .select('*')
-    .eq('local_date', yesterdayKey)
-    .order('forecast_run_id', { ascending: false });
+    .in('forecast_run_id', runIds)
+    .eq('local_date', yesterdayKey);
 
   if (error) {
     console.warn('[ForecastStore] getHistoricalYesterday error:', error.message);
     return null;
   }
-
   if (!data || data.length === 0) return null;
 
-  return pickBestHistoricalRun(data as ForecastPeriodSummaryRow[]);
+  // 3. Pick best complete run using timestamp-sorted order
+  return pickBestHistoricalRun(data as ForecastPeriodSummaryRow[], validRuns);
 }

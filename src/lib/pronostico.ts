@@ -420,9 +420,14 @@ export function isHistoricalRunComplete(
 /**
  * Given raw forecast_period_summaries rows for yesterday (multiple runs),
  * find the most recent run that has complete data and return it grouped by zone.
+ *
+ * When `runOrder` is provided (e.g. from a timestamp-sorted DB query), it
+ * determines the iteration order. Otherwise falls back to numeric forecast_run_id
+ * descending (legacy behavior).
  */
 export function pickBestHistoricalRun(
   rows: ForecastPeriodSummaryRow[],
+  runOrder?: { id: number }[],
 ): Record<string, ForecastPeriodSummaryRow[]> | null {
   // Group by forecast_run_id
   const runs = new Map<number, ForecastPeriodSummaryRow[]>();
@@ -431,8 +436,10 @@ export function pickBestHistoricalRun(
     runs.get(row.forecast_run_id)!.push(row);
   }
 
-  // Sort by run_id descending (most recent first) and find first complete one
-  const sortedIds = Array.from(runs.keys()).sort((a, b) => b - a);
+  // Iterate in runOrder (timestamp-sorted) if provided, else numeric fallback
+  const sortedIds = runOrder
+    ? runOrder.map((r) => r.id).filter((id) => runs.has(id))
+    : Array.from(runs.keys()).sort((a, b) => b - a);
   for (const runId of sortedIds) {
     const runRows = runs.get(runId)!;
     if (!isHistoricalRunComplete(runRows)) continue;
