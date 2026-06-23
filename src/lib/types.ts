@@ -168,7 +168,7 @@ export interface SourceStatus {
 /** Confidence score with rule explanation */
 export interface ConfidenceScore {
   value: number; // 0–100
-  label: 'Alta' | 'Media' | 'Baja';
+  label: 'Alta' | 'Media' | 'Baja' | 'Incompleta';
   reasonsFor: string[];
   reasonsAgainst: string[];
 }

@@ -144,9 +144,9 @@ const allSourcesFailed: SourceStatus = {
 };
 
 describe('calculateConfidence', () => {
-  it('returns Baja for empty hourly data', () => {
+  it('returns Incompleta for empty hourly data', () => {
     const result = calculateConfidence([], allSourcesOk, 1647);
-    expect(result.label).toBe('Baja');
+    expect(result.label).toBe('Incompleta');
     expect(result.value).toBe(0);
     expect(result.reasonsAgainst.length).toBeGreaterThanOrEqual(1);
   });

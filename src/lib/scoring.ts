@@ -82,8 +82,8 @@ export function calculateConfidence(
   // the refactored prediction engine helpers so computeConsistencyIndex is
   // the single source of truth for value and reasons.
   if (!hourly || hourly.length === 0) {
-    // Keep legacy deterministic return shape while delegating reasons/value
-    return { value: 0, label: 'Baja', reasonsFor: [], reasonsAgainst: ['No hourly data to compute consistency'] };
+    // No data → neutral state, not Baja
+    return { value: 0, label: 'Incompleta', reasonsFor: [], reasonsAgainst: ['Datos meteorológicos incompletos — no hay suficientes mediciones horarias para medir consistencia'] };
   }
 
   // Create a minimal ZoneProfile compatible object for the prediction helpers

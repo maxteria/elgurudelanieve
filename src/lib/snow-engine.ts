@@ -536,6 +536,16 @@ export function analyzeWeather(
     // Compute runtime confidence via the canonical consistency index.
     confidence: sourceStatus
       ? (() => {
+          // If no hourly data exists, return neutral state — not Baja
+          if (!bestZh || bestZh.length === 0) {
+            return {
+              value: 0,
+              label: 'Incompleta' as const,
+              reasonsFor: [],
+              reasonsAgainst: ['Datos meteorológicos incompletos — no hay suficientes mediciones horarias para medir consistencia'],
+            };
+          }
+
           // Build ZoneProfile for prediction helpers
           const zoneProfile: ZoneProfile = {
             id: bestZoneId.id,
