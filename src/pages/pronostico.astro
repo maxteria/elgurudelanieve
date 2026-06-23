@@ -270,6 +270,11 @@ const topGuru = getGuruCopy(topDays, 'Cumbre', verdict.isSkiSeasonOpen);
                               HOY
                             </div>
                           )}
+                          {day.isHistorical && !day.isToday && (
+                            <div class="text-[7px] text-amber-400/35 mt-0.5 tracking-wider" title="Lo que el pronóstico había previsto para este día, no un dato real">
+                              Pronóstico guardado
+                            </div>
+                          )}
                         </div>
                       ))}
                     </div>
@@ -420,12 +425,16 @@ const topGuru = getGuruCopy(topDays, 'Cumbre', verdict.isSkiSeasonOpen);
                                   }
                                   if (row.key === 'viento') {
                                     const speedVal = roundWind(p.windSpeed);
-                                    const dirStr = degreesToCardinal(p.windDir);
+                                    const dirStr = p.windDir !== null ? degreesToCardinal(p.windDir) : '';
                                     const windColor = getWindColor(speedVal);
-                                    const display =
-                                      speedVal === 0
-                                        ? 'Calma'
-                                        : `${dirStr} ${speedVal}`;
+                                    let display: string;
+                                    if (speedVal === null) {
+                                      display = '—';
+                                    } else if (speedVal === 0) {
+                                      display = 'Calma';
+                                    } else {
+                                      display = `${dirStr} ${speedVal}`;
+                                    }
                                     return (
                                       <div
                                         key={pi}

@@ -122,9 +122,10 @@ export function degreesToCardinal(deg: number | null): string {
 }
 
 export function windDisplay(dir: number | null, speed: number | null): string {
-  const dirStr = degreesToCardinal(dir);
   const speedVal = roundWind(speed);
+  if (speedVal === null) return '—';
   if (speedVal === 0) return 'Calma';
+  const dirStr = degreesToCardinal(dir);
   return `${dirStr} ${speedVal}`;
 }
 
