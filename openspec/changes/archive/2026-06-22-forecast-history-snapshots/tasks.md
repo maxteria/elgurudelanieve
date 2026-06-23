@@ -99,11 +99,14 @@
 ### T3.1 Crear `getHistoricalYesterday()`
 - Archivo: `src/lib/supabase/forecast-store.ts`
 - Función: `async function getHistoricalYesterday(): Promise<Record<string, ForecastPeriodSummaryRow[]> | null>`
-- Query directa a `forecast_period_summaries` filtrado por `local_date = yesterdayKey`
-- Delega en `pickBestHistoricalRun()` para encontrar el run más reciente con datos completos
+- **Algoritmo actual (v2, fix post-PR5):**
+  1. Query `forecast_runs` ordenado por `run_timestamp DESC` (fallback `created_at DESC`)
+  2. Filtro temporal: `run_timestamp ≤ yesterdayKeyT23:59:59.999-03:00` (solo runs dentro del día local)
+  3. Query `forecast_period_summaries` para esos run IDs + `local_date`
+  4. Delega en `pickBestHistoricalRun()` con el orden timestamp-sorted
 - Si Supabase falla / tabla inexistente / sin datos → retorna null (warning, no crash)
 
-✅ Desviación del plan original: en vez de `getHistoricalPeriodSummaries` + `getHistoricalHours` separados, implementamos `getHistoricalYesterday` que hace todo en un solo query + filtro de completitud. No reconstruimos desde horas (Nivel A) sino desde period summaries (Nivel B).
+✅ Desviación del plan original: en vez de `getHistoricalPeriodSummaries` + `getHistoricalHours` separados, implementamos `getHistoricalYesterday` que hace todo en dos queries + filtro de completitud. No reconstruimos desde horas (Nivel A) sino desde period summaries (Nivel B).
 
 ### T3.2 (no implementada) — `getHistoricalHours()` no es necesaria
 La reconstrucción de AYER se hace desde `forecast_period_summaries` (Nivel B), no desde `forecast_hours` (Nivel A). Esto es correcto porque el AYER histórico debe reflejar el pronóstico guardado, no los datos horarios crudos.
@@ -124,7 +127,7 @@ La reconstrucción de AYER se hace desde `forecast_period_summaries` (Nivel B), 
 
 ### T3.5 Manejo de datos insuficientes
 - `isHistoricalRunComplete()` verifica 3 zonas × 3 períodos ✅
-- `pickBestHistoricalRun()` agrupa por `forecast_run_id` y retorna el más reciente completo, o null ✅
+- `pickBestHistoricalRun()` acepta `runOrder?: { id: number }[]` para seguir orden timestamp-sorted; si no se provee, fallback a numeric sort ✅
 - Si Supabase no responde → null, log warning ✅
 - `— null` fixeado en PR4 ✅
 
@@ -200,6 +203,8 @@ La reconstrucción de AYER se hace desde `forecast_period_summaries` (Nivel B), 
 | `src/pages/pronostico.astro` | PR4 | Indicador visual + tooltip |
 | `src/lib/__tests__/supabase/forecast-store.test.ts` | PR5 | Crear |
 | `src/lib/__tests__/forecast-periods.test.ts` (o existente) | PR5 | Agregar tests de mezcla |
+
+**Post-archive fix (1408bc4)**: Reemplazado `ORDER BY forecast_run_id DESC` con query a `forecast_runs` ordenado por `run_timestamp DESC, created_at DESC` + filtro temporal `run_timestamp ≤ endOfYesterdayCaviahue`. `pickBestHistoricalRun` ahora acepta `runOrder` opcional para permitir orden timestamp-sorted desde afuera. 3 nuevos tests para runOrder.
 
 ## Review Workload Forecast
 - PR1: ~80 líneas (SQL + types)
