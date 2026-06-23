@@ -784,7 +784,7 @@ export async function generateGuruNpcMessage(
     const cached = await getGuruMessagesInRange(cacheDate, cacheDate);
     const recent = cached.find((r) => {
       const created = r.created_at ?? '';
-      const matchesPeriod = r.period === data.period;
+      const matchesPeriod = r.period_key === data.period;
       return created > cutoffDate && matchesPeriod;
     });
     if (recent && recent.mood && recent.certainty && recent.message) {
@@ -831,8 +831,8 @@ export async function generateGuruNpcMessage(
         // Store in cache for future builds
         try {
           await storeGuruMessage({
-            period: data.period,
-            period_key: cacheDate,
+            period: cacheDate,
+            period_key: data.period,
             mood: governed.mood,
             certainty: governed.certainty,
             message: governed.message,

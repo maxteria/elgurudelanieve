@@ -28,6 +28,13 @@ export type AicReading = {
   snow_water_eq: number | null;
 };
 
+/**
+ * Guru message record as stored in the `guru_messages` table.
+ *
+ * Column contract:
+ * - `period`     = cache date (DATE column), format `YYYY-MM-DD`
+ * - `period_key` = logical period key (TEXT column), one of `now|today|tomorrow|sevenDays`
+ */
 export type GuruMessageRecord = {
   id?: number;
   created_at?: string;
@@ -83,7 +90,7 @@ export async function getRecentAicReadings(
 }
 
 /**
- * Fetch Guru messages within a date range by period_key.
+ * Fetch Guru messages within a date range by `period` (DATE column).
  */
 export async function getGuruMessagesInRange(
   from: string,
@@ -95,9 +102,9 @@ export async function getGuruMessagesInRange(
   const { data, error } = await sb
     .from('guru_messages')
     .select('*')
-    .gte('period_key', from)
-    .lte('period_key', to)
-    .order('period_key', { ascending: false });
+    .gte('period', from)
+    .lte('period', to)
+    .order('period', { ascending: false });
 
   if (error) {
     console.warn('[Supabase] getGuruMessagesInRange error:', error.message);
