@@ -5,11 +5,22 @@ import { getSevenDayForecast } from '../forecast-periods';
 import type { NormalizedHourlyForecast } from '../weather/types';
 import type { ForecastHourInsert, ForecastPeriodSummaryInsert, ForecastPeriodSummaryRow } from './forecast-types';
 
+// ── Build dedup guard ─────────────────────────────────────────────────────────
+// During static build, multiple pages call getWeatherData(), each triggering
+// storeForecastSnapshot(). This in-memory Set ensures only one run per build
+// hash persists, eliminating duplicate forecast_runs for the same build.
+// Only active when buildHash is present (Vercel CI / static build).
+const _storedRunHashes = new Set<string>();
+
 /**
  * Save a forecast snapshot to Supabase:
  *   - 1 forecast_run row (one per build)
  *   - N forecast_hours rows (Nivel A — raw hourly data)
  *   - M forecast_period_summaries rows (Nivel B — derived AM/PM/Noche per zone)
+ *
+ * Dedup: when buildHash is present (Vercel build), consecutive calls within the
+ * same process with the same hash are silently skipped. This prevents 3 identical
+ * runs from 3 pages calling getWeatherData() during static build.
  *
  * Fire-and-forget: this never throws. Failures log a warning and return silently.
  * If Supabase env vars are missing, returns immediately without error.
@@ -24,6 +35,11 @@ export async function storeForecastSnapshot(
     import.meta.env?.VERCEL_GIT_COMMIT_SHA ??
     (typeof process !== 'undefined' ? process.env.VERCEL_GIT_COMMIT_SHA : null) ??
     null;
+
+  // Dedup: skip if this build hash was already stored in this process
+  if (buildHash && _storedRunHashes.has(buildHash)) {
+    return;
+  }
 
   // ── 1. Create forecast run ─────────────────────────────────────────────
   const { data: run, error: runErr } = await sb
@@ -41,6 +57,8 @@ export async function storeForecastSnapshot(
     console.warn('[ForecastStore] Failed to create forecast run:', runErr?.message);
     return;
   }
+  // Mark as stored so subsequent calls with same hash skip
+  if (buildHash) _storedRunHashes.add(buildHash);
   const runId = run.id;
 
   // ── 2. Insert forecast_hours (Nivel A) ─────────────────────────────────
@@ -180,4 +198,15 @@ export async function getHistoricalYesterday(): Promise<Record<
 
   // 3. Pick best complete run using timestamp-sorted order
   return pickBestHistoricalRun(data as ForecastPeriodSummaryRow[], validRuns);
+}
+
+// ── Test helpers ──────────────────────────────────────────────────────────────
+// Exported for unit-test inspection of the build-dedup guard.
+// Not part of the public API; prefixed with underscore.
+export function _getDedupSize(): number {
+  return _storedRunHashes.size;
+}
+
+export function _resetDedup(): void {
+  _storedRunHashes.clear();
 }
